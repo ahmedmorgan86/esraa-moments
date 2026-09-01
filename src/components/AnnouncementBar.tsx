@@ -1,5 +1,3 @@
-import type { ReactNode } from 'react';
-
 export function AnnouncementBar({ text, onClose }: { text: string; onClose: () => void }) {
   return (
     <div className="relative bg-primary text-white text-center py-2 px-12 text-xs font-semibold">

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ChevronLeft, Star, Sparkles, Heart } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronLeft } from 'lucide-react';
 import { occasions, seed } from '../data';
 
 const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } };

@@ -48,7 +48,7 @@ export default function ProductPage({ t, addToCart }: { t: any; addToCart: (p: a
 
             <span className="text-gradient font-extrabold text-3xl block mb-5">{product.price} ج.م</span>
 
-            <p className="text-muted text-[15px] leading-relaxed mb-7">{product.desc || product.shortDesc || 'تفاصيل المنتج...'}</p>
+            <p className="text-muted text-[15px] leading-relaxed mb-7">{product.desc || 'تفاصيل المنتج...'}</p>
 
             <div className="flex items-center gap-3 mb-7">
               <div className="inline-flex items-center gap-2 bg-surface border border-border rounded-full px-3 py-1.5">
@@ -75,11 +75,6 @@ export default function ProductPage({ t, addToCart }: { t: any; addToCart: (p: a
               ))}
             </div>
 
-            {product.priceMin && product.priceMax && (
-              <div className="text-muted text-[13px]">
-                <span className="font-semibold">نطاق السعر:</span> {product.priceMin} — {product.priceMax} ج.م (حسب الكمية)
-              </div>
-            )}
           </motion.div>
         </div>
       </section>

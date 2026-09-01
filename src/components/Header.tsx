@@ -8,7 +8,7 @@ type Props = {
   onDarkToggle: () => void; onLangToggle: () => void;
 };
 
-export function Header({ lang, t, scrolled, cartCount, dark, menuOpen, onMenuToggle, onCartOpen, onDarkToggle, onLangToggle }: Props) {
+export function Header({ t, scrolled, cartCount, dark, menuOpen, onMenuToggle, onCartOpen, onDarkToggle, onLangToggle }: Props) {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path ? 'text-primary bg-primary/8' : 'text-muted hover:text-ink hover:bg-primary/8';
   const navLinks = [

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, Package, ClipboardList, Users, Settings, LogOut, Plus, Eye, TrendingUp, ShoppingBag, Search, X } from 'lucide-react';
+import { LayoutDashboard, Package, ClipboardList, Users, Settings, LogOut, TrendingUp, ShoppingBag, Search } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { isAllowedAdmin } from '../lib/adminAuth';
 import { seed } from '../data';
@@ -16,12 +16,11 @@ const sidebarNav = [
   { key: 'settings', label: 'الإعدادات', icon: Settings },
 ];
 
-export default function AdminPage({ t }: { t: any }) {
+export default function AdminPage(_props: { t: any }) {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('dashboard');
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -132,7 +131,7 @@ function Dashboard() {
 
 /* ── Products Tab ── */
 function ProductsTab() {
-  const [products, setProducts] = useState(seed);
+  const [products] = useState(seed);
   const [search, setSearch] = useState('');
 
   const filtered = products.filter(p => !search || p.name.includes(search) || p.name_en?.toLowerCase().includes(search.toLowerCase()));

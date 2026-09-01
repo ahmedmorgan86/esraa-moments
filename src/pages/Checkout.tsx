@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Package, User, CreditCard, MapPin, ArrowLeft, ShoppingBag } from 'lucide-react';
+import { CreditCard, MapPin, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { CartItem } from '../data';
 import { calcShipping } from '../data';
@@ -14,7 +14,6 @@ export default function CheckoutPage({ t, cart, setCart }: Props) {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [orderId, setOrderId] = useState('');
-  const navigate = useNavigate();
   const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const shipping = calcShipping(subtotal);
   const total = subtotal + shipping;

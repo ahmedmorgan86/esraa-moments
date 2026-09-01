@@ -12,7 +12,7 @@ export function AnimateScroll({ children, className = '', delay = 0 }: { childre
 }
 
 export function StaggerContainer({ children, className = '', amount = 0.15 }: { children: ReactNode; className?: string; amount?: number }) {
-  const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.08, amount } } };
+  const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.08 } } };
   return (
     <motion.div className={className} initial="hidden" whileInView="visible" viewport={{ once: true, amount }} variants={stagger}>
       {children}

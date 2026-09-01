@@ -7,7 +7,7 @@ import { isAllowedAdmin } from '../lib/adminAuth';
 
 const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } };
 
-export default function LoginPage({ t }: { t: any }) {
+export default function LoginPage(_props: { t: any }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);

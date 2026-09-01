@@ -1,8 +1,8 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { useLocalStorage, useScrollShadow, useProducts } from './hooks';
-import { t, setUiLang, type Lang } from './i18n';
-import { SiteProvider, useSite } from './lib/site';
+import { useLocalStorage, useScrollShadow } from './hooks';
+import { t, setUiLang } from './i18n';
+import { useSite } from './lib/site';
 import type { CartItem } from './data';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
