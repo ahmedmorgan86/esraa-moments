@@ -30,8 +30,11 @@ function getLocal<T>(key: string, fallback: T): T {
 
 export function SiteProvider({ children }: { children: ReactNode }) {
   const [site, setSite] = useState<SiteData>(() => {
-    const cached = getLocal<SiteData | null>('em-site', null);
-    return cached ?? defaultSite;
+    const cached = getLocal<Partial<SiteData>>('em-site', null);
+    return {
+      appearance: { ...defaultSite.appearance, ...cached?.appearance },
+      announcement: { ...defaultSite.announcement, ...cached?.announcement },
+    };
   });
 
   useEffect(() => { localStorage.setItem('em-site', JSON.stringify(site)); }, [site]);
