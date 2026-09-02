@@ -1,7 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin, Link2, MessageCircle } from 'lucide-react';
+import { occasionEn } from '../i18n';
 
 export function Footer({ t }: { t: any }) {
+  const isEn = document.documentElement.lang === 'en';
+  const footerOccasions = ['سبوع', 'خطوبة', 'حنة', 'كتب كتاب', 'زفاف', 'عيد ميلاد'];
+
   return (
     <footer className="relative mt-10 bg-ink text-surface-alt overflow-hidden pt-14">
       <div className="max-w-6xl mx-auto px-5 lg:px-12">
@@ -24,7 +28,7 @@ export function Footer({ t }: { t: any }) {
 
           {/* Quick links */}
           <div>
-            <h4 className="text-[11.5px] font-bold text-white/50 uppercase tracking-widest mb-5">روابط سريعة</h4>
+            <h4 className="text-[11.5px] font-bold text-white/50 uppercase tracking-widest mb-5">{t.quickLinks}</h4>
             <ul className="flex flex-col gap-3">
               <li><Link to="/shop" className="text-white/55 text-[13.5px] hover:text-white transition-colors">{t.shop}</Link></li>
               <li><Link to="/track" className="text-white/55 text-[13.5px] hover:text-white transition-colors">{t.track}</Link></li>
@@ -36,21 +40,21 @@ export function Footer({ t }: { t: any }) {
 
           {/* Categories */}
           <div>
-            <h4 className="text-[11.5px] font-bold text-white/50 uppercase tracking-widest mb-5">تصفح حسب المناسبة</h4>
+            <h4 className="text-[11.5px] font-bold text-white/50 uppercase tracking-widest mb-5">{t.shopByOccasion}</h4>
             <ul className="flex flex-col gap-3">
-              {['سبوع', 'خطوبة', 'حنة', 'كتب كتاب', 'زفاف', 'عيد ميلاد'].map(c => (
-                <li key={c}><Link to={`/shop?cat=${encodeURIComponent(c)}`} className="text-white/55 text-[13.5px] hover:text-white transition-colors">{c}</Link></li>
+              {footerOccasions.map(c => (
+                <li key={c}><Link to={`/shop?cat=${encodeURIComponent(c)}`} className="text-white/55 text-[13.5px] hover:text-white transition-colors">{isEn ? occasionEn[c] || c : c}</Link></li>
               ))}
             </ul>
           </div>
 
           {/* Contact */}
           <div>
-            <h4 className="text-[11.5px] font-bold text-white/50 uppercase tracking-widest mb-5">تواصل معنا</h4>
+            <h4 className="text-[11.5px] font-bold text-white/50 uppercase tracking-widest mb-5">{t.contactUs}</h4>
             <div className="flex flex-col gap-3">
               <a href="tel:01097905435" className="flex items-center gap-2 text-white/55 text-[13px] hover:text-white transition-colors"><Phone size={14} className="text-white/40" /> 01097905435</a>
               <a href="mailto:esraamomentsstore@gmail.com" className="flex items-center gap-2 text-white/55 text-[13px] hover:text-white transition-colors"><Mail size={14} className="text-white/40" /> esraamomentsstore@gmail.com</a>
-              <span className="flex items-center gap-2 text-white/55 text-[13px]"><MapPin size={14} className="text-white/40" />شارع الجيش — عزبة النخل</span>
+              <span className="flex items-center gap-2 text-white/55 text-[13px]"><MapPin size={14} className="text-white/40" />{isEn ? 'El GEISH St. — Ezbet El Nakhel, Cairo' : 'شارع الجيش — عزبة النخل'}</span>
               <span className="flex items-center gap-2 text-white/55 text-[13px]"><Link2 size={14} className="text-white/40" /> @esraamoments</span>
             </div>
           </div>
@@ -58,7 +62,7 @@ export function Footer({ t }: { t: any }) {
 
         {/* Bottom */}
         <div className="border-t border-white/8 py-5 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-white/40 text-xs">© {new Date().getFullYear()} ESRAA Moments — جميع الحقوق محفوظة</p>
+          <p className="text-white/40 text-xs">© {new Date().getFullYear()} ESRAA Moments — {t.allRights}</p>
           <div className="flex gap-2">
             <span className="text-white/50 text-[10px] font-bold px-2 py-1 border border-white/15 rounded">Visa</span>
             <span className="text-white/50 text-[10px] font-bold px-2 py-1 border border-white/15 rounded">instaPay</span>
