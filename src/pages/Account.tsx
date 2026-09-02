@@ -8,11 +8,11 @@ import { isAllowedAdmin } from '../lib/adminAuth';
 const fadeUp = { hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' as const } } };
 
 const statusConfig: Record<string, { color: string; icon: any; bg: string }> = {
-  pending: { color: 'text-amber-600', icon: Clock, bg: 'bg-amber-50 border-amber-200' },
-  confirmed: { color: 'text-blue-600', icon: CheckCircle, bg: 'bg-blue-50 border-blue-200' },
-  shipped: { color: 'text-primary', icon: Truck, bg: 'bg-primary/5 border-primary/20' },
-  delivered: { color: 'text-emerald-600', icon: CheckCircle, bg: 'bg-emerald-50 border-emerald-200' },
-  cancelled: { color: 'text-red-500', icon: XCircle, bg: 'bg-red-50 border-red-200' },
+  pending: { color: 'text-amber-500', icon: Clock, bg: 'bg-amber-500/10 border-amber-500/20' },
+  confirmed: { color: 'text-blue-500', icon: CheckCircle, bg: 'bg-blue-500/10 border-blue-500/20' },
+  shipped: { color: 'text-primary', icon: Truck, bg: 'bg-primary/10 border-primary/20' },
+  delivered: { color: 'text-emerald-500', icon: CheckCircle, bg: 'bg-emerald-500/10 border-emerald-500/20' },
+  cancelled: { color: 'text-red-500', icon: XCircle, bg: 'bg-red-500/10 border-red-500/20' },
 };
 
 export default function AccountPage({ t }: { t: any }) {

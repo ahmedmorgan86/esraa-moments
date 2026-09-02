@@ -22,6 +22,8 @@ export default function Home({ t, lang, addToCart }: { t: any; lang: string; add
   const featured = seed.filter(p => p.featured).slice(0, 8);
   const bestSellers = seed.slice(0, 6);
   const isEn = lang === 'en';
+  const [email, setEmail] = useState('');
+  const [subscribed, setSubscribed] = useState(false);
 
   return (
     <>
@@ -41,7 +43,7 @@ export default function Home({ t, lang, addToCart }: { t: any; lang: string; add
           <div className="absolute -top-[5%] -end-[7%] w-[55%] aspect-square bg-primary/12 rounded-full blur-[25px] opacity-80 pointer-events-none" />
           <div className="absolute top-[5%] bottom-[-12px] -start-3 w-[74%] border-2 border-primary/15 rounded-[190px_190px_14px_14px] pointer-events-none" />
           <img src="/images/Gemini_Generated_Image_wh7xokwh7xokwh7x.jpeg" alt="" className="relative z-10 w-[min(380px,100%)] aspect-[4/5] object-cover rounded-[190px_190px_14px_14px] shadow-2xl" />
-          <div className="absolute bottom-5 start-5 z-20 bg-white/85 backdrop-blur-md border border-white/20 rounded-lg px-4 py-3 text-xs font-semibold shadow-lg">{t.heroOverlayLine1}<br /><span className="text-muted">{t.heroOverlayLine2}</span></div>
+          <div className="absolute bottom-5 start-5 z-20 bg-surface/85 backdrop-blur-md border border-white/20 rounded-lg px-4 py-3 text-xs font-semibold shadow-lg">{t.heroOverlayLine1}<br /><span className="text-muted">{t.heroOverlayLine2}</span></div>
         </div>
       </section>
 
@@ -135,10 +137,14 @@ export default function Home({ t, lang, addToCart }: { t: any; lang: string; add
             <span className="eyebrow">{t.newsEyebrow}</span>
             <h2 className="text-[clamp(24px,3.2vw,38px)] font-black mt-2 mb-3">{t.newsTitle}</h2>
             <p className="text-muted text-sm">{t.newsDesc}</p>
-            <div className="flex gap-2.5 mt-7 max-w-md mx-auto">
-              <input type="email" placeholder={t.newsPlaceholder} className="flex-1 px-4 py-3.5 bg-surface-alt border border-border-strong rounded-lg text-sm placeholder:text-subtle focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none transition-all" />
-              <button className="btn primary flex-shrink-0" type="button">{t.newsBtn}</button>
-            </div>
+            {subscribed ? (
+              <p className="mt-7 text-primary font-bold text-sm">{t.newsDone}</p>
+            ) : (
+              <form onSubmit={e => { e.preventDefault(); setSubscribed(true); }} className="flex gap-2.5 mt-7 max-w-md mx-auto">
+                <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder={t.newsPlaceholder} className="flex-1 px-4 py-3.5 bg-surface-alt border border-border-strong rounded-lg text-sm placeholder:text-subtle focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none transition-all" />
+                <button className="btn primary flex-shrink-0" type="submit">{t.newsBtn}</button>
+              </form>
+            )}
           </div>
         </div>
       </section>

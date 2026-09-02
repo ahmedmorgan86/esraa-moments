@@ -66,7 +66,7 @@ export default function Shop({ t, lang, addToCart }: { t: any; lang: string; add
               <Link to={`/product/${p.id}`} className="group block bg-surface border border-border rounded-xl overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all">
                 <div className="relative aspect-square overflow-hidden bg-surface-alt">
                   <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
-                  <span className="absolute bottom-3 start-3 z-10 bg-white/85 backdrop-blur-md border border-white/20 rounded-full px-3 py-1 text-[11px] font-bold">{isEn ? occasionEn[p.category] || p.category : p.category}</span>
+                  <span className="absolute bottom-3 start-3 z-10 bg-surface/85 backdrop-blur-md border border-white/20 rounded-full px-3 py-1 text-[11px] font-bold">{isEn ? occasionEn[p.category] || p.category : p.category}</span>
                 </div>
                 <div className="p-4">
                   <h3 className="text-[14px] font-bold line-clamp-2 mb-1">{isEn && p.name_en ? p.name_en : p.name}</h3>

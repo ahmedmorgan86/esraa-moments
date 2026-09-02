@@ -31,7 +31,7 @@ export default function ProductPage({ t, lang, addToCart }: { t: any; lang: stri
           {/* Image */}
           <div className="relative rounded-2xl overflow-hidden bg-surface-alt border border-border animate-[fadeUp_0.6s_ease_both]">
             <img src={product.image} alt={name} className="w-full aspect-square object-cover" />
-            <span className="absolute top-4 end-4 bg-white/85 backdrop-blur-md border border-white/20 rounded-full px-3 py-1 text-[11px] font-bold">{catLabel}</span>
+            <span className="absolute top-4 end-4 bg-surface/85 backdrop-blur-md border border-white/20 rounded-full px-3 py-1 text-[11px] font-bold">{catLabel}</span>
           </div>
 
           {/* Details */}

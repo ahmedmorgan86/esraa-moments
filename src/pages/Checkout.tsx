@@ -9,7 +9,7 @@ import { calcShipping } from '../data';
 type Props = { t: any; lang: string; cart: CartItem[]; setCart: (fn: any) => void };
 
 export default function CheckoutPage({ t, lang, cart, setCart }: Props) {
-  const [form, setForm] = useState({ name: '', phone: '', phone2: '', address: '', city: '', notes: '' });
+  const [form, setForm] = useState({ name: '', phone: '', phone2: '', email: '', address: '', city: '', notes: '' });
   const [payMethod, setPayMethod] = useState('cod');
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState('');
@@ -36,7 +36,7 @@ export default function CheckoutPage({ t, lang, cart, setCart }: Props) {
       const { error } = await supabase.from('orders').insert({
         order_number: orderNum,
         user_id: userId,
-        customer_email: session?.session?.user?.email || null,
+        customer_email: session?.session?.user?.email || form.email || null,
         customer_name: form.name,
         customer_phone: form.phone,
         customer_phone2: form.phone2 || null,
@@ -110,6 +110,10 @@ export default function CheckoutPage({ t, lang, cart, setCart }: Props) {
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[12px] font-semibold text-ink">{t.phoneLabel} *</label>
                   <input type="tel" value={form.phone} onChange={e => update('phone', e.target.value)} className="input-field" placeholder="01XXXXXXXXX" required />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-semibold text-ink">{t.email} ({t.optionalLabel})</label>
+                  <input type="email" value={form.email} onChange={e => update('email', e.target.value)} className="input-field" placeholder="example@email.com" />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[12px] font-semibold text-ink">{t.otherPhoneLabel}</label>

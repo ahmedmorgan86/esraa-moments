@@ -21,11 +21,11 @@ const navItems = (t: any) => [
 ];
 
 const statusStyles: Record<string, { color: string; icon: any; bg: string; border: string }> = {
-  pending: { color: 'text-amber-600', icon: Clock, bg: 'bg-amber-50', border: 'border-amber-200' },
-  confirmed: { color: 'text-blue-600', icon: CheckCircle, bg: 'bg-blue-50', border: 'border-blue-200' },
-  shipped: { color: 'text-primary', icon: Truck, bg: 'bg-primary/5', border: 'border-primary/20' },
-  delivered: { color: 'text-emerald-600', icon: CheckCircle, bg: 'bg-emerald-50', border: 'border-emerald-200' },
-  cancelled: { color: 'text-red-500', icon: XCircle, bg: 'bg-red-50', border: 'border-red-200' },
+  pending: { color: 'text-amber-500', icon: Clock, bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
+  confirmed: { color: 'text-blue-500', icon: CheckCircle, bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+  shipped: { color: 'text-primary', icon: Truck, bg: 'bg-primary/10', border: 'border-primary/20' },
+  delivered: { color: 'text-emerald-500', icon: CheckCircle, bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+  cancelled: { color: 'text-red-500', icon: XCircle, bg: 'bg-red-500/10', border: 'border-red-500/20' },
 };
 
 export default function AdminPage({ t }: { t: any }) {
@@ -278,7 +278,7 @@ function ProductsTab({ t }: { t: any }) {
                   {p.featured && <span className="bg-primary text-white text-[10px] font-bold px-2 py-1 rounded-md">{t.featuredLabel}</span>}
                 </div>
                 <div className="absolute top-3 end-3">
-                  <span className="bg-white/85 backdrop-blur-sm text-[10px] font-bold px-2 py-1 rounded-md text-ink">{p.stock} {t.qty}</span>
+                  <span className="bg-surface/85 backdrop-blur-sm text-[10px] font-bold px-2 py-1 rounded-md text-ink">{p.stock} {t.qty}</span>
                 </div>
               </div>
               <div className="p-4">
@@ -580,12 +580,16 @@ function SettingsTab({ t }: { t: any }) {
   const [whatsapp, setWhatsapp] = useState(() => localStorage.getItem('em-store-whatsapp') || '201097905435');
   const [email, setEmail] = useState(() => localStorage.getItem('em-store-email') || 'esraamomentsstore@gmail.com');
   const [address, setAddress] = useState(() => localStorage.getItem('em-store-address') || 'شارع الجيش - عزبة النخل');
+  const [shippingThreshold, setShippingThreshold] = useState(() => localStorage.getItem('em-shipping-threshold') || '500');
+  const [shippingFee, setShippingFee] = useState(() => localStorage.getItem('em-shipping-fee') || '60');
 
   const handleSave = () => {
     localStorage.setItem('em-store-name', name);
     localStorage.setItem('em-store-whatsapp', whatsapp);
     localStorage.setItem('em-store-email', email);
     localStorage.setItem('em-store-address', address);
+    localStorage.setItem('em-shipping-threshold', shippingThreshold);
+    localStorage.setItem('em-shipping-fee', shippingFee);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
@@ -628,11 +632,11 @@ function SettingsTab({ t }: { t: any }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-[12px] font-semibold text-muted">{t.freeShippingHint}</label>
-              <input type="number" defaultValue="500" className="input-field" />
+              <input type="number" value={shippingThreshold} onChange={e => setShippingThreshold(e.target.value)} className="input-field" />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-[12px] font-semibold text-muted">{t.shipping} ({t.currency})</label>
-              <input type="number" defaultValue="60" className="input-field" />
+              <input type="number" value={shippingFee} onChange={e => setShippingFee(e.target.value)} className="input-field" />
             </div>
           </div>
         </div>

@@ -53,9 +53,8 @@ export const seed: Product[] = [
   { id: 'p16', name: 'توزيعات الشركات وهدايا العملاء', name_en: 'Corporate & Client Gifts', category: 'توزيعات شركات', price: 60, stock: 90, image: '/images/Gemini_Generated_Image_etc9loetc9loetc9.jpeg', desc: 'علبة هدايا رسمية بشعار الشركة ومنتجات عطرية فاخرة.', desc_en: 'Official gift box with company branding and premium fragrances.', featured: true },
 ];
 
-const FREE_SHIPPING_OVER = 500;
-const SHIPPING_FEE = 60;
-
 export function calcShipping(subtotal: number) {
-  return subtotal >= FREE_SHIPPING_OVER ? 0 : SHIPPING_FEE;
+  const threshold = parseInt(localStorage.getItem('em-shipping-threshold') || '500');
+  const fee = parseInt(localStorage.getItem('em-shipping-fee') || '60');
+  return subtotal >= threshold ? 0 : fee;
 }

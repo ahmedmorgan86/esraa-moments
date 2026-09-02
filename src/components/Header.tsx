@@ -13,7 +13,6 @@ export function Header({ t, scrolled, cartCount, dark, menuOpen, onMenuToggle, o
   const isActive = (path: string) => location.pathname === path ? 'text-primary bg-primary/8' : 'text-muted hover:text-ink hover:bg-primary/8';
   const navLinks = [
     { path: '/shop', label: t.shop },
-    { path: '/about', label: t.about },
     { path: '/track', label: t.track },
   ];
 
