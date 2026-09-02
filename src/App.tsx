@@ -59,7 +59,7 @@ export function App() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {site.announcement.enabled && !bannerClosed && (
+      {site?.announcement?.enabled && !bannerClosed && (
         <AnnouncementBar text={site.announcement.text} onClose={() => setBannerClosed(true)} />
       )}
       <div className="sticky top-0 z-50">

@@ -20,7 +20,11 @@ const defaultSite: SiteData = {
 
 const SiteCtx = createContext<SiteCtx>({ site: defaultSite, setSite: () => {} });
 
-export function useSite() { return useContext(SiteCtx); }
+export function useSite(): SiteCtx {
+  const ctx = useContext(SiteCtx);
+  if (!ctx?.site) return { site: defaultSite, setSite: () => {} };
+  return ctx;
+}
 export { ACCENTS };
 
 function getLocal<T>(key: string, fallback: T): T {
