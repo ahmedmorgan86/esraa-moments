@@ -136,6 +136,29 @@ export const translations = {
     saveSuccess: 'تم الحفظ بنجاح', saveError: 'حدث خطأ أثناء الحفظ',
     // Product not found
     productNotFound: 'المنتج غير موجود', goToShop: 'الذهاب للمتجر',
+    // Coupons
+    coupons: 'الكوبونات', couponCode: 'كود الخصم', addCoupon: 'إضافة كوبون', editCoupon: 'تعديل كوبون',
+    discountType: 'نوع الخصم', percent: 'نسبة مئوية', fixed: 'مبلغ ثابت', minOrder: 'الحد الأدنى للطلب',
+    maxUses: 'الحد الأقصى للاستخدام', usedCount: 'مرات الاستخدام', expiresAt: 'تاريخ الانتهاء',
+    active: 'نشط', inactive: 'غير نشط', promoCode: 'كود الخصم', applyCoupon: 'تطبيق',
+    removeCoupon: 'إزالة الكود', couponApplied: 'تم تطبيق الكود بنجاح', couponInvalid: 'كود غير صالح',
+    couponExpired: 'الكود منتهي الصلاحية', couponLimitReached: 'الكود وصل للحد الأقصى',
+    couponMinOrder: 'الحد الأدنى للطلب غير محقق', discount: 'الخصم', totalAfterDiscount: 'الإجمالي بعد الخصم',
+    // Admin enhancements
+    searchOrders: 'بحث في الأوردرات...', filterByStatus: 'تصفية حسب الحالة',
+    dateRange: 'نطاق التاريخ', startDate: 'تاريخ البداية', endDate: 'تاريخ النهاية',
+    exportCsv: 'تصدير CSV', adminNotes: 'ملاحظات المدير',
+    printOrder: 'طباعة الأوردر',
+    revenueChart: 'الإيرادات آخر 7 أيام', topProducts: 'الأكثر مبيعاً',
+    ordersByStatus: 'الأوردرات حسب الحالة', noOrdersFound: 'مفيش أوردرات تطابق البحث',
+    filteredCount: 'أوردرات', totalSold: 'إجمالي المبيعات',
+    // Product CRUD
+    addProduct: 'إضافة منتج', editProduct: 'تعديل منتج', deleteProduct: 'حذف منتج',
+    confirmDelete: 'هل أنت متأكد من الحذف؟', productNameAr: 'اسم المنتج (عربي)', productNameEn: 'اسم المنتج (إنجليزي)',
+    descAr: 'الوصف (عربي)', descEn: 'الوصف (إنجليزي)', categoryLabel: 'القسم',
+    stockLabel: 'المخزون', imageUrl: 'رابط الصورة', saveProduct: 'حفظ المنتج', cancelLabel: 'إلغاء',
+    productAdded: 'تمت إضافة المنتج بنجاح', productUpdated: 'تم تعديل المنتج بنجاح', productDeleted: 'تم حذف المنتج بنجاح',
+    addNewProduct: 'إضافة منتج جديد', editProductTitle: 'تعديل المنتج',
     // Date locale
     dateLocale: 'ar-EG',
   },
@@ -276,6 +299,29 @@ export const translations = {
     saveSuccess: 'Saved successfully', saveError: 'An error occurred',
     // Product not found
     productNotFound: 'Product not found', goToShop: 'Go to Shop',
+    // Coupons
+    coupons: 'Coupons', couponCode: 'Coupon Code', addCoupon: 'Add Coupon', editCoupon: 'Edit Coupon',
+    discountType: 'Discount Type', percent: 'Percentage', fixed: 'Fixed Amount', minOrder: 'Minimum Order',
+    maxUses: 'Max Uses', usedCount: 'Times Used', expiresAt: 'Expiry Date',
+    active: 'Active', inactive: 'Inactive', promoCode: 'Promo Code', applyCoupon: 'Apply',
+    removeCoupon: 'Remove Code', couponApplied: 'Coupon applied successfully', couponInvalid: 'Invalid coupon',
+    couponExpired: 'Coupon has expired', couponLimitReached: 'Coupon usage limit reached',
+    couponMinOrder: 'Minimum order not met', discount: 'Discount', totalAfterDiscount: 'Total after discount',
+    // Admin enhancements
+    searchOrders: 'Search orders...', filterByStatus: 'Filter by Status',
+    dateRange: 'Date Range', startDate: 'Start Date', endDate: 'End Date',
+    exportCsv: 'Export CSV', adminNotes: 'Admin Notes',
+    printOrder: 'Print Order',
+    revenueChart: 'Revenue — Last 7 Days', topProducts: 'Top Products',
+    ordersByStatus: 'Orders by Status', noOrdersFound: 'No orders match your search',
+    filteredCount: 'orders', totalSold: 'Total Sold',
+    // Product CRUD
+    addProduct: 'Add Product', editProduct: 'Edit Product', deleteProduct: 'Delete Product',
+    confirmDelete: 'Are you sure you want to delete?', productNameAr: 'Product Name (Arabic)', productNameEn: 'Product Name (English)',
+    descAr: 'Description (Arabic)', descEn: 'Description (English)', categoryLabel: 'Category',
+    stockLabel: 'Stock', imageUrl: 'Image URL', saveProduct: 'Save Product', cancelLabel: 'Cancel',
+    productAdded: 'Product added successfully', productUpdated: 'Product updated successfully', productDeleted: 'Product deleted successfully',
+    addNewProduct: 'Add New Product', editProductTitle: 'Edit Product',
     // Date locale
     dateLocale: 'en-US',
   }

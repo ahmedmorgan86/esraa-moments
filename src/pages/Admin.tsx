@@ -3,12 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Package, ClipboardList, Users, Settings, LogOut, TrendingUp,
-  ShoppingBag, Search, ChevronDown, ChevronUp, Truck, CheckCircle,
-  Clock, XCircle, ArrowUpRight, BarChart3, Store, Bell, Menu
+  Search, ChevronDown, ChevronUp, Truck, CheckCircle,
+  Clock, XCircle, ArrowUpRight, BarChart3, Store, Bell, Menu, Ticket, Plus, Edit3, Trash2, X, Grid, List
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { isAllowedAdmin } from '../lib/adminAuth';
-import { seed } from '../data';
+import type { Product, Coupon } from '../data';
+import { occasions } from '../data';
 
 const fadeIn = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
 
@@ -16,6 +17,7 @@ const navItems = (t: any) => [
   { key: 'dashboard', label: t.dashboard, icon: LayoutDashboard },
   { key: 'products', label: t.products, icon: Package },
   { key: 'orders', label: t.allOrders, icon: ClipboardList },
+  { key: 'coupons', label: t.coupons, icon: Ticket },
   { key: 'customers', label: t.customers, icon: Users },
   { key: 'settings', label: t.settings, icon: Settings },
 ];
@@ -28,7 +30,7 @@ const statusStyles: Record<string, { color: string; icon: any; bg: string; borde
   cancelled: { color: 'text-red-500', icon: XCircle, bg: 'bg-red-500/10', border: 'border-red-500/20' },
 };
 
-export default function AdminPage({ t }: { t: any }) {
+export default function AdminPage({ t, products, setProducts }: { t: any; products: Product[]; setProducts: React.Dispatch<React.SetStateAction<Product[]>> }) {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('dashboard');
@@ -137,9 +139,10 @@ export default function AdminPage({ t }: { t: any }) {
         {/* Tab Content */}
         <main className="flex-1 p-4 lg:p-8 overflow-auto">
           <AnimatePresence mode="wait">
-            {tab === 'dashboard' && <Dashboard key="d" t={t} />}
-            {tab === 'products' && <ProductsTab key="p" t={t} />}
+            {tab === 'dashboard' && <Dashboard key="d" t={t} products={products} />}
+            {tab === 'products' && <ProductsTab key="p" t={t} products={products} setProducts={setProducts} />}
             {tab === 'orders' && <OrdersTab key="o" t={t} />}
+            {tab === 'coupons' && <CouponsTab key="cp" t={t} />}
             {tab === 'customers' && <CustomersTab key="c" t={t} />}
             {tab === 'settings' && <SettingsTab key="s" t={t} />}
           </AnimatePresence>
@@ -152,21 +155,58 @@ export default function AdminPage({ t }: { t: any }) {
 /* ══════════════════════════════════════════════════════ */
 /*                       DASHBOARD                       */
 /* ══════════════════════════════════════════════════════ */
-function Dashboard({ t }: { t: any }) {
-  const [stats, setStats] = useState({ products: seed.length, orders: 0, revenue: 0, customers: 0 });
+function Dashboard({ t, products }: { t: any; products: Product[] }) {
+  const [stats, setStats] = useState({ products: products.length, orders: 0, revenue: 0, customers: 0 });
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [dailyRevenue, setDailyRevenue] = useState<{ date: string; amount: number }[]>([]);
+  const [topProducts, setTopProducts] = useState<{ name: string; total: number }[]>([]);
+  const [statusCounts, setStatusCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     Promise.all([
       supabase.from('orders').select('id', { count: 'exact', head: true }),
-      supabase.from('orders').select('total'),
+      supabase.from('orders').select('total, items, status, created_at'),
       supabase.from('orders').select('customer_phone', { count: 'exact', head: true }),
       supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(5),
-    ]).then(([ordersCount, ordersRevenue, customersCount, recent]) => {
+    ]).then(([ordersCount, allOrders, customersCount, recent]) => {
+      const rows = allOrders.data || [];
+      const totalRevenue = rows.reduce((s: number, o: any) => s + (o.total || 0), 0);
+
+      // Revenue by day (last 7 days)
+      const days: { date: string; amount: number }[] = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        days.push({ date: key, amount: 0 });
+      }
+      rows.forEach((o: any) => {
+        const key = new Date(o.created_at).toISOString().slice(0, 10);
+        const slot = days.find(d => d.date === key);
+        if (slot) slot.amount += o.total || 0;
+      });
+      setDailyRevenue(days);
+
+      // Top products
+      const productMap = new Map<string, number>();
+      rows.forEach((o: any) => {
+        const items = typeof o.items === 'string' ? JSON.parse(o.items) : o.items || [];
+        items.forEach((item: any) => {
+          productMap.set(item.name, (productMap.get(item.name) || 0) + (item.qty || 1));
+        });
+      });
+      const top = Array.from(productMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, total]) => ({ name, total }));
+      setTopProducts(top);
+
+      // Status counts
+      const sc: Record<string, number> = { pending: 0, confirmed: 0, shipped: 0, delivered: 0, cancelled: 0 };
+      rows.forEach((o: any) => { if (sc[o.status] !== undefined) sc[o.status]++; });
+      setStatusCounts(sc);
+
       setStats({
-        products: seed.length,
+        products: products.length,
         orders: ordersCount.count || 0,
-        revenue: (ordersRevenue.data || []).reduce((s: number, o: any) => s + (o.total || 0), 0),
+        revenue: totalRevenue,
         customers: customersCount.count || 0,
       });
       setRecentOrders(recent.data || []);
@@ -179,6 +219,15 @@ function Dashboard({ t }: { t: any }) {
     { label: t.totalRevenue, value: `${stats.revenue.toLocaleString()} ${t.currency}`, icon: TrendingUp, gradient: 'from-emerald-500/10 to-emerald-500/5', iconColor: 'text-emerald-600' },
     { label: t.totalCustomers, value: stats.customers, icon: Users, gradient: 'from-violet-500/10 to-violet-500/5', iconColor: 'text-violet-600' },
   ];
+
+  const maxRevenue = Math.max(...dailyRevenue.map(d => d.amount), 1);
+  const totalStatusCount = Object.values(statusCounts).reduce((a, b) => a + b, 0) || 1;
+  const statusColorMap: Record<string, string> = {
+    pending: 'bg-amber-500', confirmed: 'bg-blue-500', shipped: 'bg-primary', delivered: 'bg-emerald-500', cancelled: 'bg-red-500',
+  };
+  const statusLabelMap: Record<string, string> = {
+    pending: t.pending, confirmed: t.confirmed, shipped: t.shipped, delivered: t.delivered, cancelled: t.cancelled,
+  };
 
   return (
     <motion.div initial="hidden" animate="visible" variants={fadeIn}>
@@ -196,6 +245,60 @@ function Dashboard({ t }: { t: any }) {
             <p className="text-2xl font-black text-ink mt-1">{c.value}</p>
           </div>
         ))}
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-8">
+        {/* Revenue Chart - spans 2 cols */}
+        <div className="xl:col-span-2 bg-surface border border-border rounded-2xl p-6">
+          <h3 className="font-bold text-ink mb-5 flex items-center gap-2"><BarChart3 size={16} className="text-primary" /> {t.revenueChart}</h3>
+          <div className="flex items-end gap-2 h-48">
+            {dailyRevenue.map(d => (
+              <div key={d.date} className="flex-1 flex flex-col items-center gap-1">
+                <span className="text-[10px] text-muted font-semibold">{d.amount > 0 ? d.amount.toLocaleString() : ''}</span>
+                <div className="w-full rounded-t-lg bg-primary/20 relative" style={{ height: `${(d.amount / maxRevenue) * 100}%`, minHeight: d.amount > 0 ? '4px' : '2px' }}>
+                  <div className="absolute inset-0 rounded-t-lg bg-primary/60" />
+                </div>
+                <span className="text-[10px] text-muted font-medium">{d.date.slice(5)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Top Products */}
+        <div className="bg-surface border border-border rounded-2xl p-6">
+          <h3 className="font-bold text-ink mb-5 flex items-center gap-2"><TrendingUp size={16} className="text-primary" /> {t.topProducts}</h3>
+          {topProducts.length === 0 ? (
+            <p className="text-muted text-[13px] text-center py-8">{t.noOrders}</p>
+          ) : (
+            <div className="space-y-3">
+              {topProducts.map((p, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <span className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center text-[11px] font-bold text-primary">{i + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-semibold text-ink truncate">{p.name}</p>
+                    <p className="text-[11px] text-muted">{p.total} {t.totalSold}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Orders by Status */}
+      <div className="bg-surface border border-border rounded-2xl p-6 mb-8">
+        <h3 className="font-bold text-ink mb-5 flex items-center gap-2"><ClipboardList size={16} className="text-primary" /> {t.ordersByStatus}</h3>
+        <div className="space-y-3">
+          {Object.entries(statusCounts).map(([status, count]) => (
+            <div key={status} className="flex items-center gap-3">
+              <span className="w-28 text-[12px] font-semibold text-muted truncate">{statusLabelMap[status]}</span>
+              <div className="flex-1 h-7 bg-surface-alt rounded-lg overflow-hidden">
+                <div className={`h-full rounded-lg ${statusColorMap[status]} transition-all duration-500`} style={{ width: `${(count / totalStatusCount) * 100}%`, minWidth: count > 0 ? '8px' : '0' }} />
+              </div>
+              <span className="w-10 text-end text-[12px] font-bold text-ink">{count}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Recent Orders */}
@@ -241,12 +344,63 @@ function Dashboard({ t }: { t: any }) {
 /* ══════════════════════════════════════════════════════ */
 /*                     PRODUCTS TAB                      */
 /* ══════════════════════════════════════════════════════ */
-function ProductsTab({ t }: { t: any }) {
-  const [products] = useState(seed);
+function ProductsTab({ t, products, setProducts }: { t: any; products: Product[]; setProducts: React.Dispatch<React.SetStateAction<Product[]>> }) {
   const [search, setSearch] = useState('');
   const [view, setView] = useState<'grid' | 'list'>('grid');
+  const [showModal, setShowModal] = useState(false);
+  const [editing, setEditing] = useState<Product | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<Product | null>(null);
+  const [form, setForm] = useState({
+    name: '', name_en: '', desc: '', desc_en: '', category: occasions[0], price: 0, stock: 0, image: '', featured: false,
+  });
 
   const filtered = products.filter(p => !search || p.name.includes(search) || p.name_en?.toLowerCase().includes(search.toLowerCase()));
+
+  const resetForm = () => {
+    setForm({ name: '', name_en: '', desc: '', desc_en: '', category: occasions[0], price: 0, stock: 0, image: '', featured: false });
+    setEditing(null);
+    setShowModal(false);
+  };
+
+  const openAdd = () => {
+    resetForm();
+    setShowModal(true);
+  };
+
+  const openEdit = (product: Product) => {
+    setForm({
+      name: product.name, name_en: product.name_en || '', desc: product.desc, desc_en: product.desc_en || '',
+      category: product.category, price: product.price, stock: product.stock, image: product.image, featured: product.featured || false,
+    });
+    setEditing(product);
+    setShowModal(true);
+  };
+
+  const handleSave = () => {
+    if (!form.name || form.price <= 0) return;
+    if (editing) {
+      setProducts(prev => prev.map(p => p.id === editing.id ? { ...p, ...form } : p));
+    } else {
+      const newProduct: Product = {
+        id: `p${Date.now().toString(36)}`,
+        name: form.name, name_en: form.name_en, desc: form.desc, desc_en: form.desc_en,
+        category: form.category, price: form.price, stock: form.stock, image: form.image, featured: form.featured,
+      };
+      setProducts(prev => [...prev, newProduct]);
+    }
+    resetForm();
+  };
+
+  const handleDelete = (product: Product) => {
+    setDeleteConfirm(product);
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirm) {
+      setProducts(prev => prev.filter(p => p.id !== deleteConfirm.id));
+      setDeleteConfirm(null);
+    }
+  };
 
   return (
     <motion.div initial="hidden" animate="visible" variants={fadeIn}>
@@ -262,7 +416,10 @@ function ProductsTab({ t }: { t: any }) {
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t.searchPlaceholder} className="w-full sm:w-[180px] text-[13px] outline-none bg-transparent" />
           </div>
           <button onClick={() => setView(v => v === 'grid' ? 'list' : 'grid')} className="w-10 h-10 rounded-xl border border-border flex items-center justify-center hover:bg-surface-alt transition-colors text-muted">
-            {view === 'grid' ? <BarChart3 size={16} /> : <ShoppingBag size={16} />}
+            {view === 'grid' ? <List size={16} /> : <Grid size={16} />}
+          </button>
+          <button onClick={openAdd} className="btn primary flex items-center gap-2 text-[13px]">
+            <Plus size={16} /> {t.addNewProduct}
           </button>
         </div>
       </div>
@@ -279,6 +436,14 @@ function ProductsTab({ t }: { t: any }) {
                 </div>
                 <div className="absolute top-3 end-3">
                   <span className="bg-surface/85 backdrop-blur-sm text-[10px] font-bold px-2 py-1 rounded-md text-ink">{p.stock} {t.qty}</span>
+                </div>
+                <div className="absolute bottom-3 end-3 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => openEdit(p)} className="w-8 h-8 rounded-lg bg-surface/90 backdrop-blur-sm flex items-center justify-center hover:bg-primary/10 text-muted hover:text-primary transition-colors border border-white/20">
+                    <Edit3 size={14} />
+                  </button>
+                  <button onClick={() => handleDelete(p)} className="w-8 h-8 rounded-lg bg-surface/90 backdrop-blur-sm flex items-center justify-center hover:bg-danger/10 text-muted hover:text-danger transition-colors border border-white/20">
+                    <Trash2 size={14} />
+                  </button>
                 </div>
               </div>
               <div className="p-4">
@@ -304,6 +469,7 @@ function ProductsTab({ t }: { t: any }) {
                   <th className="text-start px-5 py-3.5 font-semibold text-muted text-[12px]">{t.priceLabel}</th>
                   <th className="text-start px-5 py-3.5 font-semibold text-muted text-[12px]">{t.qty}</th>
                   <th className="text-start px-5 py-3.5 font-semibold text-muted text-[12px]">{t.featuredLabel}</th>
+                  <th className="text-start px-5 py-3.5 font-semibold text-muted text-[12px]">{t.edit}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -322,6 +488,16 @@ function ProductsTab({ t }: { t: any }) {
                     <td className="px-5 py-3 font-bold text-gradient">{p.price} {t.currency}</td>
                     <td className="px-5 py-3 text-muted">{p.stock}</td>
                     <td className="px-5 py-3">{p.featured ? <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded-md">★</span> : <span className="text-border">—</span>}</td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <button onClick={() => openEdit(p)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-primary/5 text-muted hover:text-primary transition-colors">
+                          <Edit3 size={14} />
+                        </button>
+                        <button onClick={() => handleDelete(p)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-danger/5 text-muted hover:text-danger transition-colors">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -329,6 +505,85 @@ function ProductsTab({ t }: { t: any }) {
           </div>
         </div>
       )}
+
+      {/* Add/Edit Modal */}
+      <AnimatePresence>
+        {showModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={resetForm}>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} onClick={e => e.stopPropagation()} className="bg-surface border border-border rounded-2xl w-full max-w-[560px] max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+                <h3 className="font-bold text-ink">{editing ? t.editProductTitle : t.addNewProduct}</h3>
+                <button onClick={resetForm} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-surface-alt text-muted"><X size={18} /></button>
+              </div>
+              <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-semibold text-muted">{t.productNameAr}</label>
+                  <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="input-field" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-semibold text-muted">{t.productNameEn}</label>
+                  <input type="text" value={form.name_en} onChange={e => setForm(f => ({ ...f, name_en: e.target.value }))} className="input-field" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-semibold text-muted">{t.descAr}</label>
+                  <textarea value={form.desc} onChange={e => setForm(f => ({ ...f, desc: e.target.value }))} className="input-field resize-none" rows={2} />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-semibold text-muted">{t.descEn}</label>
+                  <textarea value={form.desc_en} onChange={e => setForm(f => ({ ...f, desc_en: e.target.value }))} className="input-field resize-none" rows={2} />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-semibold text-muted">{t.categoryLabel}</label>
+                  <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className="input-field">
+                    {occasions.map(o => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-semibold text-muted">{t.priceLabel}</label>
+                  <input type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: +e.target.value }))} className="input-field" min="0" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-semibold text-muted">{t.stockLabel}</label>
+                  <input type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: +e.target.value }))} className="input-field" min="0" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-semibold text-muted">{t.imageUrl}</label>
+                  <input type="text" value={form.image} onChange={e => setForm(f => ({ ...f, image: e.target.value }))} className="input-field" placeholder="/images/..." />
+                </div>
+                <div className="flex flex-col gap-1.5 sm:col-span-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={form.featured} onChange={e => setForm(f => ({ ...f, featured: e.target.checked }))} className="w-4 h-4 accent-primary rounded" />
+                    <span className="text-[13px] font-semibold text-ink">{t.featuredLabel}</span>
+                  </label>
+                </div>
+              </div>
+              <div className="flex gap-2 px-6 pb-6 pt-2">
+                <button onClick={handleSave} className="btn primary">{t.saveProduct}</button>
+                <button onClick={resetForm} className="btn border">{t.cancelLabel}</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation */}
+      <AnimatePresence>
+        {deleteConfirm && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setDeleteConfirm(null)}>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} onClick={e => e.stopPropagation()} className="bg-surface border border-border rounded-2xl w-full max-w-[400px] p-6 text-center">
+              <div className="w-14 h-14 rounded-full bg-danger/10 flex items-center justify-center mx-auto mb-4">
+                <Trash2 size={24} className="text-danger" />
+              </div>
+              <h3 className="font-bold text-ink mb-2">{t.confirmDelete}</h3>
+              <p className="text-muted text-[13px] mb-6">{deleteConfirm.name}</p>
+              <div className="flex gap-2 justify-center">
+                <button onClick={confirmDelete} className="px-5 py-2.5 rounded-xl text-[13px] font-bold bg-danger text-white hover:bg-danger/90 transition-colors">{t.delete}</button>
+                <button onClick={() => setDeleteConfirm(null)} className="btn border">{t.cancelLabel}</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -341,6 +596,12 @@ function OrdersTab({ t }: { t: any }) {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [adminNotes, setAdminNotes] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(localStorage.getItem('em-admin-order-notes') || '{}'); } catch { return {}; }
+  });
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -358,12 +619,77 @@ function OrdersTab({ t }: { t: any }) {
     fetchOrders();
   };
 
+  const saveAdminNote = (orderId: string, note: string) => {
+    const updated = { ...adminNotes, [orderId]: note };
+    setAdminNotes(updated);
+    localStorage.setItem('em-admin-order-notes', JSON.stringify(updated));
+  };
+
+  const filteredOrders = orders.filter(o => {
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = !q || o.order_number?.toLowerCase().includes(q) || o.customer_name?.toLowerCase().includes(q) || o.customer_phone?.includes(q);
+    const orderDate = new Date(o.created_at);
+    const matchesStart = !startDate || orderDate >= new Date(startDate);
+    const matchesEnd = !endDate || orderDate <= new Date(endDate + 'T23:59:59');
+    return matchesSearch && matchesStart && matchesEnd;
+  });
+
+  const exportCsv = () => {
+    const header = 'Order Number,Customer Name,Phone,Email,Items,Total,Status,Date';
+    const rows = filteredOrders.map(o => {
+      const items = typeof o.items === 'string' ? JSON.parse(o.items) : o.items || [];
+      const itemsStr = items.map((i: any) => `${i.name} x${i.qty}`).join('; ');
+      const date = new Date(o.created_at).toLocaleDateString(document.documentElement.lang === 'en' ? 'en-US' : 'ar-EG');
+      return `${o.order_number},"${(o.customer_name||'').replace(/"/g,'""')}",${o.customer_phone||''},${o.customer_email||''},"${itemsStr.replace(/"/g,'""')}",${o.total||0},${o.status},${date}`;
+    });
+    const csv = [header, ...rows].join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `orders-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const openWhatsApp = (phone: string, orderNumber: string) => {
+    const msg = encodeURIComponent(`مرحباً، بخصوص أوردر رقم ${orderNumber}`);
+    window.open(`https://wa.me/${phone?.replace(/[^0-9]/g, '')}?text=${msg}`, '_blank');
+  };
+
+  const printOrder = (o: any) => {
+    const items = typeof o.items === 'string' ? JSON.parse(o.items) : o.items || [];
+    const itemsHtml = items.map((i: any) => `<tr><td>${i.name}</td><td>${i.qty}</td><td>${i.price * i.qty} ${t.currency}</td></tr>`).join('');
+    const html = `<html><head><title>${o.order_number}</title><style>body{font-family:sans-serif;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#f5f5f5}</style></head><body><h2>${o.order_number}</h2><p><b>${t.nameLabel}</b> ${o.customer_name}</p><p><b>${t.phoneLabelShort}</b> ${o.customer_phone}</p><p><b>${t.cityLabelShort}</b> ${o.city||'-'}</p><p><b>${t.status}</b> ${o.status}</p><table><thead><tr><th>${t.productsLabel}</th><th>${t.qty}</th><th>${t.totalPrice}</th></tr></thead><tbody>${itemsHtml}</tbody></table><p style="font-size:18px"><b>${t.totalPrice}: ${o.total} ${t.currency}</b></p>${o.notes?`<p><b>${t.notesLabel}:</b> ${o.notes}</p>`:''}</body></html>`;
+    const w = window.open('', '_blank');
+    if (w) { w.document.write(html); w.document.close(); w.print(); }
+  };
+
   const statusOpts = ['all', 'pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
-  const statusLabels: Record<string, string> = { all: t.allStatuses, pending: t.pending, confirmed: t.confirmed, shipped: t.shipped, delivered: t.delivered, cancelled: t.cancelled };
+  const statusLabelsMap: Record<string, string> = { all: t.allStatuses, pending: t.pending, confirmed: t.confirmed, shipped: t.shipped, delivered: t.delivered, cancelled: t.cancelled };
 
   return (
     <motion.div initial="hidden" animate="visible" variants={fadeIn}>
-      <h1 className="text-xl font-black text-ink mb-5">{t.allOrders}</h1>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5">
+        <h1 className="text-xl font-black text-ink">{t.allOrders} <span className="text-sm font-semibold text-muted">({filteredOrders.length} {t.filteredCount})</span></h1>
+        <button onClick={exportCsv} className="flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-bold bg-primary text-white hover:bg-primary/90 transition-colors">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          {t.exportCsv}
+        </button>
+      </div>
+
+      {/* Search & Filters */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-surface border border-border rounded-xl">
+          <Search size={14} className="text-muted" />
+          <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder={t.searchOrders} className="w-full text-[13px] outline-none bg-transparent" />
+        </div>
+        <div className="flex items-center gap-2 px-3 py-2 bg-surface border border-border rounded-xl">
+          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="text-[12px] outline-none bg-transparent text-muted" title={t.startDate} />
+          <span className="text-border text-[11px]">—</span>
+          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="text-[12px] outline-none bg-transparent text-muted" title={t.endDate} />
+        </div>
+      </div>
 
       {/* Filter Chips */}
       <div className="flex gap-2 overflow-x-auto pb-4 mb-2">
@@ -371,7 +697,7 @@ function OrdersTab({ t }: { t: any }) {
           const active = statusFilter === s;
           return (
             <button key={s} onClick={() => setStatusFilter(s)} className={`px-4 py-2 rounded-xl text-[12px] font-bold whitespace-nowrap border transition-all ${active ? 'bg-ink text-surface-alt border-ink shadow-sm' : 'bg-surface border-border text-muted hover:border-primary/40'}`}>
-              {statusLabels[s]}
+              {statusLabelsMap[s]}
             </button>
           );
         })}
@@ -379,14 +705,14 @@ function OrdersTab({ t }: { t: any }) {
 
       {loading ? (
         <div className="py-16 text-center"><div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" /></div>
-      ) : orders.length === 0 ? (
+      ) : filteredOrders.length === 0 ? (
         <div className="bg-surface border border-border rounded-2xl py-16 text-center">
           <ClipboardList size={40} className="mx-auto mb-3 text-border" />
-          <p className="text-muted text-sm">{t.noOrders}</p>
+          <p className="text-muted text-sm">{t.noOrdersFound}</p>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {orders.map(o => {
+          {filteredOrders.map(o => {
             const st = statusStyles[o.status] || statusStyles.pending;
             const StIcon = st.icon;
             const isExpanded = expandedOrder === o.id;
@@ -402,7 +728,7 @@ function OrdersTab({ t }: { t: any }) {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-ink">{o.order_number}</span>
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${st.color} ${st.bg}`}>{statusLabels[o.status]}</span>
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${st.color} ${st.bg}`}>{statusLabelsMap[o.status]}</span>
                       </div>
                       <p className="text-[12px] text-muted mt-0.5">{o.customer_name} — {o.customer_phone}</p>
                     </div>
@@ -471,8 +797,14 @@ function OrdersTab({ t }: { t: any }) {
                           </div>
                         )}
 
+                        {/* Admin Notes */}
+                        <div className="mb-4">
+                          <p className="text-[11px] font-bold text-muted mb-2">{t.adminNotes}</p>
+                          <textarea value={adminNotes[o.id] || ''} onChange={e => saveAdminNote(o.id, e.target.value)} rows={2} className="w-full px-3 py-2 rounded-xl border border-border bg-surface-alt text-[13px] outline-none focus:border-primary/40 transition-colors resize-none" placeholder={t.adminNotes + '...'} />
+                        </div>
+
                         {/* Status Actions */}
-                        <div>
+                        <div className="mb-4">
                           <p className="text-[11px] font-bold text-muted mb-2">{t.status}</p>
                           <div className="flex flex-wrap gap-2">
                             {['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'].map(s => {
@@ -481,11 +813,23 @@ function OrdersTab({ t }: { t: any }) {
                               const isActive = o.status === s;
                               return (
                                 <button key={s} onClick={() => updateStatus(o.id, s)} className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-bold border transition-all ${isActive ? `${sSt.bg} ${sSt.border} ${sSt.color} shadow-sm` : 'border-border text-muted hover:border-primary/40'}`}>
-                                  <SIcon size={12} /> {statusLabels[s]}
+                                  <SIcon size={12} /> {statusLabelsMap[s]}
                                 </button>
                               );
                             })}
                           </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-wrap gap-2">
+                          <button onClick={() => openWhatsApp(o.customer_phone, o.order_number)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                            {t.contactWhatsApp}
+                          </button>
+                          <button onClick={() => printOrder(o)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-bold bg-surface-alt text-muted border border-border hover:border-primary/40 transition-colors">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                            {t.printOrder}
+                          </button>
                         </div>
                       </div>
                     </motion.div>
@@ -560,6 +904,189 @@ function CustomersTab({ t }: { t: any }) {
                       <span className="bg-primary/10 text-primary px-2.5 py-1 rounded-lg text-[11px] font-bold">{c.orders}</span>
                     </td>
                     <td className="px-5 py-3.5 font-bold text-gradient">{c.totalSpent} {t.currency}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════ */
+/*                    COUPONS TAB                        */
+/* ══════════════════════════════════════════════════════ */
+function CouponsTab({ t }: { t: any }) {
+  const [coupons, setCoupons] = useState<Coupon[]>(() => {
+    const saved = localStorage.getItem('em-coupons');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<Coupon | null>(null);
+  const [form, setForm] = useState({
+    code: '', discountType: 'percent' as 'percent' | 'fixed', discountValue: 0,
+    minOrder: 0, maxUses: 100, expiresAt: '', active: true,
+  });
+
+  useEffect(() => {
+    localStorage.setItem('em-coupons', JSON.stringify(coupons));
+  }, [coupons]);
+
+  const resetForm = () => {
+    setForm({ code: '', discountType: 'percent', discountValue: 0, minOrder: 0, maxUses: 100, expiresAt: '', active: true });
+    setEditing(null);
+    setShowForm(false);
+  };
+
+  const handleSave = () => {
+    if (!form.code || form.discountValue <= 0) return;
+    if (editing) {
+      setCoupons(prev => prev.map(c => c.id === editing.id ? { ...c, ...form, code: form.code.toUpperCase() } : c));
+    } else {
+      const newCoupon: Coupon = {
+        id: `cp-${Date.now()}`,
+        code: form.code.toUpperCase(),
+        discountType: form.discountType,
+        discountValue: form.discountValue,
+        minOrder: form.minOrder,
+        maxUses: form.maxUses,
+        usedCount: 0,
+        expiresAt: form.expiresAt,
+        active: form.active,
+      };
+      setCoupons(prev => [...prev, newCoupon]);
+    }
+    resetForm();
+  };
+
+  const handleEdit = (coupon: Coupon) => {
+    setForm({
+      code: coupon.code, discountType: coupon.discountType, discountValue: coupon.discountValue,
+      minOrder: coupon.minOrder, maxUses: coupon.maxUses, expiresAt: coupon.expiresAt, active: coupon.active,
+    });
+    setEditing(coupon);
+    setShowForm(true);
+  };
+
+  const handleDelete = (id: string) => {
+    setCoupons(prev => prev.filter(c => c.id !== id));
+  };
+
+  const toggleActive = (id: string) => {
+    setCoupons(prev => prev.map(c => c.id === id ? { ...c, active: !c.active } : c));
+  };
+
+  return (
+    <motion.div initial="hidden" animate="visible" variants={fadeIn}>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+        <div>
+          <h1 className="text-xl font-black text-ink">{t.coupons}</h1>
+          <p className="text-muted text-[13px] mt-0.5">{coupons.length} {t.coupons}</p>
+        </div>
+        <button onClick={() => { resetForm(); setShowForm(true); }} className="btn primary flex items-center gap-2">
+          <span className="text-lg">+</span> {t.addCoupon}
+        </button>
+      </div>
+
+      {/* Add/Edit Form */}
+      <AnimatePresence>
+        {showForm && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
+            <div className="bg-surface border border-border rounded-2xl p-6">
+              <h3 className="font-bold text-ink mb-4">{editing ? t.editCoupon : t.addCoupon}</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-semibold text-muted">{t.couponCode}</label>
+                  <input type="text" value={form.code} onChange={e => setForm(f => ({ ...f, code: e.target.value }))} className="input-field" placeholder="SAVE10" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-semibold text-muted">{t.discountType}</label>
+                  <select value={form.discountType} onChange={e => setForm(f => ({ ...f, discountType: e.target.value as 'percent' | 'fixed' }))} className="input-field">
+                    <option value="percent">{t.percent}</option>
+                    <option value="fixed">{t.fixed}</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-semibold text-muted">{form.discountType === 'percent' ? '%' : t.currency}</label>
+                  <input type="number" value={form.discountValue} onChange={e => setForm(f => ({ ...f, discountValue: +e.target.value }))} className="input-field" min="0" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-semibold text-muted">{t.minOrder} ({t.currency})</label>
+                  <input type="number" value={form.minOrder} onChange={e => setForm(f => ({ ...f, minOrder: +e.target.value }))} className="input-field" min="0" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-semibold text-muted">{t.maxUses}</label>
+                  <input type="number" value={form.maxUses} onChange={e => setForm(f => ({ ...f, maxUses: +e.target.value }))} className="input-field" min="1" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-semibold text-muted">{t.expiresAt}</label>
+                  <input type="date" value={form.expiresAt} onChange={e => setForm(f => ({ ...f, expiresAt: e.target.value }))} className="input-field" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-semibold text-muted">{t.active}</label>
+                  <label className="flex items-center gap-2 cursor-pointer mt-1">
+                    <input type="checkbox" checked={form.active} onChange={e => setForm(f => ({ ...f, active: e.target.checked }))} className="w-4 h-4 accent-primary rounded" />
+                    <span className="text-sm font-medium">{form.active ? t.active : t.inactive}</span>
+                  </label>
+                </div>
+              </div>
+              <div className="flex gap-2 mt-5">
+                <button onClick={handleSave} className="btn primary">{editing ? t.saveChangesLabel : t.addCoupon}</button>
+                <button onClick={resetForm} className="btn border">{t.cancel}</button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Coupons List */}
+      {coupons.length === 0 ? (
+        <div className="bg-surface border border-border rounded-2xl py-16 text-center">
+          <Ticket size={40} className="mx-auto mb-3 text-border" />
+          <p className="text-muted text-sm">{t.noResults}</p>
+        </div>
+      ) : (
+        <div className="bg-surface border border-border rounded-2xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px]">
+              <thead>
+                <tr className="border-b border-border bg-surface-alt/50">
+                  <th className="text-start px-5 py-3.5 font-semibold text-muted text-[12px]">{t.couponCode}</th>
+                  <th className="text-start px-5 py-3.5 font-semibold text-muted text-[12px]">{t.discountType}</th>
+                  <th className="text-start px-5 py-3.5 font-semibold text-muted text-[12px]">{t.discountType === 'percent' ? '%' : t.currency}</th>
+                  <th className="text-start px-5 py-3.5 font-semibold text-muted text-[12px]">{t.minOrder}</th>
+                  <th className="text-start px-5 py-3.5 font-semibold text-muted text-[12px]">{t.usedCount}/{t.maxUses}</th>
+                  <th className="text-start px-5 py-3.5 font-semibold text-muted text-[12px]">{t.expiresAt}</th>
+                  <th className="text-start px-5 py-3.5 font-semibold text-muted text-[12px]">{t.active}</th>
+                  <th className="text-start px-5 py-3.5 font-semibold text-muted text-[12px]">{t.edit}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {coupons.map(c => (
+                  <tr key={c.id} className="hover:bg-surface-alt/50 transition-colors">
+                    <td className="px-5 py-3 font-bold text-primary">{c.code}</td>
+                    <td className="px-5 py-3 text-muted">{c.discountType === 'percent' ? t.percent : t.fixed}</td>
+                    <td className="px-5 py-3 font-bold text-ink">{c.discountValue}{c.discountType === 'percent' ? '%' : ` ${t.currency}`}</td>
+                    <td className="px-5 py-3 text-muted">{c.minOrder} {t.currency}</td>
+                    <td className="px-5 py-3 text-muted">{c.usedCount}/{c.maxUses}</td>
+                    <td className="px-5 py-3 text-muted">{c.expiresAt || '—'}</td>
+                    <td className="px-5 py-3">
+                      <button onClick={() => toggleActive(c.id)} className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors ${c.active ? 'bg-success/10 text-success' : 'bg-muted/10 text-muted'}`}>
+                        {c.active ? t.active : t.inactive}
+                      </button>
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <button onClick={() => handleEdit(c)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-primary/5 text-muted hover:text-primary transition-colors">
+                          <span className="text-sm">{t.edit}</span>
+                        </button>
+                        <button onClick={() => handleDelete(c.id)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-danger/5 text-muted hover:text-danger transition-colors">
+                          <span className="text-sm">{t.delete}</span>
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

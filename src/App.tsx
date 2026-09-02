@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { useLocalStorage, useScrollShadow } from './hooks';
+import { useLocalStorage, useScrollShadow, useProducts } from './hooks';
 import { t, setUiLang } from './i18n';
 import { useSite } from './lib/site';
 import type { CartItem } from './data';
@@ -25,6 +25,7 @@ export function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [bannerClosed, setBannerClosed] = useState(false);
+  const [products, setProducts] = useProducts();
   const [dark, setDark] = useState(() => {
     const stored = localStorage.getItem('em-dark');
     if (stored) return stored === '1';
@@ -88,12 +89,12 @@ export function App() {
       <main className="flex-1">
         <Suspense fallback={<div className="section page flex items-center justify-center min-h-[50vh]"><div className="text-muted">...</div></div>}>
           <Routes>
-            <Route path="/" element={<Home t={t()} lang={lang} addToCart={addToCart} />} />
-            <Route path="/shop" element={<Shop t={t()} lang={lang} addToCart={addToCart} />} />
-            <Route path="/product/:id" element={<ProductPage t={t()} lang={lang} addToCart={addToCart} />} />
+            <Route path="/" element={<Home t={t()} lang={lang} addToCart={addToCart} products={products} />} />
+            <Route path="/shop" element={<Shop t={t()} lang={lang} addToCart={addToCart} products={products} />} />
+            <Route path="/product/:id" element={<ProductPage t={t()} lang={lang} addToCart={addToCart} products={products} />} />
             <Route path="/login" element={<LoginPage t={t()} />} />
             <Route path="/account" element={<AccountPage t={t()} />} />
-            <Route path="/admin/*" element={<AdminPage t={t()} />} />
+            <Route path="/admin/*" element={<AdminPage t={t()} products={products} setProducts={setProducts} />} />
             <Route path="/checkout" element={<CheckoutPage t={t()} lang={lang} cart={cart} setCart={setCart} />} />
             <Route path="/track" element={<TrackPage t={t()} />} />
             <Route path="*" element={

@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Search, SlidersHorizontal } from 'lucide-react';
-import { seed, occasions } from '../data';
+import { occasions } from '../data';
 import { occasionEn } from '../i18n';
 
-export default function Shop({ t, lang, addToCart }: { t: any; lang: string; addToCart: (p: any, qty?: number) => void }) {
+export default function Shop({ t, lang, addToCart, products }: { t: any; lang: string; addToCart: (p: any, qty?: number) => void; products: any[] }) {
   const [params] = useSearchParams();
   const initialCat = params.get('cat') || 'الكل';
   const [cat, setCat] = useState(initialCat);
@@ -14,7 +14,7 @@ export default function Shop({ t, lang, addToCart }: { t: any; lang: string; add
   const isEn = lang === 'en';
 
   const filtered = useMemo(() => {
-    let list = [...seed];
+    let list = [...products];
     if (cat !== 'الكل') list = list.filter(p => p.category === cat);
     if (search) list = list.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.name_en?.toLowerCase().includes(search.toLowerCase()));
     if (sort === 'price-low') list.sort((a, b) => a.price - b.price);

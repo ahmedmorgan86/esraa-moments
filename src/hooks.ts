@@ -1,4 +1,16 @@
 import { useState, useEffect } from 'react';
+import { seed, type Product } from './data';
+
+export function useProducts(): [Product[], React.Dispatch<React.SetStateAction<Product[]>>] {
+  const [products, setProducts] = useState<Product[]>(() => {
+    const saved = localStorage.getItem('em-products');
+    return saved ? JSON.parse(saved) : seed;
+  });
+  useEffect(() => {
+    localStorage.setItem('em-products', JSON.stringify(products));
+  }, [products]);
+  return [products, setProducts];
+}
 
 export function useLocalStorage<T>(key: string, initial: T): [T, (v: T | ((p: T) => T)) => void] {
   const [value, setValue] = useState<T>(() => {

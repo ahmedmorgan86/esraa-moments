@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Minus, Plus, ShoppingBag, ArrowLeft } from 'lucide-react';
+import { X, Minus, Plus, ShoppingBag, ArrowLeft, Ticket } from 'lucide-react';
 import type { CartItem } from '../data';
-import { calcShipping } from '../data';
+import { calcShipping, validateCoupon } from '../data';
 
 type Props = {
   open: boolean; onClose: () => void; items: CartItem[];
@@ -13,7 +14,31 @@ type Props = {
 export function CartDrawer({ open, onClose, items, t, lang, updateQty, removeFromCart }: Props) {
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
   const shipping = calcShipping(subtotal);
-  const total = subtotal + shipping;
+  const [couponCode, setCouponCode] = useState('');
+  const [discount, setDiscount] = useState(0);
+  const [couponMsg, setCouponMsg] = useState('');
+  const [couponApplied, setCouponApplied] = useState(false);
+  const total = subtotal + shipping - discount;
+
+  const handleApplyCoupon = () => {
+    const result = validateCoupon(couponCode, subtotal);
+    if (result.valid) {
+      setDiscount(result.discount);
+      setCouponMsg(result.message);
+      setCouponApplied(true);
+    } else {
+      setDiscount(0);
+      setCouponMsg(result.message);
+      setCouponApplied(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponCode('');
+    setDiscount(0);
+    setCouponMsg('');
+    setCouponApplied(false);
+  };
 
   return (
     <AnimatePresence>
@@ -65,6 +90,28 @@ export function CartDrawer({ open, onClose, items, t, lang, updateQty, removeFro
                   <div className="flex justify-between"><span className="text-muted">{t.subtotal}</span><span>{subtotal} {t.currency}</span></div>
                   <div className="flex justify-between"><span className="text-muted">{t.shipping}</span><span className={shipping === 0 ? 'text-success font-bold' : ''}>{shipping === 0 ? t.free : `${shipping} ${t.currency}`}</span></div>
                   {subtotal < 500 && subtotal > 0 && <p className="text-primary text-xs bg-primary/8 rounded-lg py-1.5 px-3 text-center">{t.freeShippingHint}</p>}
+
+                  {/* Promo Code */}
+                  <div className="flex flex-col gap-2 pt-2 border-t border-border">
+                    <div className="flex items-center gap-2">
+                      <Ticket size={14} className="text-primary flex-shrink-0" />
+                      <span className="text-[12px] font-semibold text-muted">{t.promoCode}</span>
+                    </div>
+                    {couponApplied ? (
+                      <div className="flex items-center justify-between bg-success/8 border border-success/20 rounded-lg px-3 py-2">
+                        <span className="text-[12px] font-bold text-success">{couponMsg}</span>
+                        <button onClick={handleRemoveCoupon} className="text-danger text-[11px] font-semibold hover:underline">{t.removeCoupon}</button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <input type="text" value={couponCode} onChange={e => setCouponCode(e.target.value)} placeholder={t.couponCode} className="input-field flex-1 text-[12px] py-2" />
+                        <button onClick={handleApplyCoupon} className="btn primary text-[11px] px-3 py-2 whitespace-nowrap">{t.applyCoupon}</button>
+                      </div>
+                    )}
+                    {couponMsg && !couponApplied && <p className="text-danger text-[11px]">{couponMsg}</p>}
+                  </div>
+
+                  {discount > 0 && <div className="flex justify-between text-success"><span>{t.discount}</span><span>-{discount} {t.currency}</span></div>}
                   <div className="flex justify-between font-bold text-lg border-t border-border pt-2"><span>{t.total}</span><span>{total} {t.currency}</span></div>
                 </div>
                 <Link to="/checkout" onClick={onClose} className="btn primary full flex items-center justify-center gap-2">

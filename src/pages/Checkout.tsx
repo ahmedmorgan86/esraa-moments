@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CreditCard, MapPin, ArrowLeft, ShoppingBag } from 'lucide-react';
+import { CreditCard, MapPin, ArrowLeft, ShoppingBag, Ticket } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { CartItem } from '../data';
-import { calcShipping } from '../data';
+import { calcShipping, validateCoupon } from '../data';
 
 type Props = { t: any; lang: string; cart: CartItem[]; setCart: (fn: any) => void };
 
@@ -15,9 +15,33 @@ export default function CheckoutPage({ t, lang, cart, setCart }: Props) {
   const [formError, setFormError] = useState('');
   const [done, setDone] = useState(false);
   const [orderId, setOrderId] = useState('');
+  const [couponCode, setCouponCode] = useState('');
+  const [discount, setDiscount] = useState(0);
+  const [couponMsg, setCouponMsg] = useState('');
+  const [couponApplied, setCouponApplied] = useState(false);
   const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const shipping = calcShipping(subtotal);
-  const total = subtotal + shipping;
+  const total = subtotal + shipping - discount;
+
+  const handleApplyCoupon = () => {
+    const result = validateCoupon(couponCode, subtotal);
+    if (result.valid) {
+      setDiscount(result.discount);
+      setCouponMsg(result.message);
+      setCouponApplied(true);
+    } else {
+      setDiscount(0);
+      setCouponMsg(result.message);
+      setCouponApplied(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponCode('');
+    setDiscount(0);
+    setCouponMsg('');
+    setCouponApplied(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +70,9 @@ export default function CheckoutPage({ t, lang, cart, setCart }: Props) {
         payment_method: payMethod,
         subtotal,
         shipping,
+        discount,
         total,
+        coupon_code: couponApplied ? couponCode.toUpperCase() : null,
         items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty, image: i.image })),
         status: 'pending',
       });
@@ -179,6 +205,28 @@ export default function CheckoutPage({ t, lang, cart, setCart }: Props) {
             <div className="flex flex-col gap-2 text-sm border-t border-border pt-4 mb-4">
               <div className="flex justify-between"><span className="text-muted">{t.subtotal}</span><span>{subtotal} {t.currency}</span></div>
               <div className="flex justify-between"><span className="text-muted">{t.shipping}</span><span>{shipping === 0 ? t.free : `${shipping} ${t.currency}`}</span></div>
+
+              {/* Promo Code */}
+              <div className="flex flex-col gap-2 pt-2 border-t border-border">
+                <div className="flex items-center gap-2">
+                  <Ticket size={14} className="text-primary flex-shrink-0" />
+                  <span className="text-[12px] font-semibold text-muted">{t.promoCode}</span>
+                </div>
+                {couponApplied ? (
+                  <div className="flex items-center justify-between bg-success/8 border border-success/20 rounded-lg px-3 py-2">
+                    <span className="text-[12px] font-bold text-success">{couponMsg}</span>
+                    <button type="button" onClick={handleRemoveCoupon} className="text-danger text-[11px] font-semibold hover:underline">{t.removeCoupon}</button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input type="text" value={couponCode} onChange={e => setCouponCode(e.target.value)} placeholder={t.couponCode} className="input-field flex-1 text-[12px] py-2" />
+                    <button type="button" onClick={handleApplyCoupon} className="btn primary text-[11px] px-3 py-2 whitespace-nowrap">{t.applyCoupon}</button>
+                  </div>
+                )}
+                {couponMsg && !couponApplied && <p className="text-danger text-[11px]">{couponMsg}</p>}
+              </div>
+
+              {discount > 0 && <div className="flex justify-between text-success"><span>{t.discount}</span><span>-{discount} {t.currency}</span></div>}
               <div className="flex justify-between font-bold text-lg border-t border-border pt-2"><span>{t.total}</span><span className="text-gradient">{total} {t.currency}</span></div>
             </div>
             {formError && <div className="text-danger text-[12.5px] bg-danger/8 rounded-lg py-2 px-3 text-center mb-3">{formError}</div>}

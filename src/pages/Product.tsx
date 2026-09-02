@@ -1,14 +1,13 @@
 import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Minus, Plus, ShoppingCart, ArrowLeft, Star, Truck, Shield, RotateCcw } from 'lucide-react';
-import { seed } from '../data';
 import { occasionEn } from '../i18n';
 
-export default function ProductPage({ t, lang, addToCart }: { t: any; lang: string; addToCart: (p: any, qty?: number) => void }) {
+export default function ProductPage({ t, lang, addToCart, products }: { t: any; lang: string; addToCart: (p: any, qty?: number) => void; products: any[] }) {
   const { id } = useParams();
   const [qty, setQty] = useState(1);
-  const product = seed.find(p => p.id === id);
-  const related = useMemo(() => seed.filter(p => p.id !== id && p.category === product?.category).slice(0, 4), [id, product]);
+  const product = products.find(p => p.id === id);
+  const related = useMemo(() => products.filter(p => p.id !== id && p.category === product?.category).slice(0, 4), [id, product]);
   const isEn = lang === 'en';
 
   if (!product) {

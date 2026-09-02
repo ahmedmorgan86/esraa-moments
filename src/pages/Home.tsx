@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ChevronDown, ChevronLeft } from 'lucide-react';
-import { occasions, seed } from '../data';
+import { occasions } from '../data';
 import { occasionEn } from '../i18n';
 
 const occasionIcons: Record<string, string> = {
@@ -18,9 +18,9 @@ const faqs = [
   { q: 'إيه الحد الأدنى للطلبات؟', q_en: 'What is the minimum order quantity?', a: 'مفيش حد أدنى للطلبات الفردية. بس الطلبات الكبيرة (50 قطعة وفوق) عليها خصم خاص.', a_en: 'No minimum for individual orders. But large orders (50+ pieces) get a special discount.' },
 ];
 
-export default function Home({ t, lang, addToCart }: { t: any; lang: string; addToCart: (p: any, qty?: number) => void }) {
-  const featured = seed.filter(p => p.featured).slice(0, 8);
-  const bestSellers = seed.slice(0, 6);
+export default function Home({ t, lang, addToCart, products }: { t: any; lang: string; addToCart: (p: any, qty?: number) => void; products: any[] }) {
+  const featured = products.filter(p => p.featured).slice(0, 8);
+  const bestSellers = products.slice(0, 6);
   const isEn = lang === 'en';
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);

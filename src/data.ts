@@ -8,11 +8,28 @@ export type Design = {
   occasion: string; type: string; qty: number;
   color: string; name: string; date: string; extras: string;
 };
-export type Coupon = {
-  id: string; code: string; discount: number; type: 'percent' | 'fixed';
-  maxUsage: number; usageCount: number; minOrder: number;
-  expiry: string; active: boolean;
-};
+export interface Coupon {
+  id: string;
+  code: string;
+  discountType: 'percent' | 'fixed';
+  discountValue: number;
+  minOrder: number;
+  maxUses: number;
+  usedCount: number;
+  expiresAt: string;
+  active: boolean;
+}
+
+export function validateCoupon(code: string, subtotal: number): { valid: boolean; discount: number; message: string } {
+  const coupons: Coupon[] = JSON.parse(localStorage.getItem('em-coupons') || '[]');
+  const coupon = coupons.find(c => c.code.toUpperCase() === code.toUpperCase() && c.active);
+  if (!coupon) return { valid: false, discount: 0, message: 'كود غير صالح' };
+  if (new Date(coupon.expiresAt) < new Date()) return { valid: false, discount: 0, message: 'الكود منتهي الصلاحية' };
+  if (coupon.usedCount >= coupon.maxUses) return { valid: false, discount: 0, message: 'الكود وصل للحد الأقصى' };
+  if (subtotal < coupon.minOrder) return { valid: false, discount: 0, message: `الحد الأدنى ${coupon.minOrder} ج.م` };
+  const discount = coupon.discountType === 'percent' ? (subtotal * coupon.discountValue / 100) : coupon.discountValue;
+  return { valid: true, discount, message: `تم تطبيق خصم ${discount} ج.م` };
+}
 export type Order = {
   id: string; order_number: string; customer_name: string; customer_phone: string;
   customer_email: string; city: string; address: string; occasion: string;
