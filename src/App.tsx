@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { useLocalStorage, useScrollShadow, useProducts } from './hooks';
+import { useLocalStorage, useScrollShadow, useProducts, useWishlist, useReviews } from './hooks';
 import { t, setUiLang } from './i18n';
 import { useSite } from './lib/site';
 import type { CartItem } from './data';
@@ -18,6 +18,7 @@ const AccountPage = lazy(() => import('./pages/Account'));
 const AdminPage = lazy(() => import('./pages/Admin'));
 const CheckoutPage = lazy(() => import('./pages/Checkout'));
 const TrackPage = lazy(() => import('./pages/Track'));
+const WishlistPage = lazy(() => import('./pages/Wishlist'));
 
 export function App() {
   const [cart, setCart] = useLocalStorage<CartItem[]>('em-cart', []);
@@ -26,6 +27,8 @@ export function App() {
   const [cartOpen, setCartOpen] = useState(false);
   const [bannerClosed, setBannerClosed] = useState(false);
   const [products, setProducts] = useProducts();
+  const [wishlist, toggleWishlist] = useWishlist();
+  const [reviews, addReview] = useReviews();
   const [dark, setDark] = useState(() => {
     const stored = localStorage.getItem('em-dark');
     if (stored) return stored === '1';
@@ -73,6 +76,7 @@ export function App() {
           t={t()}
           scrolled={scrolled}
           cartCount={cartCount}
+          wishlistCount={wishlist.length}
           dark={dark}
           menuOpen={menuOpen}
           onMenuToggle={() => setMenuOpen(v => !v)}
@@ -91,7 +95,8 @@ export function App() {
           <Routes>
             <Route path="/" element={<Home t={t()} lang={lang} addToCart={addToCart} products={products} />} />
             <Route path="/shop" element={<Shop t={t()} lang={lang} addToCart={addToCart} products={products} />} />
-            <Route path="/product/:id" element={<ProductPage t={t()} lang={lang} addToCart={addToCart} products={products} />} />
+            <Route path="/product/:id" element={<ProductPage t={t()} lang={lang} addToCart={addToCart} products={products} wishlist={wishlist} toggleWishlist={toggleWishlist} reviews={reviews} addReview={addReview} />} />
+            <Route path="/wishlist" element={<WishlistPage t={t()} lang={lang} products={products} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart} />} />
             <Route path="/login" element={<LoginPage t={t()} />} />
             <Route path="/account" element={<AccountPage t={t()} />} />
             <Route path="/admin/*" element={<AdminPage t={t()} products={products} setProducts={setProducts} />} />

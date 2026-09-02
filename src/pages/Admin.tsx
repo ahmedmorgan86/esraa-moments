@@ -28,6 +28,7 @@ const statusStyles: Record<string, { color: string; icon: any; bg: string; borde
   shipped: { color: 'text-primary', icon: Truck, bg: 'bg-primary/10', border: 'border-primary/20' },
   delivered: { color: 'text-emerald-500', icon: CheckCircle, bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
   cancelled: { color: 'text-red-500', icon: XCircle, bg: 'bg-red-500/10', border: 'border-red-500/20' },
+  return_requested: { color: 'text-orange-500', icon: Package, bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
 };
 
 export default function AdminPage({ t, products, setProducts }: { t: any; products: Product[]; setProducts: React.Dispatch<React.SetStateAction<Product[]>> }) {
@@ -161,6 +162,7 @@ function Dashboard({ t, products }: { t: any; products: Product[] }) {
   const [dailyRevenue, setDailyRevenue] = useState<{ date: string; amount: number }[]>([]);
   const [topProducts, setTopProducts] = useState<{ name: string; total: number }[]>([]);
   const [statusCounts, setStatusCounts] = useState<Record<string, number>>({});
+  const lowStockProducts = products.filter(p => p.stock < 5);
 
   useEffect(() => {
     Promise.all([
@@ -231,6 +233,19 @@ function Dashboard({ t, products }: { t: any; products: Product[] }) {
 
   return (
     <motion.div initial="hidden" animate="visible" variants={fadeIn}>
+      {lowStockProducts.length > 0 && (
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-5 mb-8">
+          <h3 className="font-bold text-amber-600 mb-2">{t.lowStock || 'مخزون منخفض'} ({lowStockProducts.length})</h3>
+          <div className="flex flex-wrap gap-2">
+            {lowStockProducts.map(p => (
+              <span key={p.id} className="bg-surface px-3 py-1 rounded-lg text-xs font-semibold border border-amber-500/30">
+                {p.name}: <strong className="text-red-500">{p.stock}</strong>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
         {cards.map(c => (

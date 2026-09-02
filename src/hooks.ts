@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { seed, type Product } from './data';
+import { seed, type Product, type Review } from './data';
 
 export function useProducts(): [Product[], React.Dispatch<React.SetStateAction<Product[]>>] {
   const [products, setProducts] = useState<Product[]>(() => {
@@ -43,4 +43,32 @@ export function useMediaQuery(query: string) {
     return () => m.removeEventListener('change', handler);
   }, [query]);
   return matches;
+}
+
+export function useWishlist(): [string[], (id: string) => void] {
+  const [wishlist, setWishlist] = useState<string[]>(() => {
+    const saved = localStorage.getItem('em-wishlist');
+    return saved ? JSON.parse(saved) : [];
+  });
+  useEffect(() => {
+    localStorage.setItem('em-wishlist', JSON.stringify(wishlist));
+  }, [wishlist]);
+  const toggle = (id: string) => {
+    setWishlist(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+  return [wishlist, toggle];
+}
+
+export function useReviews(): [Review[], (review: Review) => void] {
+  const [reviews, setReviews] = useState<Review[]>(() => {
+    const saved = localStorage.getItem('em-reviews');
+    return saved ? JSON.parse(saved) : [];
+  });
+  useEffect(() => {
+    localStorage.setItem('em-reviews', JSON.stringify(reviews));
+  }, [reviews]);
+  const addReview = (review: Review) => {
+    setReviews(prev => [...prev, review]);
+  };
+  return [reviews, addReview];
 }

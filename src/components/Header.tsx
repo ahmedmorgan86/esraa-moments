@@ -1,14 +1,14 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Sun, Moon, Globe, ShoppingBag, Menu, X, User } from 'lucide-react';
+import { Sun, Moon, Globe, ShoppingBag, Menu, X, User, Heart } from 'lucide-react';
 
 type Props = {
-  lang: string; t: any; scrolled: boolean; cartCount: number;
+  lang: string; t: any; scrolled: boolean; cartCount: number; wishlistCount: number;
   dark: boolean; menuOpen: boolean;
   onMenuToggle: () => void; onCartOpen: () => void;
   onDarkToggle: () => void; onLangToggle: () => void;
 };
 
-export function Header({ t, scrolled, cartCount, dark, menuOpen, onMenuToggle, onCartOpen, onDarkToggle, onLangToggle }: Props) {
+export function Header({ t, scrolled, cartCount, wishlistCount, dark, menuOpen, onMenuToggle, onCartOpen, onDarkToggle, onLangToggle }: Props) {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path ? 'text-primary bg-primary/8' : 'text-muted hover:text-ink hover:bg-primary/8';
   const navLinks = [
@@ -42,6 +42,12 @@ export function Header({ t, scrolled, cartCount, dark, menuOpen, onMenuToggle, o
           </button>
           <Link to="/account" className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary/8 transition-all text-ink">
             <User size={20} />
+          </Link>
+          <Link to="/wishlist" className="relative w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary/8 transition-all text-ink">
+            <Heart size={20} />
+            {wishlistCount > 0 && (
+              <span className="absolute -top-0.5 -start-0.5 w-[17px] h-[17px] rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center">{wishlistCount}</span>
+            )}
           </Link>
           <button onClick={onCartOpen} className="relative w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary/8 transition-all text-ink">
             <ShoppingBag size={20} />

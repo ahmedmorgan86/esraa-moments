@@ -59,6 +59,13 @@ export const translations = {
     returns: 'استبدال', returnsDays: '7 أيام',
     qty: 'الكمية', productDetails: 'تفاصيل المنتج',
     priceRange: 'نطاق السعر', perUnit: 'حسب الكمية',
+    // Wishlist
+    wishlist: 'المفضلة', addToWishlist: 'إضافة للمفضلة', removeFromWishlist: 'إزالة من المفضلة',
+    wishlistEmpty: 'المفضلة فاضية', wishlistEmptyDesc: 'مفيش منتجات في المفضلة لسه. ابدأ بالتصفح!',
+    // Reviews
+    writeReview: 'اكتب تقييم', yourName: 'اسمك', rating: 'التقييم', yourReview: 'تقييمك',
+    submitReview: 'إرسال التقييم', reviewSubmitted: 'تم إرسال التقييم بنجاح!',
+    noReviewsYet: 'مفيش تقييمات لسه', averageRating: 'متوسط التقييم', outOf5: 'من 5',
     // Checkout
     shippingDetails: 'بيانات الشحن', paymentMethod: 'طريقة الدفع',
     orderSummary: 'ملخص الطلب', confirmOrder: 'تأكيد الأوردر',
@@ -159,6 +166,15 @@ export const translations = {
     stockLabel: 'المخزون', imageUrl: 'رابط الصورة', saveProduct: 'حفظ المنتج', cancelLabel: 'إلغاء',
     productAdded: 'تمت إضافة المنتج بنجاح', productUpdated: 'تم تعديل المنتج بنجاح', productDeleted: 'تم حذف المنتج بنجاح',
     addNewProduct: 'إضافة منتج جديد', editProductTitle: 'تعديل المنتج',
+    // Payment Proof
+    paymentProof: 'إثبات الدفع',
+    // Order Cancellation
+    cancelOrder: 'إلغاء الطلب', confirmCancel: 'هل أنت متأكد من إلغاء هذا الطلب؟',
+    // Return System
+    requestReturn: 'طلب إرجاع', confirmReturn: 'هل أنت متأكد من طلب إرجاع هذا الطلب؟',
+    returnRequested: 'تم طلب الإرجاع',
+    // Low Stock
+    lowStock: 'مخزون منخفض',
     // Date locale
     dateLocale: 'ar-EG',
   },
@@ -222,6 +238,13 @@ export const translations = {
     returns: 'Returns', returnsDays: '7 days',
     qty: 'Quantity', productDetails: 'Product Details',
     priceRange: 'Price Range', perUnit: 'depends on quantity',
+    // Wishlist
+    wishlist: 'Wishlist', addToWishlist: 'Add to Wishlist', removeFromWishlist: 'Remove from Wishlist',
+    wishlistEmpty: 'Wishlist is empty', wishlistEmptyDesc: 'No products in your wishlist yet. Start browsing!',
+    // Reviews
+    writeReview: 'Write a Review', yourName: 'Your Name', rating: 'Rating', yourReview: 'Your Review',
+    submitReview: 'Submit Review', reviewSubmitted: 'Review submitted successfully!',
+    noReviewsYet: 'No reviews yet', averageRating: 'Average Rating', outOf5: 'out of 5',
     // Checkout
     shippingDetails: 'Shipping Details', paymentMethod: 'Payment Method',
     orderSummary: 'Order Summary', confirmOrder: 'Confirm Order',
@@ -322,6 +345,15 @@ export const translations = {
     stockLabel: 'Stock', imageUrl: 'Image URL', saveProduct: 'Save Product', cancelLabel: 'Cancel',
     productAdded: 'Product added successfully', productUpdated: 'Product updated successfully', productDeleted: 'Product deleted successfully',
     addNewProduct: 'Add New Product', editProductTitle: 'Edit Product',
+    // Payment Proof
+    paymentProof: 'Payment Proof',
+    // Order Cancellation
+    cancelOrder: 'Cancel Order', confirmCancel: 'Are you sure you want to cancel this order?',
+    // Return System
+    requestReturn: 'Request Return', confirmReturn: 'Are you sure you want to request a return for this order?',
+    returnRequested: 'Return Requested',
+    // Low Stock
+    lowStock: 'Low Stock',
     // Date locale
     dateLocale: 'en-US',
   }

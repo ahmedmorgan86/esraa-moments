@@ -8,6 +8,14 @@ export type Design = {
   occasion: string; type: string; qty: number;
   color: string; name: string; date: string; extras: string;
 };
+export interface Review {
+  id: string;
+  productId: string;
+  userName: string;
+  rating: number;
+  comment: string;
+  date: string;
+}
 export interface Coupon {
   id: string;
   code: string;
