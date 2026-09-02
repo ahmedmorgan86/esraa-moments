@@ -1,11 +1,7 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ChevronDown, ChevronLeft } from 'lucide-react';
 import { occasions, seed } from '../data';
-
-const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } };
-const stagger = { visible: { transition: { staggerChildren: 0.08 } } };
 
 const occasionIcons: Record<string, string> = {
   'سبوع': '🍼', 'خطوبة': '💍', 'حنة': '🤲', 'كتب كتاب': '📖',
@@ -29,7 +25,7 @@ export default function Home({ t, addToCart }: { t: any; addToCart: (p: any, qty
     <>
       {/* Hero */}
       <section className="grid grid-cols-1 lg:grid-cols-[1.08fr_.92fr] items-center gap-10 lg:gap-20 py-12 lg:py-20 px-5 lg:px-12 max-w-7xl mx-auto">
-        <motion.div className="relative z-10 flex flex-col items-start" initial="hidden" animate="visible" variants={fadeUp}>
+        <div className="relative z-10 flex flex-col items-start animate-[fadeUp_0.6s_ease_both]">
           <span className="inline-block text-primary text-[11.5px] font-extrabold tracking-widest mb-3">مُنتجة بدقة • تُصمم بكمال • تفاصيل تُنسى</span>
           <h1 className="text-[clamp(34px,4.5vw,56px)] leading-[1.2] font-black mb-5">
             {t.heroTitle1}<br />
@@ -38,43 +34,43 @@ export default function Home({ t, addToCart }: { t: any; addToCart: (p: any, qty
           <p className="text-muted text-[clamp(15px,1.5vw,17px)] max-w-[50ch] leading-relaxed mb-7">{t.heroDesc}</p>
           <Link to="/shop" className="btn primary flex items-center gap-2">{t.heroCta} <ArrowLeft size={18} /></Link>
           <div className="mt-7 text-subtle"><ChevronDown size={22} /></div>
-        </motion.div>
-        <motion.div className="relative justify-self-center" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7 }}>
+        </div>
+        <div className="relative justify-self-center animate-[fadeUp_0.7s_ease_both_0.15s]">
           <div className="absolute -top-[5%] -end-[7%] w-[55%] aspect-square bg-primary/12 rounded-full blur-[25px] opacity-80 pointer-events-none" />
           <div className="absolute top-[5%] bottom-[-12px] -start-3 w-[74%] border-2 border-primary/15 rounded-[190px_190px_14px_14px] pointer-events-none" />
           <img src="/images/Gemini_Generated_Image_wh7xokwh7xokwh7x.jpeg" alt="" className="relative z-10 w-[min(380px,100%)] aspect-[4/5] object-cover rounded-[190px_190px_14px_14px] shadow-2xl" />
-          <div className="absolute bottom-5 start-5 z-20 bg-white/85 dark:bg-black/70 backdrop-blur-md border border-white/20 rounded-lg px-4 py-3 text-xs font-semibold shadow-lg">مُنتجة بدقة<br /><span className="text-muted">للحظات</span></div>
-        </motion.div>
+          <div className="absolute bottom-5 start-5 z-20 bg-white/85 backdrop-blur-md border border-white/20 rounded-lg px-4 py-3 text-xs font-semibold shadow-lg">مُنتجة بدقة<br /><span className="text-muted">للحظات</span></div>
+        </div>
       </section>
 
       {/* Occasions */}
       <section className="section">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={fadeUp}>
+        <div className="animate-[fadeUp_0.6s_ease_both]">
           <span className="eyebrow">الخطوة الأولى</span>
           <h2 className="text-[clamp(24px,3.2vw,38px)] font-black">{t.occasionsTitle}</h2>
-        </motion.div>
-        <motion.div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3.5 mt-9" variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }}>
-          {occasions.map(occ => (
-            <motion.div key={occ} variants={fadeUp}>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3.5 mt-9">
+          {occasions.map((occ, i) => (
+            <div key={occ} className="animate-[fadeUp_0.5s_ease_both]" style={{ animationDelay: `${i * 0.05}s` }}>
               <Link to={`/shop?cat=${encodeURIComponent(occ)}`} className="flex items-center gap-3 p-4 bg-surface border border-border rounded-xl hover:border-primary hover:-translate-y-0.5 hover:shadow-md transition-all">
                 <div className="w-[42px] h-[42px] rounded-lg bg-primary/8 text-primary flex items-center justify-center text-xl flex-shrink-0">{occasionIcons[occ] || '✨'}</div>
                 <span className="text-sm font-semibold text-ink">{occ}</span>
               </Link>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </section>
 
       {/* Featured */}
       <section className="section">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={fadeUp}>
+        <div className="animate-[fadeUp_0.6s_ease_both]">
           <span className="eyebrow">اختياراتنا</span>
           <h2 className="text-[clamp(24px,3.2vw,38px)] font-black">{t.featuredTitle}</h2>
           <p className="text-muted mt-2">{t.featuredSub}</p>
-        </motion.div>
-        <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-9" variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }}>
-          {featured.map(p => (
-            <motion.div key={p.id} variants={fadeUp}>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-9">
+          {featured.map((p, i) => (
+            <div key={p.id} className="animate-[fadeUp_0.5s_ease_both]" style={{ animationDelay: `${i * 0.06}s` }}>
               <Link to={`/product/${p.id}`} className="group block bg-surface border border-border rounded-xl overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all">
                 <div className="relative aspect-square overflow-hidden bg-surface-alt">
                   <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
@@ -87,20 +83,20 @@ export default function Home({ t, addToCart }: { t: any; addToCart: (p: any, qty
                   </div>
                 </div>
               </Link>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </section>
 
       {/* Brand Story */}
       <section className="section">
         <div className="bg-surface border border-border rounded-2xl p-8 lg:p-16 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+          <div className="animate-[fadeUp_0.6s_ease_both]">
             <span className="eyebrow">{t.storyTitle}</span>
             <h2 className="text-[clamp(24px,3.2vw,38px)] font-black mt-2 mb-5">{t.storyTitle}</h2>
             <p className="italic text-primary text-lg mb-5">"{t.storyQuote}"</p>
             <p className="text-muted text-sm leading-relaxed">مجرد تفاصيل صغيرة... لكنها تصنع فرق كبير في كل مناسبة. من القلب إلى إيدك.</p>
-          </motion.div>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <img src="/images/Gemini_Generated_Image_ehh0puehh0puehh0.jpeg" alt="" className="w-full aspect-[4/5] object-cover rounded-xl" />
             <img src="/images/Gemini_Generated_Image_sligebsligebslig.jpeg" alt="" className="w-full aspect-[4/5] object-cover rounded-xl mt-8" />
@@ -110,10 +106,10 @@ export default function Home({ t, addToCart }: { t: any; addToCart: (p: any, qty
 
       {/* Best Sellers */}
       <section className="section">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={fadeUp}>
+        <div className="animate-[fadeUp_0.6s_ease_both]">
           <span className="eyebrow">الأكثر طلباً</span>
           <h2 className="text-[clamp(24px,3.2vw,38px)] font-black">{t.bsTitle}</h2>
-        </motion.div>
+        </div>
         <div className="flex gap-5 overflow-x-auto pb-4 mt-9 scroll-snap-x mandatory -mx-5 px-5 lg:-mx-12 lg:px-12" style={{ scrollPaddingInline: '20px' }}>
           {bestSellers.map((p, i) => (
             <Link key={p.id} to={`/product/${p.id}`} className="min-w-[260px] flex-shrink-0 bg-surface border border-border rounded-xl overflow-hidden scroll-snap-start hover:shadow-md transition-all">

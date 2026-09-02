@@ -5,16 +5,16 @@ const base = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, trans
 
 export function AnimateScroll({ children, className = '', delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
   return (
-    <motion.div className={className} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={{ ...base, visible: { ...base.visible, transition: { ...base.visible.transition, delay } } }}>
+    <motion.div className={className} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '50px' }} variants={{ ...base, visible: { ...base.visible, transition: { ...base.visible.transition, delay } } }}>
       {children}
     </motion.div>
   );
 }
 
-export function StaggerContainer({ children, className = '', amount = 0.15 }: { children: ReactNode; className?: string; amount?: number }) {
+export function StaggerContainer({ children, className = '' }: { children: ReactNode; className?: string; amount?: number }) {
   const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.08 } } };
   return (
-    <motion.div className={className} initial="hidden" whileInView="visible" viewport={{ once: true, amount }} variants={stagger}>
+    <motion.div className={className} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '100px' }} variants={stagger}>
       {children}
     </motion.div>
   );
@@ -22,7 +22,7 @@ export function StaggerContainer({ children, className = '', amount = 0.15 }: { 
 
 export function AnimateScale({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <motion.div className={className} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
+    <motion.div className={className} initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true, margin: '100px' }} transition={{ duration: 0.5 }}>
       {children}
     </motion.div>
   );

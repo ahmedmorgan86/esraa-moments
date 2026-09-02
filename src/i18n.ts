@@ -20,7 +20,7 @@ export const translations = {
     footerDesc: 'مجرد تفاصيل صغيره... لكنها تصنع فرق كبير في كل مناسبة.',
     login: 'تسجيل الدخول', signup: 'إنشاء حساب', logout: 'تسجيل الخروج',
     email: 'البريد الإلكتروني', password: 'كلمة المرور', signIn: 'دخول', signUp: 'حساب جديد',
-    or: 'أو', google: 'المتابعة بحساب جولج', forgot: 'نسيت كلمة المرور؟',
+    or: 'أو', google: 'المتابعة بحساب جوجل', forgot: 'نسيت كلمة المرور؟',
     noAccount: 'ليس لديك حساب؟', hasAccount: 'لديك حساب بالفعل؟',
     all: 'الكل', searchProducts: 'ابحث عن منتج...', productCount: 'منتج',
     sortBy: 'الترتيب', price: 'السعر', addToCart: 'أضف للسلة',
@@ -41,6 +41,12 @@ export const translations = {
     emailLinkHint: 'هنبعتلك رابط تسجيل دخول على الإيميل',
     emailLinkSent: 'تم إرسال الرابط! افتح إيميلك.',
     ordersEmpty: 'مفيش طبات لسه', actionOrder: 'ابدأ تسوق',
+    trackOrder: 'تتبع الأوردر',
+    loginDesc: 'ادخل بياناتك عشان تكمل',
+    profile: 'الملف الشخصي',
+    fullName: 'الاسم الكامل',
+    save: 'حفظ',
+    orders: 'الطلبات',
   },
   en: {
     pageTitle: 'ESRAA Moments — Details that create memories',
@@ -84,6 +90,12 @@ export const translations = {
     emailLinkHint: "We'll email you a sign-in link",
     emailLinkSent: 'Link sent! Check your email.',
     ordersEmpty: 'No orders yet', actionOrder: 'Start Shopping',
+    trackOrder: 'Track Order',
+    loginDesc: 'Enter your credentials to continue',
+    profile: 'Profile',
+    fullName: 'Full Name',
+    save: 'Save',
+    orders: 'Orders',
   }
 } as const;
 

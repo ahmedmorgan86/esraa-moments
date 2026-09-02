@@ -21,8 +21,8 @@ export default function Shop({ t, addToCart }: { t: any; addToCart: (p: any, qty
   }, [cat, search, sort]);
 
   return (
-    <section className="section">
-      <div className="mb-8">
+    <section className="section page">
+      <div className="mb-8 animate-[fadeUp_0.6s_ease_both]">
         <span className="eyebrow">{t.shop}</span>
         <h1 className="text-[clamp(24px,3.2vw,38px)] font-black">{t.shop} — كل التوزيعات</h1>
       </div>
@@ -58,21 +58,23 @@ export default function Shop({ t, addToCart }: { t: any; addToCart: (p: any, qty
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {filtered.map(p => (
-            <Link key={p.id} to={`/product/${p.id}`} className="group block bg-surface border border-border rounded-xl overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all">
-              <div className="relative aspect-square overflow-hidden bg-surface-alt">
-                <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
-                <span className="absolute bottom-3 start-3 z-10 bg-white/85 dark:bg-black/70 backdrop-blur-md border border-white/20 rounded-full px-3 py-1 text-[11px] font-bold">{p.category}</span>
-              </div>
-              <div className="p-4">
-                <h3 className="text-[14px] font-bold line-clamp-2 mb-1">{p.name}</h3>
-                <p className="text-muted text-[12.5px] line-clamp-2">{p.desc}</p>
-                <div className="flex items-center justify-between mt-3">
-                  <span className="text-gradient font-extrabold text-lg">{p.price} ج.م</span>
-                  <button onClick={(e) => { e.preventDefault(); addToCart(p); }} className="bg-primary text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-primary-hover transition-all" type="button">{t.addToCart}</button>
+          {filtered.map((p, i) => (
+            <div key={p.id} className="animate-[fadeUp_0.4s_ease_both]" style={{ animationDelay: `${i * 0.04}s` }}>
+              <Link to={`/product/${p.id}`} className="group block bg-surface border border-border rounded-xl overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all">
+                <div className="relative aspect-square overflow-hidden bg-surface-alt">
+                  <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
+                  <span className="absolute bottom-3 start-3 z-10 bg-white/85 backdrop-blur-md border border-white/20 rounded-full px-3 py-1 text-[11px] font-bold">{p.category}</span>
                 </div>
-              </div>
-            </Link>
+                <div className="p-4">
+                  <h3 className="text-[14px] font-bold line-clamp-2 mb-1">{p.name}</h3>
+                  <p className="text-muted text-[12.5px] line-clamp-2">{p.desc}</p>
+                  <div className="flex items-center justify-between mt-3">
+                    <span className="text-gradient font-extrabold text-lg">{p.price} ج.م</span>
+                    <button onClick={(e) => { e.preventDefault(); addToCart(p); }} className="bg-primary text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-primary-hover transition-all" type="button">{t.addToCart}</button>
+                  </div>
+                </div>
+              </Link>
+            </div>
           ))}
         </div>
       )}
