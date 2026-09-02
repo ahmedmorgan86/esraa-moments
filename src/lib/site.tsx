@@ -4,7 +4,7 @@ import { supabase } from './supabase';
 type SiteCtx = { site: SiteData; setSite: React.Dispatch<React.SetStateAction<SiteData>> };
 type SiteData = {
   appearance: { mode: 'light' | 'dark'; accent: string };
-  announcement: { text: string; enabled: boolean };
+  announcement: { text: string; textEn?: string; enabled: boolean };
 };
 
 const ACCENTS = [
@@ -15,7 +15,7 @@ const ACCENTS = [
 
 const defaultSite: SiteData = {
   appearance: { mode: 'light', accent: 'terracotta' },
-  announcement: { text: 'لافتة محدودة! احصل على خصم 10% الآن — لا تفوّت الفرصة! 🔥', enabled: true },
+  announcement: { text: 'لافتة محدودة! احصل على خصم 10% الآن — لا تفوّت الفرصة! 🔥', textEn: 'Limited banner! Get 10% off now — Don\'t miss out! 🔥', enabled: true },
 };
 
 const SiteCtx = createContext<SiteCtx>({ site: defaultSite, setSite: () => {} });

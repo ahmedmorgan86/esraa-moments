@@ -49,7 +49,7 @@ export default function CheckoutPage({ t, cart, setCart }: Props) {
       setCart([]);
       setDone(true);
     } catch (err: any) {
-      alert('حصل خطأ: ' + (err.message || ''));
+      alert('Error: ' + (err.message || ''));
     }
     setLoading(false);
   };
@@ -59,9 +59,9 @@ export default function CheckoutPage({ t, cart, setCart }: Props) {
       <section className="section page flex items-center justify-center min-h-[60vh]">
         <motion.div className="text-center max-w-[420px]" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}>
           <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">✓</div>
-          <h1 className="text-2xl font-black mb-2">تم الأوردر!</h1>
-          <p className="text-muted text-sm mb-4">رقم الأوردر: <strong className="text-ink">{orderId}</strong></p>
-          <p className="text-muted text-[13px] mb-6">هنتواصل معاك على الواتساب عشان نأكد الأوردر. لو عندك أي سؤال كلمنا على 01097905435.</p>
+          <h1 className="text-2xl font-black mb-2">{t.orderConfirmed}</h1>
+          <p className="text-muted text-sm mb-4">{t.orderNumberLabel}: <strong className="text-ink">{orderId}</strong></p>
+          <p className="text-muted text-[13px] mb-6">{t.confirmWhatsApp}</p>
           <Link to="/shop" className="btn primary">{t.continueShopping}</Link>
         </motion.div>
       </section>
@@ -86,51 +86,51 @@ export default function CheckoutPage({ t, cart, setCart }: Props) {
     <section className="section page">
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
-          <Link to="/shop" className="text-primary text-[13px] font-semibold flex items-center gap-1 hover:underline mb-3"><ArrowLeft size={14} /> العودة للمتجر</Link>
-          <h1 className="text-[clamp(24px,3.2vw,38px)] font-black">إتمام الطلب</h1>
+          <Link to="/shop" className="text-primary text-[13px] font-semibold flex items-center gap-1 hover:underline mb-3"><ArrowLeft size={14} /> {t.backToStore}</Link>
+          <h1 className="text-[clamp(24px,3.2vw,38px)] font-black">{t.completeOrder}</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8">
           {/* Shipping */}
           <div className="flex flex-col gap-5">
             <div className="bg-surface border border-border rounded-xl p-6">
-              <h2 className="flex items-center gap-2 font-bold text-lg mb-5"><MapPin size={18} className="text-primary" /> بيانات الشحن</h2>
+              <h2 className="flex items-center gap-2 font-bold text-lg mb-5"><MapPin size={18} className="text-primary" /> {t.shippingDetails}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-semibold text-ink">الاسم الكامل *</label>
+                  <label className="text-[12px] font-semibold text-ink">{t.fullNameLabel} *</label>
                   <input type="text" value={form.name} onChange={e => update('name', e.target.value)} className="input-field" required />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-semibold text-ink">رقم الموبايل *</label>
+                  <label className="text-[12px] font-semibold text-ink">{t.phoneLabel} *</label>
                   <input type="tel" value={form.phone} onChange={e => update('phone', e.target.value)} className="input-field" placeholder="01XXXXXXXXX" required />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-semibold text-ink">موبايل إضافي</label>
-                  <input type="tel" value={form.phone2} onChange={e => update('phone2', e.target.value)} className="input-field" placeholder="اختياري" />
+                  <label className="text-[12px] font-semibold text-ink">{t.otherPhoneLabel}</label>
+                  <input type="tel" value={form.phone2} onChange={e => update('phone2', e.target.value)} className="input-field" placeholder={t.optionalLabel} />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-semibold text-ink">المدينة *</label>
+                  <label className="text-[12px] font-semibold text-ink">{t.cityLabel} *</label>
                   <input type="text" value={form.city} onChange={e => update('city', e.target.value)} className="input-field" required />
                 </div>
                 <div className="sm:col-span-2 flex flex-col gap-1.5">
-                  <label className="text-[12px] font-semibold text-ink">العنوان بالتفصيل *</label>
+                  <label className="text-[12px] font-semibold text-ink">{t.addressLabel} *</label>
                   <textarea value={form.address} onChange={e => update('address', e.target.value)} className="input-field min-h-[80px]" required />
                 </div>
                 <div className="sm:col-span-2 flex flex-col gap-1.5">
-                  <label className="text-[12px] font-semibold text-ink">ملاحظات</label>
-                  <textarea value={form.notes} onChange={e => update('notes', e.target.value)} className="input-field" placeholder="مثلاً: عايز تغليف خاص / رسالة معينة..." />
+                  <label className="text-[12px] font-semibold text-ink">{t.notesLabel}</label>
+                  <textarea value={form.notes} onChange={e => update('notes', e.target.value)} className="input-field" placeholder={t.notesPlaceholderAr} />
                 </div>
               </div>
             </div>
 
             {/* Payment */}
             <div className="bg-surface border border-border rounded-xl p-6">
-              <h2 className="flex items-center gap-2 font-bold text-lg mb-5"><CreditCard size={18} className="text-primary" /> طريقة الدفع</h2>
+              <h2 className="flex items-center gap-2 font-bold text-lg mb-5"><CreditCard size={18} className="text-primary" /> {t.paymentMethod}</h2>
               <div className="flex flex-col gap-2.5">
                 {[
-                  { id: 'cod', label: 'الدفع عند الاستلام', icon: '💵' },
-                  { id: 'wallet', label: 'فودافون كاش / فوري', icon: '📱' },
-                  { id: 'instapay', label: 'InstaPay / تحويل بنكي', icon: '🏦' },
+                  { id: 'cod', label: t.payOnDelivery, icon: '💵' },
+                  { id: 'wallet', label: t.mobileWallet, icon: '📱' },
+                  { id: 'instapay', label: t.instaPay, icon: '🏦' },
                 ].map(m => (
                   <label key={m.id} className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${payMethod === m.id ? 'border-primary bg-primary/5' : 'border-border hover:border-border-strong'}`}>
                     <input type="radio" name="pay" value={m.id} checked={payMethod === m.id} onChange={e => setPayMethod(e.target.value)} className="accent-primary" />
@@ -141,10 +141,10 @@ export default function CheckoutPage({ t, cart, setCart }: Props) {
               </div>
               {payMethod === 'instapay' && (
                 <div className="mt-4 bg-primary/5 border border-primary/20 rounded-lg p-4 text-[13px]">
-                  <p className="font-bold text-primary mb-1">بيانات التحويل:</p>
-                  <p className="text-ink">البنك: CIB</p>
-                  <p className="text-ink">الاسم: Esraa Moments</p>
-                  <p className="text-ink">الرقم: 100234567890</p>
+                  <p className="font-bold text-primary mb-1">{t.transferInfo}</p>
+                  <p className="text-ink">{t.bank}: CIB</p>
+                  <p className="text-ink">{t.bankNameLabel}: Esraa Moments</p>
+                  <p className="text-ink">{t.bankNumber}: 100234567890</p>
                 </div>
               )}
             </div>
@@ -152,26 +152,26 @@ export default function CheckoutPage({ t, cart, setCart }: Props) {
 
           {/* Summary */}
           <div className="bg-surface border border-border rounded-xl p-6 h-fit sticky top-[88px]">
-            <h2 className="font-bold text-lg mb-5">ملخص الطلب</h2>
+            <h2 className="font-bold text-lg mb-5">{t.orderSummary}</h2>
             <div className="flex flex-col gap-3 mb-5">
               {cart.map(i => (
                 <div key={i.id} className="flex gap-3 items-center">
                   <img src={i.image} alt={i.name} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] font-semibold line-clamp-1">{i.name}</p>
-                    <p className="text-muted text-[12px]">الكمية: {i.qty}</p>
+                    <p className="text-muted text-[12px]">{t.quantityLabel}: {i.qty}</p>
                   </div>
-                  <span className="font-bold text-sm">{i.price * i.qty} ج.م</span>
+                  <span className="font-bold text-sm">{i.price * i.qty} {t.currency}</span>
                 </div>
               ))}
             </div>
             <div className="flex flex-col gap-2 text-sm border-t border-border pt-4 mb-4">
-              <div className="flex justify-between"><span className="text-muted">المجموع</span><span>{subtotal} ج.م</span></div>
-              <div className="flex justify-between"><span className="text-muted">{t.shipping}</span><span>{shipping === 0 ? t.free : `${shipping} ج.م`}</span></div>
-              <div className="flex justify-between font-bold text-lg border-t border-border pt-2"><span>{t.total}</span><span className="text-gradient">{total} ج.م</span></div>
+              <div className="flex justify-between"><span className="text-muted">{t.subtotal}</span><span>{subtotal} {t.currency}</span></div>
+              <div className="flex justify-between"><span className="text-muted">{t.shipping}</span><span>{shipping === 0 ? t.free : `${shipping} ${t.currency}`}</span></div>
+              <div className="flex justify-between font-bold text-lg border-t border-border pt-2"><span>{t.total}</span><span className="text-gradient">{total} {t.currency}</span></div>
             </div>
             <button type="submit" disabled={loading} className="btn primary w-full py-3.5 text-[14px] font-bold">
-              {loading ? '...' : `تأكيد الأوردر — ${total} ج.م`}
+              {loading ? '...' : `${t.confirmOrder} — ${total} ${t.currency}`}
             </button>
           </div>
         </form>

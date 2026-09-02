@@ -4,12 +4,14 @@ import { Search, SlidersHorizontal } from 'lucide-react';
 import { seed, occasions } from '../data';
 import { occasionEn } from '../i18n';
 
-export default function Shop({ t, addToCart }: { t: any; addToCart: (p: any, qty?: number) => void }) {
+export default function Shop({ t, lang, addToCart }: { t: any; lang: string; addToCart: (p: any, qty?: number) => void }) {
   const [params] = useSearchParams();
   const initialCat = params.get('cat') || 'الكل';
   const [cat, setCat] = useState(initialCat);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('default');
+
+  const isEn = lang === 'en';
 
   const filtered = useMemo(() => {
     let list = [...seed];
@@ -20,8 +22,6 @@ export default function Shop({ t, addToCart }: { t: any; addToCart: (p: any, qty
     if (sort === 'name') list.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
     return list;
   }, [cat, search, sort]);
-
-  const isEn = document.documentElement.lang === 'en';
 
   return (
     <section className="section page">
@@ -41,7 +41,7 @@ export default function Shop({ t, addToCart }: { t: any; addToCart: (p: any, qty
             <option value="default">{t.sortBy}</option>
             <option value="price-low">{t.price} ↑</option>
             <option value="price-high">{t.price} ↓</option>
-            <option value="name">أ-ي</option>
+            <option value="name">{isEn ? 'A-Z' : 'أ-ي'}</option>
           </select>
         </div>
       </div>
@@ -72,7 +72,7 @@ export default function Shop({ t, addToCart }: { t: any; addToCart: (p: any, qty
                   <h3 className="text-[14px] font-bold line-clamp-2 mb-1">{isEn && p.name_en ? p.name_en : p.name}</h3>
                   <p className="text-muted text-[12.5px] line-clamp-2">{isEn && p.desc_en ? p.desc_en : p.desc}</p>
                   <div className="flex items-center justify-between mt-3">
-                    <span className="text-gradient font-extrabold text-lg">{p.price} ج.م</span>
+                    <span className="text-gradient font-extrabold text-lg">{p.price} {t.currency}</span>
                     <button onClick={(e) => { e.preventDefault(); addToCart(p); }} className="bg-primary text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-primary-hover transition-all" type="button">{t.addToCart}</button>
                   </div>
                 </div>

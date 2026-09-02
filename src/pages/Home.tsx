@@ -18,10 +18,10 @@ const faqs = [
   { q: 'إيه الحد الأدنى للطلبات؟', q_en: 'What is the minimum order quantity?', a: 'مفيش حد أدنى للطلبات الفردية. بس الطلبات الكبيرة (50 قطعة وفوق) عليها خصم خاص.', a_en: 'No minimum for individual orders. But large orders (50+ pieces) get a special discount.' },
 ];
 
-export default function Home({ t, addToCart }: { t: any; addToCart: (p: any, qty?: number) => void }) {
+export default function Home({ t, lang, addToCart }: { t: any; lang: string; addToCart: (p: any, qty?: number) => void }) {
   const featured = seed.filter(p => p.featured).slice(0, 8);
   const bestSellers = seed.slice(0, 6);
-  const isEn = document.documentElement.lang === 'en';
+  const isEn = lang === 'en';
 
   return (
     <>
@@ -81,7 +81,7 @@ export default function Home({ t, addToCart }: { t: any; addToCart: (p: any, qty
                 <div className="p-4">
                   <h3 className="text-[14px] font-bold line-clamp-2 mb-1">{isEn && p.name_en ? p.name_en : p.name}</h3>
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-gradient font-extrabold text-lg">{p.price} ج.م</span>
+                    <span className="text-gradient font-extrabold text-lg">{p.price} {t.currency}</span>
                     <button onClick={(e) => { e.preventDefault(); addToCart(p); }} className="bg-primary text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-primary-hover transition-all" type="button">{t.addToCart}</button>
                   </div>
                 </div>
@@ -120,7 +120,7 @@ export default function Home({ t, addToCart }: { t: any; addToCart: (p: any, qty
               <div className="p-3.5">
                 <span className="text-primary text-[11px] font-extrabold">#{i + 1}</span>
                 <h3 className="text-sm font-bold mt-1 line-clamp-1">{isEn && p.name_en ? p.name_en : p.name}</h3>
-                <span className="text-gradient font-extrabold mt-1 block">{p.price} ج.م</span>
+                <span className="text-gradient font-extrabold mt-1 block">{p.price} {t.currency}</span>
               </div>
             </Link>
           ))}

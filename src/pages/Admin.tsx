@@ -8,15 +8,15 @@ import { seed } from '../data';
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
-const sidebarNav = [
-  { key: 'dashboard', label: 'لوحة التحكم', icon: LayoutDashboard },
-  { key: 'products', label: 'المنتجات', icon: Package },
-  { key: 'orders', label: 'الأوردرات', icon: ClipboardList },
-  { key: 'customers', label: 'العملاء', icon: Users },
-  { key: 'settings', label: 'الإعدادات', icon: Settings },
+const getSidebarNav = (t: any) => [
+  { key: 'dashboard', label: t.dashboard, icon: LayoutDashboard },
+  { key: 'products', label: t.products, icon: Package },
+  { key: 'orders', label: t.allOrders, icon: ClipboardList },
+  { key: 'customers', label: t.customers, icon: Users },
+  { key: 'settings', label: t.settings, icon: Settings },
 ];
 
-export default function AdminPage(_props: { t: any }) {
+export default function AdminPage({ t }: { t: any }) {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('dashboard');
@@ -53,7 +53,7 @@ export default function AdminPage(_props: { t: any }) {
         </div>
 
         <nav className="flex-1 p-3 flex flex-col gap-0.5">
-          {sidebarNav.map(n => (
+          {getSidebarNav(t).map(n => (
             <button key={n.key} onClick={() => setTab(n.key)} className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-[13px] font-semibold transition-all ${tab === n.key ? 'bg-primary text-white' : 'text-muted hover:bg-primary/8 hover:text-ink'}`}>
               <n.icon size={17} /> {n.label}
             </button>
@@ -63,28 +63,28 @@ export default function AdminPage(_props: { t: any }) {
         <div className="p-3 border-t border-border">
           <div className="px-3 py-2 mb-2">
             <p className="text-[12px] font-bold text-ink truncate">{user.email}</p>
-            <p className="text-[11px] text-muted">مدير</p>
+            <p className="text-[11px] text-muted">{t.managerLabel}</p>
           </div>
           <button onClick={handleLogout} className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-[13px] font-semibold text-danger hover:bg-danger/8 transition-all">
-            <LogOut size={17} /> خروج
+            <LogOut size={17} /> {t.logoutLabel}
           </button>
         </div>
       </aside>
 
       {/* Content */}
       <main className="flex-1 min-h-screen p-6 lg:p-10 overflow-auto">
-        {tab === 'dashboard' && <Dashboard />}
-        {tab === 'products' && <ProductsTab />}
-        {tab === 'orders' && <OrdersTab />}
-        {tab === 'customers' && <CustomersTab />}
-        {tab === 'settings' && <SettingsTab />}
+        {tab === 'dashboard' && <Dashboard t={t} />}
+        {tab === 'products' && <ProductsTab t={t} />}
+        {tab === 'orders' && <OrdersTab t={t} />}
+        {tab === 'customers' && <CustomersTab t={t} />}
+        {tab === 'settings' && <SettingsTab t={t} />}
       </main>
     </div>
   );
 }
 
 /* ── Dashboard ── */
-function Dashboard() {
+function Dashboard({ t }: { t: any }) {
   const [stats, setStats] = useState({ products: seed.length, orders: 0, revenue: 0, customers: 0 });
 
   useEffect(() => {
@@ -103,15 +103,15 @@ function Dashboard() {
   }, []);
 
   const cards = [
-    { label: 'المنتجات', value: stats.products, icon: Package, color: 'text-primary bg-primary/10' },
-    { label: 'الأوردرات', value: stats.orders, icon: ClipboardList, color: 'text-blue-500 bg-blue-500/10' },
-    { label: 'الإيرادات', value: `${stats.revenue} ج.م`, icon: TrendingUp, color: 'text-success bg-success/10' },
-    { label: 'العملاء', value: stats.customers, icon: Users, color: 'text-purple-500 bg-purple-500/10' },
+    { label: t.totalProducts, value: stats.products, icon: Package, color: 'text-primary bg-primary/10' },
+    { label: t.totalOrders, value: stats.orders, icon: ClipboardList, color: 'text-blue-500 bg-blue-500/10' },
+    { label: t.totalRevenue, value: `${stats.revenue} ${t.currency}`, icon: TrendingUp, color: 'text-success bg-success/10' },
+    { label: t.totalCustomers, value: stats.customers, icon: Users, color: 'text-purple-500 bg-purple-500/10' },
   ];
 
   return (
     <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-      <h1 className="text-2xl font-black mb-6">لوحة التحكم</h1>
+      <h1 className="text-2xl font-black mb-6">{t.dashboardTitle}</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {cards.map(c => (
           <div key={c.label} className="bg-surface border border-border rounded-xl p-5">
@@ -123,14 +123,14 @@ function Dashboard() {
       </div>
       <div className="bg-surface border border-border rounded-xl p-6 text-center text-muted">
         <ShoppingBag size={40} className="mx-auto mb-3 opacity-30" />
-        <p className="text-sm">ابدأ بإضافة المنتجات والأوردرات هتظهر هنا.</p>
+        <p className="text-sm">{t.startAdding}</p>
       </div>
     </motion.div>
   );
 }
 
 /* ── Products Tab ── */
-function ProductsTab() {
+function ProductsTab({ t }: { t: any }) {
   const [products] = useState(seed);
   const [search, setSearch] = useState('');
 
@@ -139,12 +139,12 @@ function ProductsTab() {
   return (
     <motion.div initial="hidden" animate="visible" variants={fadeUp}>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-black">المنتجات ({filtered.length})</h1>
+        <h1 className="text-2xl font-black">{t.products} ({filtered.length})</h1>
       </div>
       <div className="flex gap-2.5 mb-5">
         <div className="flex-1 flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-lg">
           <Search size={15} className="text-muted" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="بحث..." className="w-full text-[13px] outline-none bg-transparent" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t.searchPlaceholder} className="w-full text-[13px] outline-none bg-transparent" />
         </div>
       </div>
       <div className="bg-surface border border-border rounded-xl overflow-hidden">
@@ -152,10 +152,10 @@ function ProductsTab() {
           <table className="w-full text-[13px]">
             <thead>
               <tr className="border-b border-border bg-surface-alt">
-                <th className="text-start px-4 py-3 font-semibold text-muted">المنتج</th>
-                <th className="text-start px-4 py-3 font-semibold text-muted">القسم</th>
-                <th className="text-start px-4 py-3 font-semibold text-muted">السعر</th>
-                <th className="text-start px-4 py-3 font-semibold text-muted">مميز</th>
+                <th className="text-start px-4 py-3 font-semibold text-muted">{t.productLabel}</th>
+                <th className="text-start px-4 py-3 font-semibold text-muted">{t.sectionLabel}</th>
+                <th className="text-start px-4 py-3 font-semibold text-muted">{t.priceLabel}</th>
+                <th className="text-start px-4 py-3 font-semibold text-muted">{t.featuredLabel}</th>
               </tr>
             </thead>
             <tbody>
@@ -168,7 +168,7 @@ function ProductsTab() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-muted">{p.category}</td>
-                  <td className="px-4 py-3 font-bold text-gradient">{p.price} ج.م</td>
+                  <td className="px-4 py-3 font-bold text-gradient">{p.price} {t.currency}</td>
                   <td className="px-4 py-3">{p.featured ? <span className="text-primary font-bold">★</span> : '—'}</td>
                 </tr>
               ))}
@@ -181,7 +181,7 @@ function ProductsTab() {
 }
 
 /* ── Orders Tab ── */
-function OrdersTab() {
+function OrdersTab({ t }: { t: any }) {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -203,12 +203,12 @@ function OrdersTab() {
   };
 
   const statusOpts = ['all', 'pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
-  const statusLabels: Record<string, string> = { all: 'الكل', pending: 'قيد المراجعة', confirmed: 'تم التأكيد', shipped: 'تم الشحن', delivered: 'تم التوصيل', cancelled: 'ملغي' };
+  const statusLabels: Record<string, string> = { all: t.allStatuses, pending: t.pending, confirmed: t.confirmed, shipped: t.shipped, delivered: t.delivered, cancelled: t.cancelled };
   const statusColors: Record<string, string> = { pending: 'text-amber-500 bg-amber-500/10', confirmed: 'text-blue-500 bg-blue-500/10', shipped: 'text-primary bg-primary/10', delivered: 'text-success bg-success/10', cancelled: 'text-danger bg-danger/10' };
 
   return (
     <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-      <h1 className="text-2xl font-black mb-6">الأوردرات</h1>
+      <h1 className="text-2xl font-black mb-6">{t.allOrders}</h1>
       <div className="flex gap-2 overflow-x-auto mb-5">
         {statusOpts.map(s => (
           <button key={s} onClick={() => setStatusFilter(s)} className={`px-4 py-2 rounded-full text-[12px] font-bold whitespace-nowrap border transition-all ${statusFilter === s ? 'bg-ink text-surface-alt border-ink' : 'bg-surface border-border text-muted hover:border-primary'}`}>{statusLabels[s]}</button>
@@ -220,7 +220,7 @@ function OrdersTab() {
       ) : orders.length === 0 ? (
         <div className="text-center py-16 text-muted">
           <ClipboardList size={40} className="mx-auto mb-3 opacity-30" />
-          <p className="text-sm">مفيش أوردرات {statusFilter !== 'all' ? `بالحالة دي` : ''}</p>
+          <p className="text-sm">{t.noOrders} {statusFilter !== 'all' ? t.withStatus : ''}</p>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
@@ -231,13 +231,13 @@ function OrdersTab() {
                   <span className="font-bold text-ink">{o.order_number}</span>
                   <span className={`px-2.5 py-1 rounded-full text-[10.5px] font-bold ${statusColors[o.status] || ''}`}>{statusLabels[o.status] || o.status}</span>
                 </div>
-                <span className="font-bold text-gradient">{o.total} ج.م</span>
+                <span className="font-bold text-gradient">{o.total} {t.currency}</span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[12.5px] mb-3">
-                <div><span className="text-muted">الاسم:</span> {o.customer_name}</div>
-                <div><span className="text-muted">الموبايل:</span> {o.customer_phone}</div>
-                <div><span className="text-muted">المدينة:</span> {o.city}</div>
-                <div><span className="text-muted">الدفع:</span> {o.payment_method === 'cod' ? 'عند الاستلام' : o.payment_method}</div>
+                <div><span className="text-muted">{t.nameLabel}</span> {o.customer_name}</div>
+                <div><span className="text-muted">{t.phoneLabelShort}</span> {o.customer_phone}</div>
+                <div><span className="text-muted">{t.cityLabelShort}</span> {o.city}</div>
+                <div><span className="text-muted">{t.paymentLabel}</span> {o.payment_method === 'cod' ? t.cashOnDelivery : o.payment_method}</div>
               </div>
               <div className="flex gap-2 pt-3 border-t border-border">
                 {['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'].map(s => (
@@ -253,7 +253,7 @@ function OrdersTab() {
 }
 
 /* ── Customers Tab ── */
-function CustomersTab() {
+function CustomersTab({ t }: { t: any }) {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -272,23 +272,23 @@ function CustomersTab() {
 
   return (
     <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-      <h1 className="text-2xl font-black mb-6">العملاء ({orders.length})</h1>
+      <h1 className="text-2xl font-black mb-6">{t.customersTitle} ({orders.length})</h1>
       {loading ? (
         <div className="text-center py-12 text-muted">...</div>
       ) : orders.length === 0 ? (
         <div className="text-center py-16 text-muted">
           <Users size={40} className="mx-auto mb-3 opacity-30" />
-          <p className="text-sm">مفيش عملاء пока. الأوردرات هتضيف العملاء تلقائياً.</p>
+          <p className="text-sm">{t.noCustomers}</p>
         </div>
       ) : (
         <div className="bg-surface border border-border rounded-xl overflow-hidden">
           <table className="w-full text-[13px]">
             <thead>
               <tr className="border-b border-border bg-surface-alt">
-                <th className="text-start px-4 py-3 font-semibold text-muted">الاسم</th>
-                <th className="text-start px-4 py-3 font-semibold text-muted">الموبايل</th>
-                <th className="text-start px-4 py-3 font-semibold text-muted">المدينة</th>
-                <th className="text-start px-4 py-3 font-semibold text-muted">الأوردرات</th>
+                <th className="text-start px-4 py-3 font-semibold text-muted">{t.nameLabelFull}</th>
+                <th className="text-start px-4 py-3 font-semibold text-muted">{t.phoneLabelFull}</th>
+                <th className="text-start px-4 py-3 font-semibold text-muted">{t.cityLabelFull}</th>
+                <th className="text-start px-4 py-3 font-semibold text-muted">{t.ordersLabel}</th>
               </tr>
             </thead>
             <tbody>
@@ -309,31 +309,31 @@ function CustomersTab() {
 }
 
 /* ── Settings Tab ── */
-function SettingsTab() {
+function SettingsTab({ t }: { t: any }) {
   return (
     <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-      <h1 className="text-2xl font-black mb-6">الإعدادات</h1>
+      <h1 className="text-2xl font-black mb-6">{t.settings}</h1>
       <div className="bg-surface border border-border rounded-xl p-6">
-        <h2 className="font-bold text-lg mb-4">معلومات المتجر</h2>
+        <h2 className="font-bold text-lg mb-4">{t.storeInfo}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] font-semibold text-ink">اسم المتجر</label>
+            <label className="text-[12px] font-semibold text-ink">{t.storeNameLabel}</label>
             <input type="text" defaultValue="ESRAA Moments" className="input-field" />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] font-semibold text-ink">رقم الواتساب</label>
+            <label className="text-[12px] font-semibold text-ink">{t.whatsappLabel}</label>
             <input type="tel" defaultValue="201097905435" className="input-field" />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] font-semibold text-ink">الإيميل</label>
+            <label className="text-[12px] font-semibold text-ink">{t.emailLabel}</label>
             <input type="email" defaultValue="esraamomentsstore@gmail.com" className="input-field" />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] font-semibold text-ink">العنوان</label>
+            <label className="text-[12px] font-semibold text-ink">{t.addressLabelAdmin}</label>
             <input type="text" defaultValue="شارع الجيش - عزبة النخل" className="input-field" />
           </div>
         </div>
-        <button className="btn primary mt-5">حفظ التغييرات</button>
+        <button className="btn primary mt-5">{t.saveChangesLabel}</button>
       </div>
     </motion.div>
   );

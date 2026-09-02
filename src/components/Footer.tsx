@@ -2,8 +2,8 @@ import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin, Link2, MessageCircle } from 'lucide-react';
 import { occasionEn } from '../i18n';
 
-export function Footer({ t }: { t: any }) {
-  const isEn = document.documentElement.lang === 'en';
+export function Footer({ t, lang }: { t: any; lang?: string }) {
+  const isEn = lang === 'en';
   const footerOccasions = ['سبوع', 'خطوبة', 'حنة', 'كتب كتاب', 'زفاف', 'عيد ميلاد'];
 
   return (

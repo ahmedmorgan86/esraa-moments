@@ -26,7 +26,7 @@ export function CartDrawer({ open, onClose, items, t, updateQty, removeFromCart 
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
           >
             <div className="flex items-center justify-between p-5 border-b border-border">
-              <h2 className="flex items-center gap-2 text-lg font-bold"><ShoppingBag size={20} /> السلة ({items.length})</h2>
+              <h2 className="flex items-center gap-2 text-lg font-bold"><ShoppingBag size={20} /> {t.cartTitle} ({items.length})</h2>
               <button onClick={onClose} className="icon" aria-label={t.close}><X size={20} /></button>
             </div>
 
@@ -42,7 +42,7 @@ export function CartDrawer({ open, onClose, items, t, updateQty, removeFromCart 
                   <img src={item.image} alt={item.name} className="w-[68px] h-[68px] rounded-lg object-cover flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <Link to={`/product/${item.id}`} onClick={onClose} className="font-bold text-[13.5px] text-ink truncate block">{item.name}</Link>
-                    <span className="text-primary text-[12.5px] font-bold">{item.price} ج.م</span>
+                    <span className="text-primary text-[12.5px] font-bold">{item.price} {t.currency}</span>
                     <div className="flex items-center gap-3 mt-1">
                       <div className="inline-flex items-center gap-2 bg-surface-alt border border-border rounded-full px-2.5 py-0.5">
                         <button onClick={() => updateQty(item.id, item.qty - 1)} className="p-0.5"><Minus size={14} /></button>
@@ -52,7 +52,7 @@ export function CartDrawer({ open, onClose, items, t, updateQty, removeFromCart 
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1.5">
-                    <span className="font-bold text-sm">{item.price * item.qty} ج.م</span>
+                    <span className="font-bold text-sm">{item.price * item.qty} {t.currency}</span>
                     <button onClick={() => removeFromCart(item.id)} className="text-muted hover:text-danger text-xs transition-colors">×</button>
                   </div>
                 </div>
@@ -62,10 +62,10 @@ export function CartDrawer({ open, onClose, items, t, updateQty, removeFromCart 
             {items.length > 0 && (
               <div className="p-5 border-t border-border bg-surface">
                 <div className="flex flex-col gap-2 text-sm mb-4">
-                  <div className="flex justify-between"><span className="text-muted">{t.subtotal}</span><span>{subtotal} ج.م</span></div>
-                  <div className="flex justify-between"><span className="text-muted">{t.shipping}</span><span className={shipping === 0 ? 'text-success font-bold' : ''}>{shipping === 0 ? t.free : `${shipping} ج.م`}</span></div>
+                  <div className="flex justify-between"><span className="text-muted">{t.subtotal}</span><span>{subtotal} {t.currency}</span></div>
+                  <div className="flex justify-between"><span className="text-muted">{t.shipping}</span><span className={shipping === 0 ? 'text-success font-bold' : ''}>{shipping === 0 ? t.free : `${shipping} ${t.currency}`}</span></div>
                   {subtotal < 500 && subtotal > 0 && <p className="text-primary text-xs bg-primary/8 rounded-lg py-1.5 px-3 text-center">{t.freeShippingHint}</p>}
-                  <div className="flex justify-between font-bold text-lg border-t border-border pt-2"><span>{t.total}</span><span>{total} ج.م</span></div>
+                  <div className="flex justify-between font-bold text-lg border-t border-border pt-2"><span>{t.total}</span><span>{total} {t.currency}</span></div>
                 </div>
                 <Link to="/checkout" onClick={onClose} className="btn primary full flex items-center justify-center gap-2">
                   {t.checkout} <ArrowLeft size={18} />

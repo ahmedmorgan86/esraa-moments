@@ -34,7 +34,11 @@ export function App() {
   const location = useLocation();
   const { site } = useSite();
 
-  useEffect(() => { setUiLang(lang); document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; }, [lang]);
+  // Sync lang/dir immediately (not in useEffect) so t() returns correct language on first render
+  setUiLang(lang);
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+
   useEffect(() => { document.documentElement.dataset.theme = dark ? 'dark' : 'light'; localStorage.setItem('em-dark', dark ? '1' : '0'); }, [dark]);
   useEffect(() => { setMenuOpen(false); setCartOpen(false); window.scrollTo(0, 0); }, [location.pathname]);
 
@@ -60,7 +64,7 @@ export function App() {
   return (
     <div className="min-h-screen flex flex-col">
       {site?.announcement?.enabled && !bannerClosed && (
-        <AnnouncementBar text={site.announcement.text} onClose={() => setBannerClosed(true)} />
+        <AnnouncementBar text={site.announcement.text} textEn={site.announcement.textEn} lang={lang} onClose={() => setBannerClosed(true)} />
       )}
       <div className="sticky top-0 z-50">
         <Header
@@ -84,9 +88,9 @@ export function App() {
       <main className="flex-1">
         <Suspense fallback={<div className="section page flex items-center justify-center min-h-[50vh]"><div className="text-muted">...</div></div>}>
           <Routes>
-            <Route path="/" element={<Home t={t()} addToCart={addToCart} />} />
-            <Route path="/shop" element={<Shop t={t()} addToCart={addToCart} />} />
-            <Route path="/product/:id" element={<ProductPage t={t()} addToCart={addToCart} />} />
+            <Route path="/" element={<Home t={t()} lang={lang} addToCart={addToCart} />} />
+            <Route path="/shop" element={<Shop t={t()} lang={lang} addToCart={addToCart} />} />
+            <Route path="/product/:id" element={<ProductPage t={t()} lang={lang} addToCart={addToCart} />} />
             <Route path="/login" element={<LoginPage t={t()} />} />
             <Route path="/account" element={<AccountPage t={t()} />} />
             <Route path="/admin/*" element={<AdminPage t={t()} />} />
@@ -95,15 +99,15 @@ export function App() {
             <Route path="*" element={
               <div className="section page flex flex-col items-center justify-center min-h-[60vh] text-center">
                 <h1 className="text-6xl font-black text-primary mb-4">404</h1>
-                <p className="text-muted mb-6">الصفحة دي مش موجودة</p>
-                <Link to="/" className="btn primary">الرئيسية</Link>
+                <p className="text-muted mb-6">{lang === 'en' ? 'Page not found' : 'الصفحة دي مش موجودة'}</p>
+                <Link to="/" className="btn primary">{lang === 'en' ? 'Home' : 'الرئيسية'}</Link>
               </div>
             } />
           </Routes>
         </Suspense>
       </main>
 
-      <Footer t={t()} />
+      <Footer t={t()} lang={lang} />
       <CartDrawer
         open={cartOpen}
         onClose={() => setCartOpen(false)}

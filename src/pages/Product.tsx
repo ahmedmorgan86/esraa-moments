@@ -4,12 +4,12 @@ import { Minus, Plus, ShoppingCart, ArrowLeft, Star, Truck, Shield, RotateCcw } 
 import { seed } from '../data';
 import { occasionEn } from '../i18n';
 
-export default function ProductPage({ t, addToCart }: { t: any; addToCart: (p: any, qty?: number) => void }) {
+export default function ProductPage({ t, lang, addToCart }: { t: any; lang: string; addToCart: (p: any, qty?: number) => void }) {
   const { id } = useParams();
   const [qty, setQty] = useState(1);
   const product = seed.find(p => p.id === id);
   const related = useMemo(() => seed.filter(p => p.id !== id && p.category === product?.category).slice(0, 4), [id, product]);
-  const isEn = document.documentElement.lang === 'en';
+  const isEn = lang === 'en';
 
   if (!product) {
     return (
@@ -49,7 +49,7 @@ export default function ProductPage({ t, addToCart }: { t: any; addToCart: (p: a
               <span className="text-muted text-[12px]">(47 {t.reviews})</span>
             </div>
 
-            <span className="text-gradient font-extrabold text-3xl block mb-5">{product.price} ج.م</span>
+            <span className="text-gradient font-extrabold text-3xl block mb-5">{product.price} {t.currency}</span>
 
             <p className="text-muted text-[15px] leading-relaxed mb-7">{desc}</p>
 
@@ -93,7 +93,7 @@ export default function ProductPage({ t, addToCart }: { t: any; addToCart: (p: a
                 </div>
                 <div className="p-4">
                   <h3 className="text-[14px] font-bold line-clamp-2 mb-1">{isEn && p.name_en ? p.name_en : p.name}</h3>
-                  <span className="text-gradient font-extrabold text-lg">{p.price} ج.م</span>
+                  <span className="text-gradient font-extrabold text-lg">{p.price} {t.currency}</span>
                 </div>
               </Link>
             ))}
