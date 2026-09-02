@@ -7,7 +7,7 @@ import { isAllowedAdmin } from '../lib/adminAuth';
 
 const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } };
 
-export default function LoginPage(_props: { t: any }) {
+export default function LoginPage({ t }: { t: any }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
@@ -22,13 +22,9 @@ export default function LoginPage(_props: { t: any }) {
     setError('');
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      setError(error.message.includes('Invalid') ? 'البريد أو كلمة المرور غلط' : error.message);
+      setError(error.message.includes('Invalid') ? t.invalidCredentials : error.message);
     } else {
-      if (isAllowedAdmin(email)) {
-        window.location.href = '/admin';
-      } else {
-        window.location.href = '/account';
-      }
+      window.location.href = isAllowedAdmin(email) ? '/admin' : '/account';
     }
     setLoading(false);
   };
@@ -39,7 +35,7 @@ export default function LoginPage(_props: { t: any }) {
     setError('');
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/account#type=recovery' });
     if (error) setError(error.message);
-    else setSuccess('تم إرسال رابط إعادة تعيين كلمة المرور على بريدك');
+    else setSuccess(t.resetSent);
     setLoading(false);
   };
 
@@ -51,13 +47,13 @@ export default function LoginPage(_props: { t: any }) {
             <div className="w-16 h-16 bg-primary/8 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <span className="text-3xl">✨</span>
             </div>
-            <h1 className="text-xl font-black mb-1">{mode === 'login' ? 'أهلاً بيك' : 'نسيت كلمة المرور؟'}</h1>
-            <p className="text-muted text-sm">{mode === 'login' ? 'ادخل بياناتك عشان تكمل' : 'ادخل بريدك ونبعتلك رابط إعادة التعيين'}</p>
+            <h1 className="text-xl font-black mb-1">{mode === 'login' ? t.loginWelcome : t.forgotTitle}</h1>
+            <p className="text-muted text-sm">{mode === 'login' ? t.loginDesc : t.forgotDesc}</p>
           </div>
 
           <form onSubmit={mode === 'login' ? handleLogin : handleRecover} className="px-8 pb-8 flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[12.5px] font-semibold text-ink">البريد الإلكتروني</label>
+              <label className="text-[12.5px] font-semibold text-ink">{t.email}</label>
               <div className="flex items-center gap-2 bg-surface-alt border border-border rounded-lg px-3 py-2.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15 transition-all">
                 <Mail size={16} className="text-muted" />
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="example@email.com" className="flex-1 text-[13.5px] outline-none bg-transparent" required />
@@ -66,7 +62,7 @@ export default function LoginPage(_props: { t: any }) {
 
             {mode === 'login' && (
               <div className="flex flex-col gap-1.5">
-                <label className="text-[12.5px] font-semibold text-ink">كلمة المرور</label>
+                <label className="text-[12.5px] font-semibold text-ink">{t.password}</label>
                 <div className="flex items-center gap-2 bg-surface-alt border border-border rounded-lg px-3 py-2.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15 transition-all">
                   <Lock size={16} className="text-muted" />
                   <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="flex-1 text-[13.5px] outline-none bg-transparent" required />
@@ -78,30 +74,30 @@ export default function LoginPage(_props: { t: any }) {
             {error && <div className="text-danger text-[12.5px] bg-danger/8 rounded-lg py-2 px-3 text-center">{error}</div>}
             {success && <div className="text-success text-[12.5px] bg-success/8 rounded-lg py-2 px-3 text-center">{success}</div>}
 
-            <button type="submit" disabled={loading} className="btn primary w-full py-3.5 text-[14.5px]">{loading ? '...' : mode === 'login' ? 'تسجيل الدخول' : 'إرسال الرابط'}</button>
+            <button type="submit" disabled={loading} className="btn primary w-full py-3.5 text-[14.5px]">{loading ? '...' : mode === 'login' ? t.signIn : t.sendResetLink}</button>
 
             <div className="text-center mt-1">
               {mode === 'login' ? (
-                <button type="button" onClick={() => setMode('recover')} className="text-primary text-[13px] font-semibold hover:underline">نسيت كلمة المرور؟</button>
+                <button type="button" onClick={() => setMode('recover')} className="text-primary text-[13px] font-semibold hover:underline">{t.forgot}</button>
               ) : (
-                <button type="button" onClick={() => { setMode('login'); setError(''); setSuccess(''); }} className="text-primary text-[13px] font-semibold hover:underline">الرجوع لتسجيل الدخول</button>
+                <button type="button" onClick={() => { setMode('login'); setError(''); setSuccess(''); }} className="text-primary text-[13px] font-semibold hover:underline">{t.backToLogin}</button>
               )}
             </div>
 
             <div className="flex items-center gap-3 my-1">
               <div className="flex-1 h-px bg-border" />
-              <span className="text-[11px] text-muted font-semibold">أو</span>
+              <span className="text-[11px] text-muted font-semibold">{t.or}</span>
               <div className="flex-1 h-px bg-border" />
             </div>
 
             <a href="https://wa.me/201097905435" target="_blank" rel="noopener" className="btn w-full border border-border flex items-center justify-center gap-2 text-sm bg-[#25d366] text-white border-[#25d366] hover:bg-[#128c7e]">
-              <MessageCircle size={16} /> كلمينا على الواتساب
+              <MessageCircle size={16} /> {t.contactWhatsApp}
             </a>
           </form>
         </div>
 
         <div className="auth-footer mt-5">
-          <Link to="/" className="text-primary text-[13px] font-semibold flex items-center gap-1 hover:underline"><ArrowLeft size={14} /> العودة للمتجر</Link>
+          <Link to="/" className="text-primary text-[13px] font-semibold flex items-center gap-1 hover:underline"><ArrowLeft size={14} /> {t.backToShop}</Link>
         </div>
       </motion.div>
     </section>

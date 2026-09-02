@@ -16,6 +16,7 @@ const statusConfig: Record<string, { color: string; icon: any; bg: string }> = {
 };
 
 export default function AccountPage({ t }: { t: any }) {
+  const isEn = document.documentElement.lang === 'en';
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
@@ -57,7 +58,7 @@ export default function AccountPage({ t }: { t: any }) {
     e.preventDefault();
     setSaving(true);
     const { error } = await supabase.auth.updateUser({ data: { full_name: name } });
-    setMsg(error ? 'حدث خطأ' : 'تم الحفظ بنجاح');
+    setMsg(error ? t.saveError : t.saveSuccess);
     setSaving(false);
     setTimeout(() => setMsg(''), 3000);
   };
@@ -192,7 +193,7 @@ export default function AccountPage({ t }: { t: any }) {
                         </div>
                         <div>
                           <p className="font-bold text-sm text-ink">{o.order_number}</p>
-                          <p className="text-[11px] text-muted mt-0.5">{new Date(o.created_at).toLocaleDateString('ar-EG')}</p>
+                          <p className="text-[11px] text-muted mt-0.5">{new Date(o.created_at).toLocaleDateString(isEn ? 'en-US' : 'ar-EG')}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">

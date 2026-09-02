@@ -226,7 +226,7 @@ function Dashboard({ t }: { t: any }) {
                   </div>
                   <div className="text-end">
                     <p className="font-bold text-[13px] text-gradient">{o.total} {t.currency}</p>
-                    <p className="text-[11px] text-muted">{new Date(o.created_at).toLocaleDateString('ar-EG')}</p>
+                    <p className="text-[11px] text-muted">{new Date(o.created_at).toLocaleDateString(document.documentElement.lang === 'en' ? 'en-US' : 'ar-EG')}</p>
                   </div>
                 </div>
               );
@@ -576,8 +576,16 @@ function CustomersTab({ t }: { t: any }) {
 /* ══════════════════════════════════════════════════════ */
 function SettingsTab({ t }: { t: any }) {
   const [saved, setSaved] = useState(false);
+  const [name, setName] = useState(() => localStorage.getItem('em-store-name') || 'ESRAA Moments');
+  const [whatsapp, setWhatsapp] = useState(() => localStorage.getItem('em-store-whatsapp') || '201097905435');
+  const [email, setEmail] = useState(() => localStorage.getItem('em-store-email') || 'esraamomentsstore@gmail.com');
+  const [address, setAddress] = useState(() => localStorage.getItem('em-store-address') || 'شارع الجيش - عزبة النخل');
 
   const handleSave = () => {
+    localStorage.setItem('em-store-name', name);
+    localStorage.setItem('em-store-whatsapp', whatsapp);
+    localStorage.setItem('em-store-email', email);
+    localStorage.setItem('em-store-address', address);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
@@ -595,19 +603,19 @@ function SettingsTab({ t }: { t: any }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-[12px] font-semibold text-muted">{t.storeNameLabel}</label>
-              <input type="text" defaultValue="ESRAA Moments" className="input-field" />
+              <input type="text" value={name} onChange={e => setName(e.target.value)} className="input-field" />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-[12px] font-semibold text-muted">{t.whatsappLabel}</label>
-              <input type="tel" defaultValue="201097905435" className="input-field" />
+              <input type="tel" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} className="input-field" />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-[12px] font-semibold text-muted">{t.emailLabel}</label>
-              <input type="email" defaultValue="esraamomentsstore@gmail.com" className="input-field" />
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="input-field" />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-[12px] font-semibold text-muted">{t.addressLabelAdmin}</label>
-              <input type="text" defaultValue="شارع الجيش - عزبة النخل" className="input-field" />
+              <input type="text" value={address} onChange={e => setAddress(e.target.value)} className="input-field" />
             </div>
           </div>
         </div>

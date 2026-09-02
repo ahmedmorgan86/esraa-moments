@@ -94,7 +94,7 @@ export function App() {
             <Route path="/login" element={<LoginPage t={t()} />} />
             <Route path="/account" element={<AccountPage t={t()} />} />
             <Route path="/admin/*" element={<AdminPage t={t()} />} />
-            <Route path="/checkout" element={<CheckoutPage t={t()} cart={cart} setCart={setCart} />} />
+            <Route path="/checkout" element={<CheckoutPage t={t()} lang={lang} cart={cart} setCart={setCart} />} />
             <Route path="/track" element={<TrackPage t={t()} />} />
             <Route path="*" element={
               <div className="section page flex flex-col items-center justify-center min-h-[60vh] text-center">
@@ -113,6 +113,7 @@ export function App() {
         onClose={() => setCartOpen(false)}
         items={cart}
         t={t()}
+        lang={lang}
         updateQty={updateQty}
         removeFromCart={removeFromCart}
       />

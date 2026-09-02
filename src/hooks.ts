@@ -22,15 +22,6 @@ export function useScrollShadow(threshold = 10) {
   return scrolled;
 }
 
-export function useProducts() {
-  const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    import('./data').then(m => { setProducts(m.seed); setLoading(false); });
-  }, []);
-  return { products, loading };
-}
-
 export function useMediaQuery(query: string) {
   const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
   useEffect(() => {

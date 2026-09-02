@@ -1,9 +1,10 @@
 import { MessageCircle } from 'lucide-react';
 
 export function WhatsAppFloat() {
+  const phone = '201097905435';
   return (
     <a
-      href="https://wa.me/201097905435"
+      href={`https://wa.me/${phone}`}
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-5 end-5 z-[900] w-[52px] h-[52px] rounded-full bg-gradient-to-br from-[#25d366] to-[#128c7e] text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform"

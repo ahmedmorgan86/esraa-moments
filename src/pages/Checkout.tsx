@@ -6,12 +6,13 @@ import { supabase } from '../lib/supabase';
 import type { CartItem } from '../data';
 import { calcShipping } from '../data';
 
-type Props = { t: any; cart: CartItem[]; setCart: (fn: any) => void };
+type Props = { t: any; lang: string; cart: CartItem[]; setCart: (fn: any) => void };
 
-export default function CheckoutPage({ t, cart, setCart }: Props) {
+export default function CheckoutPage({ t, lang, cart, setCart }: Props) {
   const [form, setForm] = useState({ name: '', phone: '', phone2: '', address: '', city: '', notes: '' });
   const [payMethod, setPayMethod] = useState('cod');
   const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState('');
   const [done, setDone] = useState(false);
   const [orderId, setOrderId] = useState('');
   const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
@@ -21,6 +22,11 @@ export default function CheckoutPage({ t, cart, setCart }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.length === 0) return;
+    if (!/^01[0-9]{9}$/.test(form.phone)) {
+      setFormError(t.phoneLabel + ': 01XXXXXXXXX');
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const orderNum = `ORD-${Date.now().toString(36).toUpperCase()}`;
@@ -30,6 +36,7 @@ export default function CheckoutPage({ t, cart, setCart }: Props) {
       const { error } = await supabase.from('orders').insert({
         order_number: orderNum,
         user_id: userId,
+        customer_email: session?.session?.user?.email || null,
         customer_name: form.name,
         customer_phone: form.phone,
         customer_phone2: form.phone2 || null,
@@ -49,7 +56,7 @@ export default function CheckoutPage({ t, cart, setCart }: Props) {
       setCart([]);
       setDone(true);
     } catch (err: any) {
-      alert('Error: ' + (err.message || ''));
+      setFormError(t.orderError);
     }
     setLoading(false);
   };
@@ -142,9 +149,9 @@ export default function CheckoutPage({ t, cart, setCart }: Props) {
               {payMethod === 'instapay' && (
                 <div className="mt-4 bg-primary/5 border border-primary/20 rounded-lg p-4 text-[13px]">
                   <p className="font-bold text-primary mb-1">{t.transferInfo}</p>
-                  <p className="text-ink">{t.bank}: CIB</p>
-                  <p className="text-ink">{t.bankNameLabel}: Esraa Moments</p>
-                  <p className="text-ink">{t.bankNumber}: 100234567890</p>
+                  <p className="text-ink">{t.bank}: {t.bankName}</p>
+                  <p className="text-ink">{t.bankNameLabel}: {t.bankAccountName}</p>
+                  <p className="text-ink">{t.bankNumber}: {t.bankAccountNumber}</p>
                 </div>
               )}
             </div>
@@ -158,7 +165,7 @@ export default function CheckoutPage({ t, cart, setCart }: Props) {
                 <div key={i.id} className="flex gap-3 items-center">
                   <img src={i.image} alt={i.name} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-semibold line-clamp-1">{i.name}</p>
+                    <p className="text-[13px] font-semibold line-clamp-1">{lang === 'en' && i.name_en ? i.name_en : i.name}</p>
                     <p className="text-muted text-[12px]">{t.quantityLabel}: {i.qty}</p>
                   </div>
                   <span className="font-bold text-sm">{i.price * i.qty} {t.currency}</span>
@@ -170,6 +177,7 @@ export default function CheckoutPage({ t, cart, setCart }: Props) {
               <div className="flex justify-between"><span className="text-muted">{t.shipping}</span><span>{shipping === 0 ? t.free : `${shipping} ${t.currency}`}</span></div>
               <div className="flex justify-between font-bold text-lg border-t border-border pt-2"><span>{t.total}</span><span className="text-gradient">{total} {t.currency}</span></div>
             </div>
+            {formError && <div className="text-danger text-[12.5px] bg-danger/8 rounded-lg py-2 px-3 text-center mb-3">{formError}</div>}
             <button type="submit" disabled={loading} className="btn primary w-full py-3.5 text-[14px] font-bold">
               {loading ? '...' : `${t.confirmOrder} — ${total} ${t.currency}`}
             </button>

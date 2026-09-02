@@ -121,6 +121,23 @@ export const translations = {
     // Footer occasion links
     occBabyShower: 'سبوع', occEngagement: 'خطوبة', occHenna: 'حنة',
     occKatbKtab: 'كتب كتاب', occWedding: 'زفاف', occBirthday: 'عيد ميلاد',
+    // Login
+    loginWelcome: 'أهلاً بيك', loginWelcomeBack: 'أهلاً بيك تاني',
+    forgotTitle: 'نسيت كلمة المرور؟',
+    forgotDesc: 'ادخل بريدك ونبعتلك رابط إعادة التعيين',
+    invalidCredentials: 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+    resetSent: 'تم إرسال رابط إعادة تعيين كلمة المرور على بريدك',
+    sendResetLink: 'إرسال رابط إعادة التعيين', backToLogin: 'الرجوع لتسجيل الدخول',
+    contactWhatsApp: 'كلمينا على الواتساب',
+    // Checkout
+    bankName: 'CIB', bankAccountName: 'Esraa Moments', bankAccountNumber: '100234567890',
+    orderError: 'حدث خطأ أثناء إنشاء الأوردر',
+    // Account messages
+    saveSuccess: 'تم الحفظ بنجاح', saveError: 'حدث خطأ أثناء الحفظ',
+    // Product not found
+    productNotFound: 'المنتج غير موجود', goToShop: 'الذهاب للمتجر',
+    // Date locale
+    dateLocale: 'ar-EG',
   },
   en: {
     pageTitle: 'ESRAA Moments — Details that create memories',
@@ -244,6 +261,23 @@ export const translations = {
     // Footer occasion links
     occBabyShower: 'Baby Shower', occEngagement: 'Engagement', occHenna: 'Henna',
     occKatbKtab: 'Katb Ktab', occWedding: 'Wedding', occBirthday: 'Birthday',
+    // Login
+    loginWelcome: 'Welcome!', loginWelcomeBack: 'Welcome back!',
+    forgotTitle: 'Forgot password?',
+    forgotDesc: 'Enter your email and we\'ll send you a reset link',
+    invalidCredentials: 'Invalid email or password',
+    resetSent: 'Password reset link sent to your email',
+    sendResetLink: 'Send Reset Link', backToLogin: 'Back to Login',
+    contactWhatsApp: 'Chat with us on WhatsApp',
+    // Checkout
+    bankName: 'CIB', bankAccountName: 'Esraa Moments', bankAccountNumber: '100234567890',
+    orderError: 'An error occurred while placing the order',
+    // Account messages
+    saveSuccess: 'Saved successfully', saveError: 'An error occurred',
+    // Product not found
+    productNotFound: 'Product not found', goToShop: 'Go to Shop',
+    // Date locale
+    dateLocale: 'en-US',
   }
 } as const;
 

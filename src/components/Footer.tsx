@@ -33,8 +33,7 @@ export function Footer({ t, lang }: { t: any; lang?: string }) {
               <li><Link to="/shop" className="text-white/55 text-[13.5px] hover:text-white transition-colors">{t.shop}</Link></li>
               <li><Link to="/track" className="text-white/55 text-[13.5px] hover:text-white transition-colors">{t.track}</Link></li>
               <li><Link to="/account" className="text-white/55 text-[13.5px] hover:text-white transition-colors">{t.account}</Link></li>
-              <li><Link to="/about" className="text-white/55 text-[13.5px] hover:text-white transition-colors">{t.about}</Link></li>
-              <li><Link to="/faq" className="text-white/55 text-[13.5px] hover:text-white transition-colors">{t.faq}</Link></li>
+
             </ul>
           </div>
 

@@ -16,7 +16,7 @@ export default function Shop({ t, lang, addToCart }: { t: any; lang: string; add
   const filtered = useMemo(() => {
     let list = [...seed];
     if (cat !== 'الكل') list = list.filter(p => p.category === cat);
-    if (search) list = list.filter(p => p.name.includes(search) || p.name_en?.toLowerCase().includes(search.toLowerCase()));
+    if (search) list = list.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.name_en?.toLowerCase().includes(search.toLowerCase()));
     if (sort === 'price-low') list.sort((a, b) => a.price - b.price);
     if (sort === 'price-high') list.sort((a, b) => b.price - a.price);
     if (sort === 'name') list.sort((a, b) => a.name.localeCompare(b.name, 'ar'));

@@ -6,11 +6,11 @@ import { calcShipping } from '../data';
 
 type Props = {
   open: boolean; onClose: () => void; items: CartItem[];
-  t: any; updateQty: (id: string, qty: number) => void;
+  t: any; lang?: string; updateQty: (id: string, qty: number) => void;
   removeFromCart: (id: string) => void;
 };
 
-export function CartDrawer({ open, onClose, items, t, updateQty, removeFromCart }: Props) {
+export function CartDrawer({ open, onClose, items, t, lang, updateQty, removeFromCart }: Props) {
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
   const shipping = calcShipping(subtotal);
   const total = subtotal + shipping;
@@ -41,7 +41,7 @@ export function CartDrawer({ open, onClose, items, t, updateQty, removeFromCart 
                 <div key={item.id} className="flex gap-3 items-center bg-surface border border-border rounded-lg p-3">
                   <img src={item.image} alt={item.name} className="w-[68px] h-[68px] rounded-lg object-cover flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <Link to={`/product/${item.id}`} onClick={onClose} className="font-bold text-[13.5px] text-ink truncate block">{item.name}</Link>
+                    <Link to={`/product/${item.id}`} onClick={onClose} className="font-bold text-[13.5px] text-ink truncate block">{lang === 'en' && item.name_en ? item.name_en : item.name}</Link>
                     <span className="text-primary text-[12.5px] font-bold">{item.price} {t.currency}</span>
                     <div className="flex items-center gap-3 mt-1">
                       <div className="inline-flex items-center gap-2 bg-surface-alt border border-border rounded-full px-2.5 py-0.5">
