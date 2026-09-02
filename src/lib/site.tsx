@@ -27,14 +27,15 @@ export function useSite(): SiteCtx {
 }
 export { ACCENTS };
 
-function getLocal<T>(key: string, fallback: T): T {
+function getLocal(key: string, fallback: unknown) {
   try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : fallback; }
   catch { return fallback; }
 }
 
 export function SiteProvider({ children }: { children: ReactNode }) {
   const [site, setSite] = useState<SiteData>(() => {
-    const cached = getLocal<Partial<SiteData>>('em-site', null);
+    const cached = getLocal('em-site', null) as Record<string, any> | null;
+    if (!cached || typeof cached !== 'object' || Array.isArray(cached)) return defaultSite;
     return {
       appearance: { ...defaultSite.appearance, ...cached?.appearance },
       announcement: { ...defaultSite.announcement, ...cached?.announcement },
