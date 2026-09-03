@@ -4,12 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Package, ClipboardList, Users, Settings, LogOut, TrendingUp,
   Search, ChevronDown, ChevronUp, Truck, CheckCircle,
-  Clock, XCircle, ArrowUpRight, BarChart3, Store, Bell, Menu, Ticket, Plus, Edit3, Trash2, X, Grid, List
+  Clock, XCircle, ArrowUpRight, BarChart3, Store, Bell, Menu, Ticket, Plus, Edit3, Trash2, X, Grid, List, FileText
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { isAllowedAdmin } from '../lib/adminAuth';
 import type { Product, Coupon } from '../data';
 import { occasions } from '../data';
+import { useHomepageContent, type HomepageContent } from '../lib/homepageContent';
 
 const fadeIn = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
 
@@ -18,6 +19,7 @@ const navItems = (t: any) => [
   { key: 'products', label: t.products, icon: Package },
   { key: 'orders', label: t.allOrders, icon: ClipboardList },
   { key: 'coupons', label: t.coupons, icon: Ticket },
+  { key: 'content', label: 'محتوى الموقع (CMS)', icon: FileText },
   { key: 'customers', label: t.customers, icon: Users },
   { key: 'settings', label: t.settings, icon: Settings },
 ];
@@ -144,6 +146,7 @@ export default function AdminPage({ t, products, setProducts }: { t: any; produc
             {tab === 'products' && <ProductsTab key="p" t={t} products={products} setProducts={setProducts} />}
             {tab === 'orders' && <OrdersTab key="o" t={t} />}
             {tab === 'coupons' && <CouponsTab key="cp" t={t} />}
+            {tab === 'content' && <ContentTab key="ct" t={t} />}
             {tab === 'customers' && <CustomersTab key="c" t={t} />}
             {tab === 'settings' && <SettingsTab key="s" t={t} />}
           </AnimatePresence>
@@ -1189,6 +1192,172 @@ function SettingsTab({ t }: { t: any }) {
             {saved ? '✓ ' + t.profileSaved : t.saveChangesLabel}
           </button>
           {saved && <span className="text-success text-[13px] font-medium">{t.profileSaved}</span>}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════ */
+/*                    CONTENT CMS TAB                    */
+/* ══════════════════════════════════════════════════════ */
+function ContentTab({ t: _t }: { t: any }) {
+  const [content, setContent] = useHomepageContent();
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = () => {
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  };
+
+  const updateField = (field: keyof HomepageContent, val: any) => {
+    setContent(prev => ({ ...prev, [field]: val }));
+  };
+
+  return (
+    <motion.div initial="hidden" animate="visible" variants={fadeIn}>
+      <div className="max-w-4xl">
+        <h2 className="text-xl font-black text-ink mb-6">إدارة محتوى الموقع (CMS)</h2>
+
+        {/* Hero Section CMS */}
+        <div className="bg-surface border border-border rounded-2xl p-6 mb-5 space-y-4">
+          <h3 className="font-bold text-ink text-base flex items-center gap-2"><FileText size={16} className="text-primary" /> قسم الواجهة (Hero)</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-semibold text-muted">عنوان العرض الرئيسي (عربي)</label>
+              <input type="text" value={content.heroEyebrow} onChange={e => updateField('heroEyebrow', e.target.value)} className="input-field" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-semibold text-muted">Eyebrow (English)</label>
+              <input type="text" value={content.heroEyebrow} onChange={e => updateField('heroEyebrow', e.target.value)} className="input-field" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-semibold text-muted">العنوان الأول (عربي)</label>
+              <input type="text" value={content.heroTitle1} onChange={e => updateField('heroTitle1', e.target.value)} className="input-field" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-semibold text-muted">Title 1 (English)</label>
+              <input type="text" value={content.heroTitle1En} onChange={e => updateField('heroTitle1En', e.target.value)} className="input-field" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-semibold text-muted">العنوان الثاني (عربي)</label>
+              <input type="text" value={content.heroTitle2} onChange={e => updateField('heroTitle2', e.target.value)} className="input-field" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-semibold text-muted">Title 2 (English)</label>
+              <input type="text" value={content.heroTitle2En} onChange={e => updateField('heroTitle2En', e.target.value)} className="input-field" />
+            </div>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[12px] font-semibold text-muted">الوصف (عربي)</label>
+            <textarea rows={3} value={content.heroDesc} onChange={e => updateField('heroDesc', e.target.value)} className="input-field w-full" />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[12px] font-semibold text-muted">Description (English)</label>
+            <textarea rows={3} value={content.heroDescEn} onChange={e => updateField('heroDescEn', e.target.value)} className="input-field w-full" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-semibold text-muted">نص الزر (عربي)</label>
+              <input type="text" value={content.heroCta} onChange={e => updateField('heroCta', e.target.value)} className="input-field" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-semibold text-muted">CTA (English)</label>
+              <input type="text" value={content.heroCtaEn} onChange={e => updateField('heroCtaEn', e.target.value)} className="input-field" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-semibold text-muted">بطاقة تغطية 1 (عربي)</label>
+              <input type="text" value={content.heroOverlay1} onChange={e => updateField('heroOverlay1', e.target.value)} className="input-field" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-semibold text-muted">Overlay 1 (English)</label>
+              <input type="text" value={content.heroOverlay1En} onChange={e => updateField('heroOverlay1En', e.target.value)} className="input-field" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-semibold text-muted">بطاقة تغطية 2 (عربي)</label>
+              <input type="text" value={content.heroOverlay2} onChange={e => updateField('heroOverlay2', e.target.value)} className="input-field" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-semibold text-muted">Overlay 2 (English)</label>
+              <input type="text" value={content.heroOverlay2En} onChange={e => updateField('heroOverlay2En', e.target.value)} className="input-field" />
+            </div>
+          </div>
+        </div>
+
+        {/* Brand Story CMS */}
+        <div className="bg-surface border border-border rounded-2xl p-6 mb-5 space-y-4">
+          <h3 className="font-bold text-ink text-base flex items-center gap-2"><FileText size={16} className="text-primary" /> قسم قصتنا (Brand Story)</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-semibold text-muted">عنوان القسم (عربي)</label>
+              <input type="text" value={content.storyTitle} onChange={e => updateField('storyTitle', e.target.value)} className="input-field" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-semibold text-muted">Story Title (English)</label>
+              <input type="text" value={content.storyTitleEn} onChange={e => updateField('storyTitleEn', e.target.value)} className="input-field" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-semibold text-muted">المقولة (عربي)</label>
+              <input type="text" value={content.storyQuote} onChange={e => updateField('storyQuote', e.target.value)} className="input-field" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-semibold text-muted">Quote (English)</label>
+              <input type="text" value={content.storyQuoteEn} onChange={e => updateField('storyQuoteEn', e.target.value)} className="input-field" />
+            </div>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[12px] font-semibold text-muted">نص القصة (عربي)</label>
+            <textarea rows={3} value={content.storyText} onChange={e => updateField('storyText', e.target.value)} className="input-field w-full" />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[12px] font-semibold text-muted">Story Text (English)</label>
+            <textarea rows={3} value={content.storyTextEn} onChange={e => updateField('storyTextEn', e.target.value)} className="input-field w-full" />
+          </div>
+        </div>
+
+        {/* FAQs CMS */}
+        <div className="bg-surface border border-border rounded-2xl p-6 mb-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-ink text-base flex items-center gap-2"><FileText size={16} className="text-primary" /> الأسئلة الشائعة (FAQ)</h3>
+            <button type="button" onClick={() => updateField('faqs', [...content.faqs, { q: '', q_en: '', a: '', a_en: '' }])} className="btn primary text-xs py-1.5 px-3 flex items-center gap-1"><Plus size={14} /> إضافة سؤال</button>
+          </div>
+          <div className="space-y-4">
+            {content.faqs.map((faq, idx) => (
+              <div key={idx} className="bg-surface-alt border border-border rounded-xl p-4 space-y-3 relative">
+                <button type="button" onClick={() => updateField('faqs', content.faqs.filter((_, i) => i !== idx))} className="absolute top-3 end-3 w-7 h-7 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 hover:bg-red-500/20 transition-colors"><Trash2 size={14} /></button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-semibold text-muted">السؤال (عربي)</label>
+                    <input type="text" value={faq.q} onChange={e => { const f = [...content.faqs]; f[idx] = { ...f[idx], q: e.target.value }; updateField('faqs', f); }} className="input-field text-xs" />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-semibold text-muted">Question (English)</label>
+                    <input type="text" value={faq.q_en} onChange={e => { const f = [...content.faqs]; f[idx] = { ...f[idx], q_en: e.target.value }; updateField('faqs', f); }} className="input-field text-xs" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-semibold text-muted">الإجابة (عربي)</label>
+                    <textarea rows={2} value={faq.a} onChange={e => { const f = [...content.faqs]; f[idx] = { ...f[idx], a: e.target.value }; updateField('faqs', f); }} className="input-field text-xs w-full" />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-semibold text-muted">Answer (English)</label>
+                    <textarea rows={2} value={faq.a_en} onChange={e => { const f = [...content.faqs]; f[idx] = { ...f[idx], a_en: e.target.value }; updateField('faqs', f); }} className="input-field text-xs w-full" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Save */}
+        <div className="flex items-center gap-3">
+          <button onClick={handleSave} className="btn primary">
+            {saved ? '✓ تم الحفظ' : 'حفظ محتوى الموقع'}
+          </button>
+          {saved && <span className="text-success text-[13px] font-medium">تم الحفظ بنجاح!</span>}
         </div>
       </div>
     </motion.div>
