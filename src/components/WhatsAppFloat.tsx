@@ -1,7 +1,9 @@
 import { MessageCircle } from 'lucide-react';
+import { useStoreSettings } from '../hooks';
 
 export function WhatsAppFloat() {
-  const phone = '201097905435';
+  const settings = useStoreSettings();
+  const phone = settings.whatsapp;
   return (
     <a
       href={`https://wa.me/${phone}`}

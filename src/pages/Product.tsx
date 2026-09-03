@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Minus, Plus, ShoppingCart, ArrowLeft, Star, Truck, Shield, RotateCcw, Heart } from 'lucide-react';
+import { Minus, Plus, ArrowLeft, Star, Truck, Shield, RotateCcw, Heart, MessageCircle } from 'lucide-react';
 import { occasionEn } from '../i18n';
+import { useStoreSettings } from '../hooks';
 import type { Review } from '../data';
 
 function StarRating({ rating, size = 16 }: { rating: number; size?: number }) {
@@ -14,13 +15,14 @@ function StarRating({ rating, size = 16 }: { rating: number; size?: number }) {
   );
 }
 
-export default function ProductPage({ t, lang, addToCart, products, wishlist, toggleWishlist, reviews, addReview }: { t: any; lang: string; addToCart: (p: any, qty?: number) => void; products: any[]; wishlist: string[]; toggleWishlist: (id: string) => void; reviews: Review[]; addReview: (review: Review) => void }) {
+export default function ProductPage({ t, lang, products, wishlist, toggleWishlist, reviews, addReview }: { t: any; lang: string; products: any[]; wishlist: string[]; toggleWishlist: (id: string) => void; reviews: Review[]; addReview: (review: Review) => void }) {
   const { id } = useParams();
   const [qty, setQty] = useState(1);
   const [reviewName, setReviewName] = useState('');
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const settings = useStoreSettings();
   const product = products.find(p => p.id === id);
   const related = useMemo(() => products.filter(p => p.id !== id && p.category === product?.category).slice(0, 4), [id, product]);
   const productReviews = useMemo(() => reviews.filter(r => r.productId === id), [reviews, id]);
@@ -71,9 +73,12 @@ export default function ProductPage({ t, lang, addToCart, products, wishlist, to
               <span className="text-muted text-[12px]">(47 {t.reviews})</span>
             </div>
 
-            <span className="text-gradient font-extrabold text-3xl block mb-5">{product.price} {t.currency}</span>
-
             <p className="text-muted text-[15px] leading-relaxed mb-7">{desc}</p>
+
+            <div className="bg-surface border border-border rounded-2xl p-5 mb-6">
+              <p className="text-[13px] font-bold text-ink mb-1">{t.priceOnContact}</p>
+              <p className="text-[12px] text-muted">{t.orderViaWhatsAppHint}</p>
+            </div>
 
             <div className="flex items-center gap-3 mb-7">
               <div className="inline-flex items-center gap-2 bg-surface border border-border rounded-full px-3 py-1.5">
@@ -81,9 +86,14 @@ export default function ProductPage({ t, lang, addToCart, products, wishlist, to
                 <span className="min-w-[28px] text-center font-bold text-lg">{qty}</span>
                 <button onClick={() => setQty(q => q + 1)} className="p-1 hover:bg-primary/8 rounded-full transition-colors"><Plus size={18} /></button>
               </div>
-              <button onClick={() => addToCart(product, qty)} className="btn primary flex-1 flex items-center justify-center gap-2">
-                <ShoppingCart size={18} /> {t.addToCart}
-              </button>
+              <a
+                href={`https://wa.me/${settings.whatsapp}?text=${encodeURIComponent(`${isEn ? 'I want to order' : 'عايز أطلب'}: ${name}${isEn ? ' (Quantity: ' : ' (الكمية: '}${qty}${isEn ? ')' : ')'}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn primary flex-1 flex items-center justify-center gap-2"
+              >
+                <MessageCircle size={18} /> {t.orderViaWhatsApp}
+              </a>
             </div>
 
             <div className="grid grid-cols-3 gap-3 mb-7">

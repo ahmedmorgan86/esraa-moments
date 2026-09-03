@@ -28,6 +28,7 @@ export const translations = {
     noAccount: 'ليس لديك حساب؟', hasAccount: 'لديك حساب بالفعل؟',
     all: 'الكل', searchProducts: 'ابحث عن منتج...', productCount: 'منتج',
     sortBy: 'الترتيب', price: 'السعر', addToCart: 'أضف للسلة',
+    priceOnContact: 'السعر متاح عند التواصل', orderViaWhatsAppHint: 'تواصل معنا على واتساب ونتفق على التفاصيل والسعر للطلب الخاص بك.', orderViaWhatsApp: 'اطلب عبر واتساب',
     viewDetails: 'عرض التفاصيل', outOfStock: 'نفذ من المخزون',
     cartEmpty: 'السلة فاضية', continueShopping: 'كمل التسوق',
     subtotal: 'المجموع الفرعي', shipping: 'التوصيل', free: 'مجاني',
@@ -84,7 +85,7 @@ export const translations = {
     orderItems: 'المنتجات', orderTotal: 'الإجمالي',
     // Admin
     adminPanel: 'لوحة التحكم', dashboard: 'لوحة التحكم', products: 'المنتجات',
-    allOrders: 'الأوردرات', customers: 'العملاء', settings: 'الإعدادات',
+    allOrders: 'الأوردرات', customers: 'العملاء', settings: 'الإعدادات', notifications: 'الإشعارات',
     adminLogout: 'خروج', manager: 'مدير',
     totalProducts: 'المنتجات', totalOrders: 'الأوردرات', totalRevenue: 'الإيرادات', totalCustomers: 'العملاء',
     storeSettings: 'معلومات المتجر', storeName: 'اسم المتجر',
@@ -207,6 +208,7 @@ export const translations = {
     noAccount: "Don't have an account?", hasAccount: 'Already have an account?',
     all: 'All', searchProducts: 'Search products...', productCount: 'products',
     sortBy: 'Sort', price: 'Price', addToCart: 'Add to Cart',
+    priceOnContact: 'Price available on contact', orderViaWhatsAppHint: 'Contact us on WhatsApp to agree on the details and price for your custom order.', orderViaWhatsApp: 'Order via WhatsApp',
     viewDetails: 'View Details', outOfStock: 'Out of Stock',
     cartEmpty: 'Cart is empty', continueShopping: 'Continue Shopping',
     subtotal: 'Subtotal', shipping: 'Shipping', free: 'Free',
@@ -263,7 +265,7 @@ export const translations = {
     orderItems: 'Items', orderTotal: 'Total',
     // Admin
     adminPanel: 'Admin Panel', dashboard: 'Dashboard', products: 'Products',
-    allOrders: 'Orders', customers: 'Customers', settings: 'Settings',
+    allOrders: 'Orders', customers: 'Customers', settings: 'Settings', notifications: 'Notifications',
     adminLogout: 'Logout', manager: 'Admin',
     totalProducts: 'Products', totalOrders: 'Orders', totalRevenue: 'Revenue', totalCustomers: 'Customers',
     storeSettings: 'Store Info', storeName: 'Store Name',

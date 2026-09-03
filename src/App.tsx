@@ -95,7 +95,7 @@ export function App() {
           <Routes>
             <Route path="/" element={<Home t={t()} lang={lang} addToCart={addToCart} products={products} />} />
             <Route path="/shop" element={<Shop t={t()} lang={lang} addToCart={addToCart} products={products} />} />
-            <Route path="/product/:id" element={<ProductPage t={t()} lang={lang} addToCart={addToCart} products={products} wishlist={wishlist} toggleWishlist={toggleWishlist} reviews={reviews} addReview={addReview} />} />
+            <Route path="/product/:id" element={<ProductPage t={t()} lang={lang} products={products} wishlist={wishlist} toggleWishlist={toggleWishlist} reviews={reviews} addReview={addReview} />} />
             <Route path="/wishlist" element={<WishlistPage t={t()} lang={lang} products={products} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart} />} />
             <Route path="/login" element={<LoginPage t={t()} />} />
             <Route path="/account" element={<AccountPage t={t()} />} />

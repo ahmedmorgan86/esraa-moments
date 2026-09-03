@@ -38,6 +38,8 @@ export default function AdminPage({ t, products, setProducts }: { t: any; produc
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,6 +50,23 @@ export default function AdminPage({ t, products, setProducts }: { t: any; produc
       setLoading(false);
     });
   }, [navigate]);
+
+  useEffect(() => {
+    const fetchNotifs = async () => {
+      const { data } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      if (data) setNotifications(data);
+    };
+    fetchNotifs();
+    const interval = setInterval(fetchNotifs, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => { setSidebarOpen(false); setNotifOpen(false); }, [tab]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -129,10 +148,40 @@ export default function AdminPage({ t, products, setProducts }: { t: any; produc
             <h2 className="font-bold text-ink text-sm">{nav.find(n => n.key === tab)?.label}</h2>
           </div>
           <div className="flex items-center gap-2">
-            <button className="relative w-9 h-9 rounded-lg flex items-center justify-center hover:bg-primary/5 text-ink transition-colors">
-              <Bell size={18} />
-              <span className="absolute top-1.5 end-1.5 w-2 h-2 rounded-full bg-primary" />
-            </button>
+            <div className="relative">
+              <button onClick={() => setNotifOpen(v => !v)} className="relative w-9 h-9 rounded-lg flex items-center justify-center hover:bg-primary/5 text-ink transition-colors">
+                <Bell size={18} />
+                {notifications.length > 0 && (
+                  <span className="absolute top-1 end-1 min-w-[16px] h-4 px-0.5 rounded-full bg-danger text-white text-[9px] font-bold flex items-center justify-center">{notifications.length}</span>
+                )}
+              </button>
+              {notifOpen && (
+                <>
+                  <div className="fixed inset-0 z-20" onClick={() => setNotifOpen(false)} />
+                  <div className="absolute end-0 top-11 z-30 w-80 bg-surface border border-border rounded-2xl shadow-xl overflow-hidden">
+                    <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+                      <span className="text-[13px] font-bold text-ink">{t.notifications}</span>
+                    </div>
+                    <div className="max-h-80 overflow-y-auto">
+                      {notifications.map(o => (
+                        <button key={o.id} onClick={() => { setTab('orders'); }} className="w-full text-start px-4 py-3 hover:bg-primary/5 transition-colors border-b border-border/50 last:border-0 flex items-start gap-3">
+                          <span className="w-2 h-2 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-[12px] font-bold text-ink">{o.customer_name || o.order_number}</p>
+                            <p className="text-[11px] text-muted">{o.order_number}</p>
+                            <span className="text-[10.5px] text-muted">{new Date(o.created_at).toLocaleString()}</span>
+                          </div>
+                        </button>
+                      ))}
+                      {notifications.length === 0 && (
+                        <div className="px-4 py-10 text-center text-muted text-[12px]">{t.noOrders}</div>
+                      )}
+                    </div>
+                    <button onClick={() => setTab('orders')} className="w-full px-4 py-2.5 bg-primary/5 text-primary text-[12px] font-bold">{t.allOrders}</button>
+                  </div>
+                </>
+              )}
+            </div>
             <Link to="/" className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-primary/5 text-ink transition-colors">
               <Store size={18} />
             </Link>

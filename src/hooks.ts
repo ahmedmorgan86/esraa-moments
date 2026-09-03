@@ -72,3 +72,23 @@ export function useReviews(): [Review[], (review: Review) => void] {
   };
   return [reviews, addReview];
 }
+
+export interface StoreSettings {
+  name: string;
+  whatsapp: string;
+  email: string;
+  address: string;
+  shippingThreshold: string;
+  shippingFee: string;
+}
+
+export function useStoreSettings(): StoreSettings {
+  return {
+    name: localStorage.getItem('em-store-name') || 'ESRAA Moments',
+    whatsapp: localStorage.getItem('em-store-whatsapp') || '201097905435',
+    email: localStorage.getItem('em-store-email') || 'esraamomentsstore@gmail.com',
+    address: localStorage.getItem('em-store-address') || 'شارع الجيش - عزبة النخل',
+    shippingThreshold: localStorage.getItem('em-shipping-threshold') || '500',
+    shippingFee: localStorage.getItem('em-shipping-fee') || '60',
+  };
+}
