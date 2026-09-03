@@ -11,12 +11,12 @@ export default function Faq({ t, lang }: { t: any; lang: string }) {
       <div className="text-center max-w-2xl mx-auto mb-10 animate-[fadeUp_0.6s_ease_both]">
         <span className="eyebrow">{t.faqEyebrow}</span>
         <h1 className="text-[clamp(28px,4vw,44px)] font-black mt-2">{t.faqTitle}</h1>
-        <p className="text-muted mt-3">{isEn ? 'Common questions and their answers.' : 'أسئلة شائعة وإجاباتها.'}</p>
+        <p className="text-muted mt-3">{t.faqDesc}</p>
       </div>
 
       <div className="max-w-[760px] mx-auto flex flex-col gap-3">
         {content.faqs.length === 0 && (
-          <p className="text-muted text-center py-10">{isEn ? 'No FAQs yet.' : 'مفيش أسئلة شائعة بعد.'}</p>
+          <p className="text-muted text-center py-10">{t.faqNone}</p>
         )}
         {content.faqs.map((faq, i) => (
           <FaqItem key={i} q={isEn ? faq.q_en : faq.q} a={isEn ? faq.a_en : faq.a} />

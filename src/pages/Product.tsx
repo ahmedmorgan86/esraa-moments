@@ -35,7 +35,7 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
   if (!product) {
     return (
       <div className="section page flex flex-col items-center justify-center min-h-[50vh] text-center">
-        <h1 className="text-2xl font-bold text-ink mb-3">{isEn ? 'Product not found' : 'المنتج مش موجود'}</h1>
+        <h1 className="text-2xl font-bold text-ink mb-3">{t.productNotFound || (isEn ? 'Product not found' : 'المنتج مش موجود')}</h1>
         <Link to="/shop" className="btn primary">{t.backToShop}</Link>
       </div>
     );
@@ -67,10 +67,14 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
             <h1 className="text-[clamp(22px,3vw,32px)] font-black mb-2">{name}</h1>
 
             <div className="flex items-center gap-2 mb-4">
-              <div className="flex items-center gap-0.5 text-amber-500">
-                {[1,2,3,4,5].map(i => <Star key={i} size={14} fill="currentColor" />)}
-              </div>
-              <span className="text-muted text-[12px]">(47 {t.reviews})</span>
+              {productReviews.length > 0 ? (
+                <StarRating rating={avgRating} size={15} />
+              ) : (
+                <div className="flex items-center gap-0.5 text-muted/40">
+                  {[1,2,3,4,5].map(i => <Star key={i} size={15} fill="currentColor" />)}
+                </div>
+              )}
+              <span className="text-muted text-[12px]">({productReviews.length} {t.reviews})</span>
             </div>
 
             <p className="text-muted text-[15px] leading-relaxed mb-7">{desc}</p>
@@ -169,7 +173,7 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
               }} className="space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-muted mb-1">{t.yourName || 'الاسم'}</label>
-                  <input type="text" value={reviewName} onChange={e => setReviewName(e.target.value)} required className="input-field w-full text-sm" placeholder="اسمك..." />
+                  <input type="text" value={reviewName} onChange={e => setReviewName(e.target.value)} required className="input-field w-full text-sm" placeholder={t.yourNamePlaceholder} />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-muted mb-1">{t.rating || 'التقييم'}</label>
@@ -183,7 +187,7 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-muted mb-1">{t.yourReview || 'التعليق'}</label>
-                  <textarea value={reviewComment} onChange={e => setReviewComment(e.target.value)} required rows={3} className="input-field w-full text-sm" placeholder="اكتب رأيك في المنتج..." />
+                  <textarea value={reviewComment} onChange={e => setReviewComment(e.target.value)} required rows={3} className="input-field w-full text-sm" placeholder={t.yourReviewPlaceholder} />
                 </div>
                 <button type="submit" className="btn primary">{t.submitReview || 'إرسال التقييم'}</button>
               </form>
@@ -204,7 +208,7 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
                 </div>
                 <div className="p-4">
                   <h3 className="text-[14px] font-bold line-clamp-2 mb-1">{isEn && p.name_en ? p.name_en : p.name}</h3>
-                  <span className="text-gradient font-extrabold text-lg">{p.price} {t.currency}</span>
+                  <span className="text-primary text-[12.5px] font-bold">{t.viewDetails} ←</span>
                 </div>
               </Link>
             ))}

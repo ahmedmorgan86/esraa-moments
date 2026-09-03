@@ -1122,7 +1122,7 @@ function CouponsTab({ t }: { t: any }) {
                 <tr className="border-b border-border bg-surface-alt/50">
                   <th className="text-start px-5 py-3.5 font-semibold text-muted text-[12px]">{t.couponCode}</th>
                   <th className="text-start px-5 py-3.5 font-semibold text-muted text-[12px]">{t.discountType}</th>
-                  <th className="text-start px-5 py-3.5 font-semibold text-muted text-[12px]">{t.discountType === 'percent' ? '%' : t.currency}</th>
+                   <th className="text-start px-5 py-3.5 font-semibold text-muted text-[12px]">{t.discountValueLabel}</th>
                   <th className="text-start px-5 py-3.5 font-semibold text-muted text-[12px]">{t.minOrder}</th>
                   <th className="text-start px-5 py-3.5 font-semibold text-muted text-[12px]">{t.usedCount}/{t.maxUses}</th>
                   <th className="text-start px-5 py-3.5 font-semibold text-muted text-[12px]">{t.expiresAt}</th>
@@ -1278,7 +1278,7 @@ function ContentTab({ t: _t }: { t: any }) {
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-[12px] font-semibold text-muted">Eyebrow (English)</label>
-              <input type="text" value={content.heroEyebrow} onChange={e => updateField('heroEyebrow', e.target.value)} className="input-field" />
+              <input type="text" value={content.heroEyebrowEn} onChange={e => updateField('heroEyebrowEn', e.target.value)} className="input-field" />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-[12px] font-semibold text-muted">العنوان الأول (عربي)</label>

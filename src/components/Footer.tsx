@@ -56,7 +56,7 @@ export function Footer({ t, lang }: { t: any; lang?: string }) {
             <div className="flex flex-col gap-3">
               <a href={`tel:${settings.whatsapp}`} className="flex items-center gap-2 text-white/55 text-[13px] hover:text-white transition-colors"><Phone size={14} className="text-white/40" /> {settings.whatsapp}</a>
               <a href={`mailto:${settings.email}`} className="flex items-center gap-2 text-white/55 text-[13px] hover:text-white transition-colors"><Mail size={14} className="text-white/40" /> {settings.email}</a>
-              <span className="flex items-center gap-2 text-white/55 text-[13px]"><MapPin size={14} className="text-white/40" />{isEn ? settings.address : settings.address}</span>
+              <span className="flex items-center gap-2 text-white/55 text-[13px]"><MapPin size={14} className="text-white/40" />{settings.address}</span>
               <span className="flex items-center gap-2 text-white/55 text-[13px]"><Link2 size={14} className="text-white/40" /> @esraamoments</span>
             </div>
           </div>

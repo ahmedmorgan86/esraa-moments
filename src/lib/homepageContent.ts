@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 export interface HomepageContent {
   heroEyebrow: string;
+  heroEyebrowEn: string;
   heroTitle1: string;
   heroTitle1En: string;
   heroTitle2: string;
@@ -29,6 +30,7 @@ export interface HomepageContent {
 
 export const defaultHomepageContent: HomepageContent = {
   heroEyebrow: 'تصاميم فريدة لكل مناسبة',
+  heroEyebrowEn: 'Unique Designs For Every Occasion',
   heroTitle1: 'لحظاتكم المميزة',
   heroTitle1En: 'Your Special Moments',
   heroTitle2: 'تستحق أجمل تفاصيل',

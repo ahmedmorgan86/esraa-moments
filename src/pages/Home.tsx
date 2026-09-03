@@ -24,7 +24,7 @@ export default function Home({ t, lang, products }: { t: any; lang: string; prod
       {/* Hero */}
       <section className="grid grid-cols-1 lg:grid-cols-[1.08fr_.92fr] items-center gap-10 lg:gap-20 py-12 lg:py-20 px-5 lg:px-12 max-w-7xl mx-auto">
         <div className="relative z-10 flex flex-col items-start animate-[fadeUp_0.6s_ease_both]">
-          <span className="inline-block text-primary text-[11.5px] font-extrabold tracking-widest mb-3">{content.heroEyebrow}</span>
+          <span className="inline-block text-primary text-[11.5px] font-extrabold tracking-widest mb-3">{isEn ? content.heroEyebrowEn : content.heroEyebrow}</span>
           <h1 className="text-[clamp(34px,4.5vw,56px)] leading-[1.2] font-black mb-5">
             {isEn ? content.heroTitle1En : content.heroTitle1}<br />
             <span className="text-primary">{isEn ? content.heroTitle2En : content.heroTitle2}</span>
@@ -44,7 +44,7 @@ export default function Home({ t, lang, products }: { t: any; lang: string; prod
       {/* Occasions */}
       <section className="section">
         <div className="animate-[fadeUp_0.6s_ease_both]">
-          <span className="eyebrow">{t.occasionsTitle}</span>
+          <span className="eyebrow">{t.occasionsEyebrow}</span>
           <h2 className="text-[clamp(24px,3.2vw,38px)] font-black">{t.occasionsTitle}</h2>
           <p className="text-muted mt-2">{t.occasionsSub}</p>
         </div>

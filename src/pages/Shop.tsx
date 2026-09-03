@@ -18,8 +18,6 @@ export default function Shop({ t, lang, products }: { t: any; lang: string; prod
     let list = [...products];
     if (cat !== 'الكل') list = list.filter(p => p.category === cat);
     if (search) list = list.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.name_en?.toLowerCase().includes(search.toLowerCase()));
-    if (sort === 'price-low') list.sort((a, b) => a.price - b.price);
-    if (sort === 'price-high') list.sort((a, b) => b.price - a.price);
     if (sort === 'name') list.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
     return list;
   }, [cat, search, sort]);
@@ -28,7 +26,7 @@ export default function Shop({ t, lang, products }: { t: any; lang: string; prod
     <section className="section page">
       <div className="mb-8 animate-[fadeUp_0.6s_ease_both]">
         <span className="eyebrow">{t.shop}</span>
-        <h1 className="text-[clamp(24px,3.2vw,38px)] font-black">{t.shop} — {isEn ? 'All Favors' : 'كل التوزيعات'}</h1>
+        <h1 className="text-[clamp(24px,3.2vw,38px)] font-black">{t.shop} — {t.shopAllFavors}</h1>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3.5 mb-7">
@@ -40,8 +38,6 @@ export default function Shop({ t, lang, products }: { t: any; lang: string; prod
           <SlidersHorizontal size={14} className="text-muted" />
           <select value={sort} onChange={e => setSort(e.target.value)} className="text-[13.5px] cursor-pointer outline-none bg-transparent">
             <option value="default">{t.sortBy}</option>
-            <option value="price-low">{t.price} ↑</option>
-            <option value="price-high">{t.price} ↓</option>
             <option value="name">{isEn ? 'A-Z' : 'أ-ي'}</option>
           </select>
         </div>

@@ -8,8 +8,8 @@ export default function Contact({ t, lang }: { t: any; lang: string }) {
   const items = [
     { icon: Phone, label: isEn ? 'Phone / WhatsApp' : 'الهاتف / واتساب', value: settings.whatsapp, href: `tel:${settings.whatsapp}` },
     { icon: MessageCircle, label: isEn ? 'WhatsApp' : 'واتساب', value: settings.whatsapp, href: `https://wa.me/${settings.whatsapp}` },
-    { icon: Mail, label: isEn ? 'Email' : 'البريد الإلكتروني', value: settings.email, href: `mailto:${settings.email}` },
-    { icon: MapPin, label: isEn ? 'Address' : 'العنوان', value: settings.address },
+    { icon: Mail, label: t.emailLabel, value: settings.email, href: `mailto:${settings.email}` },
+    { icon: MapPin, label: t.addressLabelAdmin, value: settings.address },
     { icon: Link2, label: 'Instagram', value: '@esraamoments', href: 'https://www.instagram.com/esraamoments' },
   ];
 
@@ -17,8 +17,8 @@ export default function Contact({ t, lang }: { t: any; lang: string }) {
     <section className="section page">
       <div className="text-center max-w-2xl mx-auto mb-10 animate-[fadeUp_0.6s_ease_both]">
         <span className="eyebrow">{t.contactUs}</span>
-        <h1 className="text-[clamp(28px,4vw,44px)] font-black mt-2">{isEn ? 'Contact Us' : 'تواصل معنا'}</h1>
-        <p className="text-muted mt-3">{isEn ? 'Reach out and we will help you create the perfect custom order.' : 'تواصل معنا وهنساعدك تعمل الطلب المخصص المثالي.'}</p>
+        <h1 className="text-[clamp(28px,4vw,44px)] font-black mt-2">{t.contactUs}</h1>
+        <p className="text-muted mt-3">{t.contactDesc}</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-4xl mx-auto">
