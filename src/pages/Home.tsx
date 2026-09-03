@@ -109,16 +109,21 @@ export default function Home({ t, lang, products }: { t: any; lang: string; prod
           <span className="eyebrow">{t.bsEyebrow}</span>
           <h2 className="text-[clamp(24px,3.2vw,38px)] font-black">{t.bsTitle}</h2>
         </div>
-        <div className="flex gap-5 overflow-x-auto pb-4 mt-9 scroll-snap-x mandatory -mx-5 px-5 lg:-mx-12 lg:px-12" style={{ scrollPaddingInline: '20px' }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-9">
           {bestSellers.map((p, i) => (
-            <Link key={p.id} to={`/product/${p.id}`} className="min-w-[260px] flex-shrink-0 bg-surface border border-border rounded-xl overflow-hidden scroll-snap-start hover:shadow-md transition-all">
-              <img src={p.image} alt={p.name} className="w-full aspect-[4/3] object-cover" />
-              <div className="p-3.5">
-                <span className="text-primary text-[11px] font-extrabold">#{i + 1}</span>
-                <h3 className="text-sm font-bold mt-1 line-clamp-1">{isEn && p.name_en ? p.name_en : p.name}</h3>
-                <span className="text-primary text-[12px] font-bold mt-1 block">{t.viewDetails} ←</span>
-              </div>
-            </Link>
+            <div key={p.id} className="animate-[fadeUp_0.5s_ease_both]" style={{ animationDelay: `${i * 0.05}s` }}>
+              <Link to={`/product/${p.id}`} className="group bg-surface border border-border rounded-2xl p-3.5 flex items-center gap-4 hover:border-primary hover:shadow-md transition-all">
+                <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-surface-alt flex-shrink-0">
+                  <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <span className="absolute top-1.5 start-1.5 bg-primary text-white text-[10px] font-black px-1.5 py-0.5 rounded-md shadow-sm">#{i + 1}</span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-[13.5px] font-bold line-clamp-1 group-hover:text-primary transition-colors">{isEn && p.name_en ? p.name_en : p.name}</h3>
+                  <p className="text-muted text-[12px] line-clamp-1 mt-0.5">{isEn && p.desc_en ? p.desc_en : p.desc}</p>
+                  <span className="text-primary text-[11.5px] font-semibold mt-2 inline-flex items-center gap-1">{t.viewDetails} →</span>
+                </div>
+              </Link>
+            </div>
           ))}
         </div>
       </section>
