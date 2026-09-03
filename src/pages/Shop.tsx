@@ -1,16 +1,17 @@
 import { useState, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { Search, SlidersHorizontal, MessageCircle } from 'lucide-react';
 import { occasions } from '../data';
 import { occasionEn } from '../i18n';
+import { useStoreSettings } from '../hooks';
 
-export default function Shop({ t, lang, addToCart, products }: { t: any; lang: string; addToCart: (p: any, qty?: number) => void; products: any[] }) {
+export default function Shop({ t, lang, products }: { t: any; lang: string; products: any[] }) {
   const [params] = useSearchParams();
   const initialCat = params.get('cat') || 'الكل';
   const [cat, setCat] = useState(initialCat);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('default');
-
+  const settings = useStoreSettings();
   const isEn = lang === 'en';
 
   const filtered = useMemo(() => {
@@ -71,9 +72,17 @@ export default function Shop({ t, lang, addToCart, products }: { t: any; lang: s
                 <div className="p-4">
                   <h3 className="text-[14px] font-bold line-clamp-2 mb-1">{isEn && p.name_en ? p.name_en : p.name}</h3>
                   <p className="text-muted text-[12.5px] line-clamp-2">{isEn && p.desc_en ? p.desc_en : p.desc}</p>
-                  <div className="flex items-center justify-between mt-3">
-                    <span className="text-gradient font-extrabold text-lg">{p.price} {t.currency}</span>
-                    <button onClick={(e) => { e.preventDefault(); addToCart(p); }} className="bg-primary text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-primary-hover transition-all" type="button">{t.addToCart}</button>
+                  <div className="flex items-center justify-between mt-3 gap-2">
+                    <span className="text-primary font-bold text-[12.5px]">{t.viewDetails}</span>
+                    <a
+                      href={`https://wa.me/${settings.whatsapp}?text=${encodeURIComponent(`${isEn ? 'I want to order' : 'عايز أطلب'}: ${isEn && p.name_en ? p.name_en : p.name}`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="bg-[#25d366] text-white px-3 py-2 rounded-lg text-xs font-bold hover:opacity-90 transition-all inline-flex items-center gap-1.5"
+                    >
+                      <MessageCircle size={14} /> {t.orderViaWhatsApp}
+                    </a>
                   </div>
                 </div>
               </Link>

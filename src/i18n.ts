@@ -2,7 +2,7 @@ export const translations = {
   ar: {
     pageTitle: 'ESRAA Moments — تفاصيل تصنع لحظات',
     home: 'الرئيسية', shop: 'المتجر', about: 'من نحن', faq: 'الأسئلة الشائعة',
-    track: 'تتبع طلبك', account: 'حسابي', cart: 'السلة', search: 'بحث',
+    track: 'تتبع طلبك', account: 'حسابي', cart: 'السلة', search: 'بحث', contact: 'تواصل معنا',
     heroTitle1: 'تفاصيل دقيقة...', heroTitle2: 'تصنع لحظات لا تُنسى.',
     heroDesc: 'توزيعات وهدايا مصممة بعناية لكل مناسبة، من أول فكرة حتى آخر تفصيلة.',
     heroCta: 'اكتشف التوزيعات', heroEyebrow: 'دقيق الإنتاج • متقن التصميم • لا يُنسى',
@@ -182,7 +182,7 @@ export const translations = {
   en: {
     pageTitle: 'ESRAA Moments — Details that create memories',
     home: 'Home', shop: 'Shop', about: 'About', faq: 'FAQ',
-    track: 'Track Order', account: 'Account', cart: 'Cart', search: 'Search',
+    track: 'Track Order', account: 'Account', cart: 'Cart', search: 'Search', contact: 'Contact Us',
     heroTitle1: 'Curated Details...', heroTitle2: 'Creating Unforgettable Moments.',
     heroDesc: 'Party favors and gifts crafted with care for every occasion, from first idea to final detail.',
     heroCta: 'Explore Favors', heroEyebrow: 'HANDCRAFTED • PERSONALIZED • TIMELESS',

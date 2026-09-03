@@ -1,19 +1,22 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Sun, Moon, Globe, ShoppingBag, Menu, X, User, Heart } from 'lucide-react';
+import { Sun, Moon, Globe, MessageCircle, Menu, X, User, Heart } from 'lucide-react';
+import { useStoreSettings } from '../hooks';
 
 type Props = {
-  lang: string; t: any; scrolled: boolean; cartCount: number; wishlistCount: number;
+  lang: string; t: any; scrolled: boolean; wishlistCount: number;
   dark: boolean; menuOpen: boolean;
-  onMenuToggle: () => void; onCartOpen: () => void;
+  onMenuToggle: () => void;
   onDarkToggle: () => void; onLangToggle: () => void;
 };
 
-export function Header({ t, scrolled, cartCount, wishlistCount, dark, menuOpen, onMenuToggle, onCartOpen, onDarkToggle, onLangToggle }: Props) {
+export function Header({ t, scrolled, wishlistCount, dark, menuOpen, onMenuToggle, onDarkToggle, onLangToggle }: Props) {
   const location = useLocation();
+  const settings = useStoreSettings();
   const isActive = (path: string) => location.pathname === path ? 'text-primary bg-primary/8' : 'text-muted hover:text-ink hover:bg-primary/8';
   const navLinks = [
     { path: '/shop', label: t.shop },
-    { path: '/track', label: t.track },
+    { path: '/about', label: t.about },
+    { path: '/contact', label: t.contact },
   ];
 
   return (
@@ -49,12 +52,9 @@ export function Header({ t, scrolled, cartCount, wishlistCount, dark, menuOpen, 
               <span className="absolute -top-0.5 -start-0.5 w-[17px] h-[17px] rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center">{wishlistCount}</span>
             )}
           </Link>
-          <button onClick={onCartOpen} className="relative w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary/8 transition-all text-ink">
-            <ShoppingBag size={20} />
-            {cartCount > 0 && (
-              <span className="absolute -top-0.5 -start-0.5 w-[17px] h-[17px] rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center">{cartCount}</span>
-            )}
-          </button>
+          <a href={`https://wa.me/${settings.whatsapp}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary/8 transition-all text-[#25d366]" aria-label="WhatsApp">
+            <MessageCircle size={20} />
+          </a>
           <button onClick={onMenuToggle} className="lg:hidden w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary/8 transition-all text-ink">
             {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>

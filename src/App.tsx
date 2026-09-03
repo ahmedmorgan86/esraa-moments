@@ -3,10 +3,8 @@ import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useLocalStorage, useScrollShadow, useProducts, useWishlist, useReviews } from './hooks';
 import { t, setUiLang } from './i18n';
 import { useSite } from './lib/site';
-import type { CartItem } from './data';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
-import { CartDrawer } from './components/CartDrawer';
 import { AnnouncementBar } from './components/AnnouncementBar';
 import { WhatsAppFloat } from './components/WhatsAppFloat';
 
@@ -16,15 +14,14 @@ const ProductPage = lazy(() => import('./pages/Product'));
 const LoginPage = lazy(() => import('./pages/Login'));
 const AccountPage = lazy(() => import('./pages/Account'));
 const AdminPage = lazy(() => import('./pages/Admin'));
-const CheckoutPage = lazy(() => import('./pages/Checkout'));
-const TrackPage = lazy(() => import('./pages/Track'));
 const WishlistPage = lazy(() => import('./pages/Wishlist'));
+const AboutPage = lazy(() => import('./pages/About'));
+const ContactPage = lazy(() => import('./pages/Contact'));
+const FaqPage = lazy(() => import('./pages/Faq'));
 
 export function App() {
-  const [cart, setCart] = useLocalStorage<CartItem[]>('em-cart', []);
   const [lang, setLang] = useLocalStorage<'ar' | 'en'>('em-lang', 'ar');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [cartOpen, setCartOpen] = useState(false);
   const [bannerClosed, setBannerClosed] = useState(false);
   const [products, setProducts] = useProducts();
   const [wishlist, toggleWishlist] = useWishlist();
@@ -44,23 +41,7 @@ export function App() {
   document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
 
   useEffect(() => { document.documentElement.dataset.theme = dark ? 'dark' : 'light'; localStorage.setItem('em-dark', dark ? '1' : '0'); }, [dark]);
-  useEffect(() => { setMenuOpen(false); setCartOpen(false); window.scrollTo(0, 0); }, [location.pathname]);
-
-  const addToCart = (p: any, qty = 1) => {
-    setCart(prev => {
-      const exists = prev.find(i => i.id === p.id);
-      if (exists) return prev.map(i => i.id === p.id ? { ...i, qty: i.qty + qty } : i);
-      return [...prev, { ...p, qty }];
-    });
-    setCartOpen(true);
-  };
-
-  const removeFromCart = (id: string) => setCart(prev => prev.filter(i => i.id !== id));
-  const updateQty = (id: string, qty: number) => {
-    if (qty <= 0) return removeFromCart(id);
-    setCart(prev => prev.map(i => i.id === id ? { ...i, qty } : i));
-  };
-  const cartCount = cart.reduce((s, i) => s + i.qty, 0);
+  useEffect(() => { setMenuOpen(false); window.scrollTo(0, 0); }, [location.pathname]);
 
   const toggleDark = () => setDark(v => !v);
   const toggleLang = () => setLang(l => l === 'ar' ? 'en' : 'ar');
@@ -75,12 +56,10 @@ export function App() {
           lang={lang}
           t={t()}
           scrolled={scrolled}
-          cartCount={cartCount}
           wishlistCount={wishlist.length}
           dark={dark}
           menuOpen={menuOpen}
           onMenuToggle={() => setMenuOpen(v => !v)}
-          onCartOpen={() => setCartOpen(true)}
           onDarkToggle={toggleDark}
           onLangToggle={toggleLang}
         />
@@ -93,15 +72,16 @@ export function App() {
       <main className="flex-1">
         <Suspense fallback={<div className="section page flex items-center justify-center min-h-[50vh]"><div className="text-muted">...</div></div>}>
           <Routes>
-            <Route path="/" element={<Home t={t()} lang={lang} addToCart={addToCart} products={products} />} />
-            <Route path="/shop" element={<Shop t={t()} lang={lang} addToCart={addToCart} products={products} />} />
+            <Route path="/" element={<Home t={t()} lang={lang} products={products} />} />
+            <Route path="/shop" element={<Shop t={t()} lang={lang} products={products} />} />
             <Route path="/product/:id" element={<ProductPage t={t()} lang={lang} products={products} wishlist={wishlist} toggleWishlist={toggleWishlist} reviews={reviews} addReview={addReview} />} />
-            <Route path="/wishlist" element={<WishlistPage t={t()} lang={lang} products={products} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart} />} />
+            <Route path="/wishlist" element={<WishlistPage t={t()} lang={lang} products={products} wishlist={wishlist} toggleWishlist={toggleWishlist} />} />
+            <Route path="/about" element={<AboutPage t={t()} lang={lang} />} />
+            <Route path="/contact" element={<ContactPage t={t()} lang={lang} />} />
+            <Route path="/faq" element={<FaqPage t={t()} lang={lang} />} />
             <Route path="/login" element={<LoginPage t={t()} />} />
             <Route path="/account" element={<AccountPage t={t()} />} />
             <Route path="/admin/*" element={<AdminPage t={t()} products={products} setProducts={setProducts} />} />
-            <Route path="/checkout" element={<CheckoutPage t={t()} lang={lang} cart={cart} setCart={setCart} />} />
-            <Route path="/track" element={<TrackPage t={t()} />} />
             <Route path="*" element={
               <div className="section page flex flex-col items-center justify-center min-h-[60vh] text-center">
                 <h1 className="text-6xl font-black text-primary mb-4">404</h1>
@@ -114,15 +94,6 @@ export function App() {
       </main>
 
       <Footer t={t()} lang={lang} />
-      <CartDrawer
-        open={cartOpen}
-        onClose={() => setCartOpen(false)}
-        items={cart}
-        t={t()}
-        lang={lang}
-        updateQty={updateQty}
-        removeFromCart={removeFromCart}
-      />
       <WhatsAppFloat />
     </div>
   );

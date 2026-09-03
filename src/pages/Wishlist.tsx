@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Trash2, Heart } from 'lucide-react';
+import { MessageCircle, Trash2, Heart } from 'lucide-react';
 import { occasionEn } from '../i18n';
+import { useStoreSettings } from '../hooks';
 
-export default function WishlistPage({ t, lang, products, wishlist, toggleWishlist, addToCart }: { t: any; lang: string; products: any[]; wishlist: string[]; toggleWishlist: (id: string) => void; addToCart: (p: any) => void }) {
+export default function WishlistPage({ t, lang, products, wishlist, toggleWishlist }: { t: any; lang: string; products: any[]; wishlist: string[]; toggleWishlist: (id: string) => void }) {
   const isEn = lang === 'en';
+  const settings = useStoreSettings();
   const wishlistProducts = products.filter(p => wishlist.includes(p.id));
 
   if (wishlistProducts.length === 0) {
@@ -37,17 +39,21 @@ export default function WishlistPage({ t, lang, products, wishlist, toggleWishli
                 </div>
                 <div className="p-4">
                   <h3 className="text-[14px] font-bold line-clamp-2 mb-1">{isEn && p.name_en ? p.name_en : p.name}</h3>
-                  <span className="text-gradient font-extrabold text-lg">{p.price} {t.currency}</span>
                 </div>
               </Link>
-              <div className="px-4 pb-4 flex gap-2">
-                <button onClick={() => addToCart(p)} className="flex-1 bg-primary text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-primary-hover transition-all flex items-center justify-center gap-1.5" type="button">
-                  <ShoppingCart size={14} /> {t.addToCart}
-                </button>
-                <button onClick={() => toggleWishlist(p.id)} className="w-10 h-10 rounded-lg border border-border flex items-center justify-center hover:bg-red-50 hover:border-red-200 transition-all text-muted hover:text-red-500" type="button">
-                  <Trash2 size={16} />
-                </button>
-              </div>
+                <div className="px-4 pb-4 flex gap-2">
+                  <a
+                    href={`https://wa.me/${settings.whatsapp}?text=${encodeURIComponent(`${isEn ? 'I want to order' : 'عايز أطلب'}: ${isEn && p.name_en ? p.name_en : p.name}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 bg-[#25d366] text-white px-4 py-2 rounded-lg text-xs font-bold hover:opacity-90 transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <MessageCircle size={14} /> {t.orderViaWhatsApp}
+                  </a>
+                  <button onClick={() => toggleWishlist(p.id)} className="w-10 h-10 rounded-lg border border-border flex items-center justify-center hover:bg-red-50 hover:border-red-200 transition-all text-muted hover:text-red-500" type="button">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
             </div>
           </div>
         ))}

@@ -11,7 +11,7 @@ const occasionIcons: Record<string, string> = {
   'استقبال مولود': '👶', 'رمضان': '🌙', 'عيد': '🎉', 'توزيعات شركات': '🏢',
 };
 
-export default function Home({ t, lang, addToCart, products }: { t: any; lang: string; addToCart: (p: any, qty?: number) => void; products: any[] }) {
+export default function Home({ t, lang, products }: { t: any; lang: string; products: any[] }) {
   const [content] = useHomepageContent();
   const featured = products.filter(p => p.featured).slice(0, 8);
   const bestSellers = products.slice(0, 6);
@@ -77,8 +77,8 @@ export default function Home({ t, lang, addToCart, products }: { t: any; lang: s
                 <div className="p-4">
                   <h3 className="text-[14px] font-bold line-clamp-2 mb-1">{isEn && p.name_en ? p.name_en : p.name}</h3>
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-gradient font-extrabold text-lg">{p.price} {t.currency}</span>
-                    <button onClick={(e) => { e.preventDefault(); addToCart(p); }} className="bg-primary text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-primary-hover transition-all" type="button">{t.addToCart}</button>
+                    <span className="text-primary font-bold text-[13px]">{t.viewDetails}</span>
+                    <ArrowLeft size={16} className="text-primary" />
                   </div>
                 </div>
               </Link>
@@ -116,7 +116,7 @@ export default function Home({ t, lang, addToCart, products }: { t: any; lang: s
               <div className="p-3.5">
                 <span className="text-primary text-[11px] font-extrabold">#{i + 1}</span>
                 <h3 className="text-sm font-bold mt-1 line-clamp-1">{isEn && p.name_en ? p.name_en : p.name}</h3>
-                <span className="text-gradient font-extrabold mt-1 block">{p.price} {t.currency}</span>
+                <span className="text-primary text-[12px] font-bold mt-1 block">{t.viewDetails} ←</span>
               </div>
             </Link>
           ))}

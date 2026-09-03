@@ -33,7 +33,8 @@ export function Footer({ t, lang }: { t: any; lang?: string }) {
             <h4 className="text-[11.5px] font-bold text-white/50 uppercase tracking-widest mb-5">{t.quickLinks}</h4>
             <ul className="flex flex-col gap-3">
               <li><Link to="/shop" className="text-white/55 text-[13.5px] hover:text-white transition-colors">{t.shop}</Link></li>
-              <li><Link to="/track" className="text-white/55 text-[13.5px] hover:text-white transition-colors">{t.track}</Link></li>
+              <li><Link to="/about" className="text-white/55 text-[13.5px] hover:text-white transition-colors">{t.about}</Link></li>
+              <li><Link to="/contact" className="text-white/55 text-[13.5px] hover:text-white transition-colors">{t.contact}</Link></li>
               <li><Link to="/account" className="text-white/55 text-[13.5px] hover:text-white transition-colors">{t.account}</Link></li>
 
             </ul>
