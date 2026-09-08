@@ -143,3 +143,36 @@ body:before { content:'ESRAA MOMENTS'; position:fixed; inset-inline-end:2vw; bot
 @media (max-width:900px) { .hero-shell { grid-template-columns:1fr; } .hero-art { order:-1; min-height:390px; } .hero-frame { width:min(72vw,420px); } .hero-copy h1 { font-size:clamp(60px,15vw,100px); } body:before { display:none; } }
 @media (max-width:560px) { .hero-shell { padding-top:30px; } .hero-frame { width:76vw; border-width:8px; box-shadow:16px 18px 0 var(--color-primary), 20px 25px 50px rgba(0,0,0,.35); } .occasion-grid { gap:8px; } .occasion-card { min-height:130px; padding:14px; } .product-grid { gap:10px; } .product-card:nth-child(2n) .product-image { border-radius:42px 42px 0 0; } .product-card:nth-child(3n) .product-image { border-radius:0 0 42px 42px; } }
 @media (prefers-reduced-motion:reduce) { .hero-crosshair, .hero-orbit, body:after { animation:none!important; } .product-card:hover .product-image { transform:none; } }
+
+/* ESRAA MOMENTS — signature editorial pass */
+.hero-grid-lines { position:absolute; inset:0; opacity:.16; pointer-events:none; background-image:linear-gradient(var(--color-border) 1px,transparent 1px),linear-gradient(90deg,var(--color-border) 1px,transparent 1px); background-size:clamp(70px,8vw,140px) clamp(70px,8vw,140px); mask-image:linear-gradient(90deg,transparent,black 25%,black 75%,transparent); }
+.signature-hero { isolation:isolate; }
+.signature-hero:after { width:1px; }
+.hero-index { position:absolute; top:12%; inset-inline-end:6%; color:var(--color-muted); font:700 10px/1 var(--font-sans); letter-spacing:.2em; }
+.hero-actions { display:flex; align-items:center; gap:20px; }
+.signature-art { filter:drop-shadow(0 28px 45px rgba(0,0,0,.2)); }
+.art-label { position:absolute; top:3%; inset-inline-start:5%; z-index:4; display:flex; flex-direction:column; gap:3px; color:var(--color-primary); font-size:11px; font-weight:900; letter-spacing:.22em; }
+.art-label small { color:var(--color-muted); font-size:8px; letter-spacing:.14em; }
+.frame-number { position:absolute; bottom:12px; inset-inline-start:14px; color:#fff; font:700 10px/1 var(--font-sans); letter-spacing:.16em; }
+.marquee-bar { overflow:hidden; background:var(--color-primary); color:#fff; border-block:1px solid rgba(255,255,255,.18); padding-block:15px; }
+.marquee-track { display:flex; width:max-content; animation:marquee 24s linear infinite; }
+.marquee-track span { display:flex; align-items:center; gap:32px; padding-inline:32px; white-space:nowrap; font-size:11px; font-weight:800; letter-spacing:.16em; }
+.marquee-track b { font-size:16px; font-weight:400; }
+@keyframes marquee { to { transform:translateX(-50%); } }
+.section-intro { max-width:620px; }
+.signature-occasion-grid { margin-top:42px; }
+.signature-occasion-grid .occasion-card { position:relative; overflow:hidden; }
+.occasion-number { position:absolute; top:15px; inset-inline-end:17px; color:var(--color-subtle); font:700 10px/1 var(--font-sans); letter-spacing:.12em; }
+.occasion-icon { font-size:31px!important; transition:transform .45s cubic-bezier(.22,1,.36,1); }
+.occasion-card:hover .occasion-icon { transform:scale(1.25) rotate(-8deg); }
+.signature-product-grid .product-image { position:relative; transition:transform .7s cubic-bezier(.22,1,.36,1); }
+.product-index { position:absolute; top:14px; inset-inline-start:14px; color:var(--color-primary); font:700 10px/1 var(--font-sans); letter-spacing:.15em; }
+.product-image span { display:flex; align-items:center; gap:6px; }
+.signature-story { position:relative; }
+.story-vertical { position:absolute; top:50%; inset-inline-end:0; transform:rotate(-90deg) translateX(50%); transform-origin:right center; color:var(--color-primary); font-size:9px; letter-spacing:.3em; }
+.signature-newsletter { min-height:310px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.newsletter-plus { position:absolute; top:28px; inset-inline-start:28px; opacity:.65; animation:plus-spin 8s linear infinite; }
+@keyframes plus-spin { to { transform:rotate(360deg); } }
+@media (max-width:900px) { .hero-index { top:5%; } .hero-actions { flex-wrap:wrap; } .story-vertical { display:none; } }
+@media (max-width:560px) { .hero-grid-lines { background-size:60px 60px; } .hero-index { display:none; } .hero-actions { gap:14px; } .hero-note { max-width:150px; } .marquee-track { animation-duration:18s; } }
+@media (prefers-reduced-motion:reduce) { .marquee-track,.newsletter-plus { animation:none!important; } }
