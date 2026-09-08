@@ -20,7 +20,7 @@ export default function Home({ t, lang, products }: { t: any; lang: string; prod
   const artY = useTransform(pointerY, [-1, 1], [-12, 12]);
   return <>
     <section className="hero-shell" onPointerMove={(event) => { const rect = event.currentTarget.getBoundingClientRect(); pointerX.set((event.clientX - rect.left) / rect.width * 2 - 1); pointerY.set((event.clientY - rect.top) / rect.height * 2 - 1); }} onPointerLeave={() => { pointerX.set(0); pointerY.set(0); }}>
-      <div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" /><div className="hero-spark spark-one">✦</div><div className="hero-spark spark-two">✦</div>
+      <div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" /><div className="hero-crosshair crosshair-one" /><div className="hero-crosshair crosshair-two" /><div className="hero-spark spark-one">✦</div><div className="hero-spark spark-two">✦</div>
       <motion.div className="hero-copy" initial="hidden" animate="visible" variants={stagger}>
         <motion.span className="eyebrow" variants={reveal}>{isEn ? content.heroEyebrowEn : content.heroEyebrow}</motion.span>
         <motion.h1 variants={reveal}>{isEn ? content.heroTitle1En : content.heroTitle1}<br /><em>{isEn ? content.heroTitle2En : content.heroTitle2}</em></motion.h1>
