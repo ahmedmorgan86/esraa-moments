@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ChevronDown, ChevronLeft, MoveUpRight } from 'lucide-react';
 import { motion, type Variants } from 'framer-motion';
@@ -13,16 +14,24 @@ const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren
 export default function Home({ t, lang, products }: { t: any; lang: string; products: any[] }) {
   const [content] = useHomepageContent(); const featured = products.filter(p => p.featured).slice(0, 8); const isEn = lang === 'en';
   const [email, setEmail] = useState(''); const [subscribed, setSubscribed] = useState(false);
+  const pointerX = useSpring(useMotionValue(0), { stiffness: 120, damping: 20 });
+  const pointerY = useSpring(useMotionValue(0), { stiffness: 120, damping: 20 });
+  const artX = useTransform(pointerX, [-1, 1], [-16, 16]);
+  const artY = useTransform(pointerY, [-1, 1], [-12, 12]);
   return <>
-    <section className="hero-shell">
+    <section className="hero-shell" onPointerMove={(event) => { const rect = event.currentTarget.getBoundingClientRect(); pointerX.set((event.clientX - rect.left) / rect.width * 2 - 1); pointerY.set((event.clientY - rect.top) / rect.height * 2 - 1); }} onPointerLeave={() => { pointerX.set(0); pointerY.set(0); }}>
+      <div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" /><div className="hero-spark spark-one">✦</div><div className="hero-spark spark-two">✦</div>
       <motion.div className="hero-copy" initial="hidden" animate="visible" variants={stagger}>
         <motion.span className="eyebrow" variants={reveal}>{isEn ? content.heroEyebrowEn : content.heroEyebrow}</motion.span>
         <motion.h1 variants={reveal}>{isEn ? content.heroTitle1En : content.heroTitle1}<br /><em>{isEn ? content.heroTitle2En : content.heroTitle2}</em></motion.h1>
         <motion.p variants={reveal}>{isEn ? content.heroDescEn : content.heroDesc}</motion.p>
         <motion.div variants={reveal} className="flex items-center gap-5"><Link to="/shop" className="btn primary">{isEn ? content.heroCtaEn : content.heroCta}<ArrowLeft size={18} /></Link><span className="hero-note">{isEn ? 'Made for your moment' : 'مصممة للحظة التي لا تُنسى'}</span></motion.div>
       </motion.div>
-      <motion.div className="hero-art" initial={{ opacity: 0, scale: .92, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 1, ease: [.22,1,.36,1], delay: .15 }}>
-        <div className="hero-frame"><img src="/images/Gemini_Generated_Image_wh7xokwh7xokwh7x.jpeg" alt="Curated celebration details" /></div>
+      <motion.div className="hero-art" style={{ x: artX, y: artY }} initial={{ opacity: 0, scale: .82, rotate: -5 }} animate={{ opacity: 1, scale: 1, rotate: 3 }} transition={{ duration: 1.2, ease: [.22,1,.36,1], delay: .15 }}>
+        <div className="hero-ring ring-back" /><div className="hero-ring ring-front" />
+        <motion.div className="hero-frame" animate={{ y: [0, -12, 0], rotate: [3, 1, 3] }} transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}><img src="/images/Gemini_Generated_Image_wh7xokwh7xokwh7x.jpeg" alt="Curated celebration details" /></motion.div>
+        <motion.div className="hero-floating-card card-top"><span>01</span><strong>{isEn ? 'A moment, made' : 'لحظة صُنعت'}</strong></motion.div>
+        <motion.div className="hero-floating-card card-bottom"><span className="card-dot" />{isEn ? 'Curated with feeling' : 'مختارة بإحساس'}</motion.div>
         <div className="hero-stamp">{isEn ? 'EST. 2024' : 'منذ ٢٠٢٤'}<br /><span>{isEn ? 'Thoughtfully yours' : 'بكل حب'}</span></div>
       </motion.div>
       <div className="hero-scroll"><span>SCROLL</span><ChevronDown size={17} /></div>
