@@ -9,7 +9,7 @@ type Props = {
   onDarkToggle: () => void; onLangToggle: () => void;
 };
 
-export function Header({ t, scrolled, wishlistCount, dark, menuOpen, onMenuToggle, onDarkToggle, onLangToggle }: Props) {
+export function Header({ t, lang, scrolled, wishlistCount, dark, menuOpen, onMenuToggle, onDarkToggle, onLangToggle }: Props) {
   const location = useLocation();
   const settings = useStoreSettings();
   const isActive = (path: string) => location.pathname === path ? 'text-primary bg-primary/8' : 'text-muted hover:text-ink hover:bg-primary/8';
@@ -25,27 +25,27 @@ export function Header({ t, scrolled, wishlistCount, dark, menuOpen, onMenuToggl
       <div className="header-main px-5 lg:px-12">
         <Link to="/" className="brand-lockup direction-ltr" aria-label="ESRAA Moments home">
           <span className="brand-mark"><img src="/images/logo.jpeg" alt="" /></span>
-          <span className="brand-wordmark"><strong>ESRAA</strong><small>MOMENTS / 2024</small></span>
+          <span className="brand-wordmark"><strong>ESRAA</strong><small>MOMENTS</small></span>
         </Link>
 
-        <nav className="header-nav hidden lg:flex" aria-label="Primary navigation">
+        <nav className="header-nav desktop-nav" aria-label="Primary navigation">
           {navLinks.map(l => (
             <Link key={l.path} to={l.path} className={`header-nav-link ${isActive(l.path)}`}>{l.label}<span>↗</span></Link>
           ))}
         </nav>
 
         <div className="header-actions">
-          <button onClick={onDarkToggle} className="header-icon" aria-label="theme">{dark ? <Sun size={17} /> : <Moon size={17} />}</button>
-          <button onClick={onLangToggle} className="header-lang" aria-label="language"><Globe size={16} /><span>AR / EN</span></button>
-          <Link to="/wishlist" className="header-icon relative" aria-label="wishlist"><Heart size={17} />{wishlistCount > 0 && <span className="wishlist-badge">{wishlistCount}</span>}</Link>
-          <a href={`https://wa.me/${settings.whatsapp}`} target="_blank" rel="noopener noreferrer" className="header-contact"><MessageCircle size={16} /><span>Talk to us</span></a>
-          <button onClick={onMenuToggle} className="header-icon lg:hidden" aria-label="menu">{menuOpen ? <X size={19} /> : <Menu size={19} />}</button>
+          <button onClick={onDarkToggle} className="header-icon" aria-label={lang === 'ar' ? 'تبديل المظهر' : 'Toggle theme'}>{dark ? <Sun size={17} /> : <Moon size={17} />}</button>
+          <button onClick={onLangToggle} className="header-lang" aria-label={lang === 'ar' ? 'تغيير اللغة إلى الإنجليزية' : 'Switch language to Arabic'}><Globe size={16} /><span>{lang === 'ar' ? 'EN' : 'عربي'}</span></button>
+          <Link to="/wishlist" className="header-icon relative" aria-label={t.wishlist}><Heart size={17} />{wishlistCount > 0 && <span className="wishlist-badge">{wishlistCount}</span>}</Link>
+          <a href={`https://wa.me/${settings.whatsapp}`} target="_blank" rel="noopener noreferrer" className="header-contact"><MessageCircle size={16} /><span>{t.contactUs}</span></a>
+          <button onClick={onMenuToggle} className="header-icon mobile-menu-toggle" aria-expanded={menuOpen} aria-controls="mobile-navigation" aria-label={menuOpen ? (lang === 'ar' ? 'إغلاق القائمة' : 'Close menu') : (lang === 'ar' ? 'فتح القائمة' : 'Open menu')}>{menuOpen ? <X size={19} /> : <Menu size={19} />}</button>
         </div>
       </div>
 
       {menuOpen && (
-        <div className="mobile-menu lg:hidden">
-          <p className="eyebrow">Navigate / استكشف</p>
+        <div id="mobile-navigation" className="mobile-menu">
+          <p className="eyebrow">{lang === 'ar' ? 'استكشف' : 'Navigate'}</p>
           {navLinks.map(l => <Link key={l.path} to={l.path} className={`mobile-menu-link ${isActive(l.path)}`}>{l.label}<span>↗</span></Link>)}
           <Link to="/account" className={`mobile-menu-link ${isActive('/account')}`}>{t.account}<span>↗</span></Link>
           <Link to="/login" className={`mobile-menu-link ${isActive('/login')}`}>{t.login}<span>↗</span></Link>
