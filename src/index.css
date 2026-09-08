@@ -247,3 +247,41 @@ body:before { content:'ESRAA MOMENTS'; position:fixed; inset-inline-end:2vw; bot
 @media (max-width:900px) { .public-page-shell:before { display:none; } .page > .mb-8 h1, .page > .text-center h1 { font-size:clamp(42px,12vw,72px); } .page > .grid:first-of-type > .relative { box-shadow:10px 10px 0 var(--color-primary); } }
 @media (max-width:560px) { .page > .mb-8, .page > .text-center { padding-top:8px; } .page > .mb-8 h1, .page > .text-center h1 { font-size:clamp(40px,14vw,62px); } }
 @media (prefers-reduced-motion:reduce) { .page .grid > div > a.bg-surface:hover, .page .grid > a.bg-surface:hover, .page .grid > .group.bg-surface:hover { transform:none; } }
+
+/* Admin — the same ESRAA gallery language, optimized for operations and small screens. */
+.admin-shell { color:var(--color-ink); background:var(--color-surface-alt); }
+.admin-shell aside { background:var(--color-surface); border-color:var(--color-border-strong); }
+.admin-shell header { background:color-mix(in srgb,var(--color-surface-alt) 88%,transparent); border-color:var(--color-border); }
+.admin-shell main { min-width:0; }
+.admin-shell main > div { max-width:100rem; margin-inline:auto; }
+.admin-shell .bg-surface { border-color:var(--color-border-strong); box-shadow:0 16px 38px rgba(0,0,0,.08); }
+.admin-shell .rounded-xl, .admin-shell .rounded-2xl { border-radius:0; }
+.admin-shell table { min-width:680px; }
+.admin-shell input, .admin-shell textarea, .admin-shell select { min-height:42px; background:var(--color-surface-alt); border:1px solid var(--color-border); border-radius:0; }
+.admin-shell input:focus, .admin-shell textarea:focus, .admin-shell select:focus { border-color:var(--color-primary); box-shadow:0 0 0 3px var(--color-primary-light); }
+.admin-shell button.bg-primary { border-radius:0; box-shadow:6px 6px 0 var(--color-primary-light); }
+
+@media (max-width:900px) {
+  .admin-shell main { padding:24px 20px; }
+  .admin-shell main > div { width:100%; }
+  .admin-shell .grid { min-width:0; }
+  .admin-shell .overflow-x-auto { scrollbar-width:thin; scrollbar-color:var(--color-primary) transparent; }
+  .admin-shell .overflow-x-auto table { min-width:620px; }
+}
+@media (max-width:560px) {
+  .admin-shell main { padding:18px 14px 32px; }
+  .admin-shell header { padding-inline:14px; }
+  .admin-shell header h2 { max-width:13rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .admin-shell aside { width:min(86vw,300px); }
+  .admin-shell .p-6 { padding:18px; }
+  .admin-shell .p-5 { padding:16px; }
+  .admin-shell .grid-cols-2 { grid-template-columns:1fr; }
+  .admin-shell .grid-cols-2 > * { min-width:0; }
+  .admin-shell .flex.items-center.justify-between { flex-wrap:wrap; }
+  .admin-shell .admin-table, .admin-shell table { font-size:11px; }
+  .admin-shell .overflow-x-auto { margin-inline:-2px; }
+  .admin-shell .fixed.inset-0 > .max-w-\[560px\] { max-height:calc(100dvh - 24px); }
+}
+@media (prefers-reduced-motion:reduce) {
+  .admin-shell *, .admin-shell *::before, .admin-shell *::after { transition-duration:.01ms!important; animation-duration:.01ms!important; }
+}
