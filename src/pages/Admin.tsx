@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Package, ClipboardList, Users, Settings, LogOut, TrendingUp,
-  Search, ChevronDown, ChevronUp, Truck, CheckCircle,
+  Search, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Truck, CheckCircle,
   Clock, XCircle, ArrowUpRight, BarChart3, Store, Bell, Menu, Ticket, Plus, Edit3, Trash2, X, Grid, List, FileText
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -38,6 +38,7 @@ export default function AdminPage({ t, products, setProducts }: { t: any; produc
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const navigate = useNavigate();
@@ -94,14 +95,24 @@ export default function AdminPage({ t, products, setProducts }: { t: any; produc
       </AnimatePresence>
 
       {/* Sidebar */}
-      <aside className={`fixed lg:sticky top-0 start-0 z-50 h-screen w-[260px] bg-surface border-e border-border flex flex-col transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed lg:sticky top-0 start-0 z-50 h-screen ${sidebarCollapsed ? 'lg:w-[76px]' : 'lg:w-[260px]'} w-[260px] bg-surface border-e border-border flex flex-col transition-[width,transform] duration-300 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <button
+          type="button"
+          aria-label={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
+          title={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
+          onClick={() => setSidebarCollapsed(value => !value)}
+          className="hidden lg:flex absolute -end-3 top-16 z-10 w-6 h-6 items-center justify-center rounded-full border border-border bg-surface text-muted shadow-sm hover:text-primary hover:border-primary transition-colors"
+        >
+          {sidebarCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+        </button>
+
         {/* Brand */}
-        <div className="p-5 border-b border-border">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center overflow-hidden">
+        <div className={`p-5 border-b border-border ${sidebarCollapsed ? 'lg:px-3' : ''}`}>
+          <Link to="/" className={`flex items-center gap-3 ${sidebarCollapsed ? 'lg:justify-center' : ''}`}>
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center overflow-hidden flex-shrink-0">
               <img src="/images/logo.jpeg" alt="ESRAA" className="w-full h-full object-cover" />
             </div>
-            <div>
+            <div className={sidebarCollapsed ? 'lg:hidden' : ''}>
               <span className="font-black text-sm text-ink block leading-tight">ESRAA Moments</span>
               <span className="text-[10.5px] text-primary font-semibold">{t.adminPanel}</span>
             </div>
@@ -109,30 +120,30 @@ export default function AdminPage({ t, products, setProducts }: { t: any; produc
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 p-3 flex flex-col gap-0.5 overflow-y-auto">
+        <nav className={`flex-1 p-3 flex flex-col gap-0.5 overflow-y-auto ${sidebarCollapsed ? 'lg:px-2' : ''}`}>
           {nav.map(n => {
             const active = tab === n.key;
             return (
-              <button key={n.key} onClick={() => { setTab(n.key); setSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13px] font-semibold transition-all ${active ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-muted hover:bg-primary/5 hover:text-ink'}`}>
-                <n.icon size={17} strokeWidth={active ? 2.2 : 1.8} /> {n.label}
+              <button key={n.key} title={sidebarCollapsed ? n.label : undefined} onClick={() => { setTab(n.key); setSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13px] font-semibold transition-all ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''} ${active ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-muted hover:bg-primary/5 hover:text-ink'}`}>
+                <n.icon size={17} strokeWidth={active ? 2.2 : 1.8} /> <span className={sidebarCollapsed ? 'lg:hidden' : ''}>{n.label}</span>
               </button>
             );
           })}
         </nav>
 
         {/* User */}
-        <div className="p-3 border-t border-border">
-          <div className="flex items-center gap-3 px-3 py-2.5 mb-1">
+        <div className={`p-3 border-t border-border ${sidebarCollapsed ? 'lg:px-2' : ''}`}>
+          <div className={`flex items-center gap-3 px-3 py-2.5 mb-1 ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''}`}>
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
               <span className="text-primary font-bold text-xs">{user.email?.charAt(0).toUpperCase()}</span>
             </div>
-            <div className="min-w-0">
+            <div className={`min-w-0 ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
               <p className="text-[12px] font-bold text-ink truncate">{user.email}</p>
               <p className="text-[10.5px] text-primary font-medium">{t.managerLabel}</p>
             </div>
           </div>
-          <button onClick={handleLogout} className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-[13px] font-semibold text-danger/70 hover:text-danger hover:bg-danger/5 transition-all">
-            <LogOut size={16} /> {t.logoutLabel}
+          <button title={sidebarCollapsed ? t.logoutLabel : undefined} onClick={handleLogout} className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-[13px] font-semibold text-danger/70 hover:text-danger hover:bg-danger/5 transition-all ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''}`}>
+            <LogOut size={16} /> <span className={sidebarCollapsed ? 'lg:hidden' : ''}>{t.logoutLabel}</span>
           </button>
         </div>
       </aside>
@@ -1323,7 +1334,7 @@ function ContentTab({ t: _t }: { t: any }) {
               <input type="text" value={content.heroOverlay1En} onChange={e => updateField('heroOverlay1En', e.target.value)} className="input-field" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[12px] font-semibold text-muted">بطاقة تغطية 2 (عربي)</label>
+              <label className="text-[12px] font-semibold text-muted">��طاقة تغطية 2 (عربي)</label>
               <input type="text" value={content.heroOverlay2} onChange={e => updateField('heroOverlay2', e.target.value)} className="input-field" />
             </div>
             <div className="flex flex-col gap-1.5">
