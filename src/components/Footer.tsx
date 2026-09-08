@@ -9,68 +9,18 @@ export function Footer({ t, lang }: { t: any; lang?: string }) {
   const footerOccasions = ['سبوع', 'خطوبة', 'حنة', 'كتب كتاب', 'زفاف', 'عيد ميلاد'];
 
   return (
-    <footer className="relative mt-10 bg-[#15130f] text-[#f8f6f1] overflow-hidden pt-14">
-      <div className="max-w-6xl mx-auto px-5 lg:px-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-10">
-          {/* Brand */}
-          <div>
-            <Link to="/" className="flex items-center gap-3 mb-4">
-              <img src="/images/logo.jpeg" alt="ESRAA" className="w-11 h-11 rounded-lg object-cover" />
-              <div className="flex flex-col leading-tight">
-                <span className="font-bold text-lg">ESRAA</span>
-                <small className="text-[10.5px] text-white/50">MOMENTS</small>
-              </div>
-            </Link>
-            <p className="text-white/55 text-[13.5px] leading-relaxed max-w-[300px] mb-5">{t.footerDesc}</p>
-            <div className="flex gap-2">
-              <a href="https://www.instagram.com/esraamoments" target="_blank" rel="noopener" className="w-10 h-10 rounded-lg bg-white/8 border border-white/10 flex items-center justify-center text-white/70 hover:bg-white hover:text-ink transition-all"><Link2 size={18} /></a>
-              <a href={`https://wa.me/${settings.whatsapp}`} target="_blank" rel="noopener" className="w-10 h-10 rounded-lg bg-white/8 border border-white/10 flex items-center justify-center text-white/70 hover:bg-white hover:text-ink transition-all"><MessageCircle size={18} /></a>
-            </div>
-          </div>
-
-          {/* Quick links */}
-          <div>
-            <h4 className="text-[11.5px] font-bold text-white/50 uppercase tracking-widest mb-5">{t.quickLinks}</h4>
-            <ul className="flex flex-col gap-3">
-              <li><Link to="/shop" className="text-white/55 text-[13.5px] hover:text-white transition-colors">{t.shop}</Link></li>
-              <li><Link to="/about" className="text-white/55 text-[13.5px] hover:text-white transition-colors">{t.about}</Link></li>
-              <li><Link to="/contact" className="text-white/55 text-[13.5px] hover:text-white transition-colors">{t.contact}</Link></li>
-              <li><Link to="/account" className="text-white/55 text-[13.5px] hover:text-white transition-colors">{t.account}</Link></li>
-
-            </ul>
-          </div>
-
-          {/* Categories */}
-          <div>
-            <h4 className="text-[11.5px] font-bold text-white/50 uppercase tracking-widest mb-5">{t.shopByOccasion}</h4>
-            <ul className="flex flex-col gap-3">
-              {footerOccasions.map(c => (
-                <li key={c}><Link to={`/shop?cat=${encodeURIComponent(c)}`} className="text-white/55 text-[13.5px] hover:text-white transition-colors">{isEn ? occasionEn[c] || c : c}</Link></li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Contact */}
-          <div>
-            <h4 className="text-[11.5px] font-bold text-white/50 uppercase tracking-widest mb-5">{t.contactUs}</h4>
-            <div className="flex flex-col gap-3">
-              <a href={`tel:${settings.whatsapp}`} className="flex items-center gap-2 text-white/55 text-[13px] hover:text-white transition-colors"><Phone size={14} className="text-white/40" /> {settings.whatsapp}</a>
-              <a href={`mailto:${settings.email}`} className="flex items-center gap-2 text-white/55 text-[13px] hover:text-white transition-colors"><Mail size={14} className="text-white/40" /> {settings.email}</a>
-              <span className="flex items-center gap-2 text-white/55 text-[13px]"><MapPin size={14} className="text-white/40" />{settings.address}</span>
-              <span className="flex items-center gap-2 text-white/55 text-[13px]"><Link2 size={14} className="text-white/40" /> @esraamoments</span>
-            </div>
-          </div>
+    <footer className="site-footer">
+      <div className="footer-marquee" aria-hidden="true"><span>MAKE ROOM FOR THE MOMENT</span><span>✦</span><span>نصنع ذكرى</span><span>✦</span><span>ESRAA MOMENTS</span></div>
+      <div className="footer-inner">
+        <div className="footer-intro">
+          <Link to="/" className="footer-brand"><span className="footer-brand-mark"><img src="/images/logo.jpeg" alt="" /></span><span><strong>ESRAA</strong><small>MOMENTS</small></span></Link>
+          <p>{t.footerDesc}</p>
+          <div className="footer-socials"><a href="https://www.instagram.com/esraamoments" target="_blank" rel="noopener" aria-label="Instagram"><Link2 size={17} /></a><a href={`https://wa.me/${settings.whatsapp}`} target="_blank" rel="noopener" aria-label="WhatsApp"><MessageCircle size={17} /></a></div>
         </div>
-
-        {/* Bottom */}
-        <div className="border-t border-white/8 py-5 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-white/40 text-xs">© {new Date().getFullYear()} ESRAA Moments — {t.allRights}</p>
-          <div className="flex gap-2">
-            <span className="text-white/50 text-[10px] font-bold px-2 py-1 border border-white/15 rounded">Visa</span>
-            <span className="text-white/50 text-[10px] font-bold px-2 py-1 border border-white/15 rounded">instaPay</span>
-          </div>
-        </div>
+        <div className="footer-links"><div><p className="footer-kicker">Explore / استكشف</p><Link to="/shop">{t.shop}<span>↗</span></Link><Link to="/about">{t.about}<span>↗</span></Link><Link to="/contact">{t.contact}<span>↗</span></Link><Link to="/account">{t.account}<span>↗</span></Link></div><div><p className="footer-kicker">{t.shopByOccasion}</p>{footerOccasions.slice(0, 4).map(c => <Link key={c} to={`/shop?cat=${encodeURIComponent(c)}`}>{isEn ? occasionEn[c] || c : c}<span>↗</span></Link>)}</div></div>
+        <div className="footer-contact"><p className="footer-kicker">{t.contactUs}</p><a href={`tel:${settings.whatsapp}`}><Phone size={14} />{settings.whatsapp}</a><a href={`mailto:${settings.email}`}><Mail size={14} />{settings.email}</a><span><MapPin size={14} />{settings.address}</span><strong>Let&apos;s make it memorable.</strong></div>
       </div>
+      <div className="footer-bottom"><p>© {new Date().getFullYear()} ESRAA Moments — {t.allRights}</p><div><span>Visa</span><span>instaPay</span><span>Made with intention</span></div></div>
     </footer>
   );
 }
