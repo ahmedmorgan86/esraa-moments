@@ -25,7 +25,7 @@ export function Header({ t, lang, scrolled, wishlistCount, dark, menuOpen, onMen
       <div className="header-main px-5 lg:px-12">
         <Link to="/" className="brand-lockup direction-ltr" aria-label="ESRAA Moments home">
           <span className="brand-mark"><img src="/images/logo.jpeg" alt="" /></span>
-          <span className="brand-wordmark"><strong>ESRAA</strong><small>MOMENTS / 2024</small></span>
+          <span className="brand-wordmark"><strong>ESRAA</strong><small>MOMENTS</small></span>
         </Link>
 
         <nav className="header-nav hidden lg:flex" aria-label="Primary navigation">
