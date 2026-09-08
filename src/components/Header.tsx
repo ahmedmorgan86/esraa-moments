@@ -28,7 +28,7 @@ export function Header({ t, lang, scrolled, wishlistCount, dark, menuOpen, onMen
           <span className="brand-wordmark"><strong>ESRAA</strong><small>MOMENTS</small></span>
         </Link>
 
-        <nav className="header-nav hidden lg:flex" aria-label="Primary navigation">
+        <nav className="header-nav desktop-nav" aria-label="Primary navigation">
           {navLinks.map(l => (
             <Link key={l.path} to={l.path} className={`header-nav-link ${isActive(l.path)}`}>{l.label}<span>↗</span></Link>
           ))}
@@ -39,12 +39,12 @@ export function Header({ t, lang, scrolled, wishlistCount, dark, menuOpen, onMen
           <button onClick={onLangToggle} className="header-lang" aria-label={lang === 'ar' ? 'تغيير اللغة إلى الإنجليزية' : 'Switch language to Arabic'}><Globe size={16} /><span>{lang === 'ar' ? 'EN' : 'عربي'}</span></button>
           <Link to="/wishlist" className="header-icon relative" aria-label={t.wishlist}><Heart size={17} />{wishlistCount > 0 && <span className="wishlist-badge">{wishlistCount}</span>}</Link>
           <a href={`https://wa.me/${settings.whatsapp}`} target="_blank" rel="noopener noreferrer" className="header-contact"><MessageCircle size={16} /><span>{t.contactUs}</span></a>
-          <button onClick={onMenuToggle} className="header-icon lg:hidden" aria-label={lang === 'ar' ? 'فتح القائمة' : 'Open menu'}>{menuOpen ? <X size={19} /> : <Menu size={19} />}</button>
+          <button onClick={onMenuToggle} className="header-icon mobile-menu-toggle" aria-expanded={menuOpen} aria-controls="mobile-navigation" aria-label={menuOpen ? (lang === 'ar' ? 'إغلاق القائمة' : 'Close menu') : (lang === 'ar' ? 'فتح القائمة' : 'Open menu')}>{menuOpen ? <X size={19} /> : <Menu size={19} />}</button>
         </div>
       </div>
 
       {menuOpen && (
-        <div className="mobile-menu lg:hidden">
+        <div id="mobile-navigation" className="mobile-menu">
           <p className="eyebrow">{lang === 'ar' ? 'استكشف' : 'Navigate'}</p>
           {navLinks.map(l => <Link key={l.path} to={l.path} className={`mobile-menu-link ${isActive(l.path)}`}>{l.label}<span>↗</span></Link>)}
           <Link to="/account" className={`mobile-menu-link ${isActive('/account')}`}>{t.account}<span>↗</span></Link>
