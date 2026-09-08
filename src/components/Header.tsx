@@ -20,54 +20,35 @@ export function Header({ t, scrolled, wishlistCount, dark, menuOpen, onMenuToggl
   ];
 
   return (
-    <header className={`site-header glass border-b border-border transition-all ${scrolled ? 'is-scrolled' : ''}`}>
-      <div className="h-full px-5 lg:px-12 flex items-center justify-between">
-        {/* Right side (RTL) - Brand */}
-        <Link to="/" className="flex items-center gap-3 direction-ltr">
-          <img src="/images/logo.jpeg" alt="ESRAA" className="w-10 h-10 rounded-lg object-cover" />
-          <span className="text-lg font-bold tracking-tight">ESRAA Moments</span>
+    <header className={`site-header glass transition-all ${scrolled ? 'is-scrolled' : ''}`}>
+      <div className="header-ticker" aria-hidden="true"><span>ESRAA MOMENTS</span><span>•</span><span>صُنعت لتُحكى</span><span>•</span><span>CURATED CELEBRATIONS</span></div>
+      <div className="header-main px-5 lg:px-12">
+        <Link to="/" className="brand-lockup direction-ltr" aria-label="ESRAA Moments home">
+          <span className="brand-mark"><img src="/images/logo.jpeg" alt="" /></span>
+          <span className="brand-wordmark"><strong>ESRAA</strong><small>MOMENTS / 2024</small></span>
         </Link>
 
-        {/* Center - Nav */}
-        <nav className="hidden lg:flex items-center gap-1">
+        <nav className="header-nav hidden lg:flex" aria-label="Primary navigation">
           {navLinks.map(l => (
-            <Link key={l.path} to={l.path} className={`px-4 py-2 rounded-full text-[13.5px] font-medium transition-all ${isActive(l.path)}`}>{l.label}</Link>
+            <Link key={l.path} to={l.path} className={`header-nav-link ${isActive(l.path)}`}>{l.label}<span>↗</span></Link>
           ))}
         </nav>
 
-        {/* Left side (RTL) - Actions */}
-        <div className="flex items-center gap-2">
-          <button onClick={onDarkToggle} className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary/8 transition-all text-ink" aria-label="theme">
-            {dark ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
-          <button onClick={onLangToggle} className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary/8 transition-all text-ink" aria-label="lang">
-            <Globe size={20} />
-          </button>
-          <Link to="/account" className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary/8 transition-all text-ink">
-            <User size={20} />
-          </Link>
-          <Link to="/wishlist" className="relative w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary/8 transition-all text-ink">
-            <Heart size={20} />
-            {wishlistCount > 0 && (
-              <span className="absolute -top-0.5 -start-0.5 w-[17px] h-[17px] rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center">{wishlistCount}</span>
-            )}
-          </Link>
-          <a href={`https://wa.me/${settings.whatsapp}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary/8 transition-all text-[#25d366]" aria-label="WhatsApp">
-            <MessageCircle size={20} />
-          </a>
-          <button onClick={onMenuToggle} className="lg:hidden w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary/8 transition-all text-ink">
-            {menuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
+        <div className="header-actions">
+          <button onClick={onDarkToggle} className="header-icon" aria-label="theme">{dark ? <Sun size={17} /> : <Moon size={17} />}</button>
+          <button onClick={onLangToggle} className="header-lang" aria-label="language"><Globe size={16} /><span>AR / EN</span></button>
+          <Link to="/wishlist" className="header-icon relative" aria-label="wishlist"><Heart size={17} />{wishlistCount > 0 && <span className="wishlist-badge">{wishlistCount}</span>}</Link>
+          <a href={`https://wa.me/${settings.whatsapp}`} target="_blank" rel="noopener noreferrer" className="header-contact"><MessageCircle size={16} /><span>Talk to us</span></a>
+          <button onClick={onMenuToggle} className="header-icon lg:hidden" aria-label="menu">{menuOpen ? <X size={19} /> : <Menu size={19} />}</button>
         </div>
       </div>
 
-      {/* Mobile menu */}
       {menuOpen && (
-        <div className="lg:hidden absolute top-[72px] inset-x-0 bg-surface border-b border-border shadow-lg z-50 p-4 flex flex-col gap-1">
-          {navLinks.map(l => (
-            <Link key={l.path} to={l.path} className={`px-4 py-3 rounded-lg text-sm font-semibold transition-all ${isActive(l.path)}`}>{l.label}</Link>
-          ))}
-          <Link to="/login" className={`px-4 py-3 rounded-lg text-sm font-semibold transition-all ${isActive('/login')}`}>{t.login}</Link>
+        <div className="mobile-menu lg:hidden">
+          <p className="eyebrow">Navigate / استكشف</p>
+          {navLinks.map(l => <Link key={l.path} to={l.path} className={`mobile-menu-link ${isActive(l.path)}`}>{l.label}<span>↗</span></Link>)}
+          <Link to="/account" className={`mobile-menu-link ${isActive('/account')}`}>{t.account}<span>↗</span></Link>
+          <Link to="/login" className={`mobile-menu-link ${isActive('/login')}`}>{t.login}<span>↗</span></Link>
         </div>
       )}
     </header>
