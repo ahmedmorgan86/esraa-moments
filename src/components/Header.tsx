@@ -20,7 +20,7 @@ export function Header({ t, scrolled, wishlistCount, dark, menuOpen, onMenuToggl
   ];
 
   return (
-    <header className={`glass h-[72px] border-b border-border transition-all ${scrolled ? 'shadow-sm' : ''}`}>
+    <header className={`site-header glass border-b border-border transition-all ${scrolled ? 'is-scrolled' : ''}`}>
       <div className="h-full px-5 lg:px-12 flex items-center justify-between">
         {/* Right side (RTL) - Brand */}
         <Link to="/" className="flex items-center gap-3 direction-ltr">

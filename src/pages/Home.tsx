@@ -1,178 +1,51 @@
 import { useState } from 'react';
+import { useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ChevronLeft } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronLeft, MoveUpRight } from 'lucide-react';
+import { motion, type Variants } from 'framer-motion';
 import { occasions } from '../data';
 import { occasionEn } from '../i18n';
 import { useHomepageContent } from '../lib/homepageContent';
 
-const occasionIcons: Record<string, string> = {
-  'سبوع': '🍼', 'خطوبة': '💍', 'حنة': '🤲', 'كتب كتاب': '📖',
-  'زفاف': '💒', 'عيد ميلاد': '🎂', 'تخرج': '🎓',
-  'استقبال مولود': '👶', 'رمضان': '🌙', 'عيد': '🎉', 'توزيعات شركات': '🏢',
-};
+const occasionIcons: Record<string, string> = { 'سبوع': '🍼', 'خطوبة': '💍', 'حنة': '🤲', 'كتب كتاب': '📖', 'زفاف': '💒', 'عيد ميلاد': '🎂', 'تخرج': '🎓', 'استقبال مولود': '👶', 'رمضان': '🌙', 'عيد': '🎉', 'توزيعات شركات': '🏢' };
+const reveal: Variants = { hidden: { opacity: 0, y: 28 }, visible: { opacity: 1, y: 0, transition: { duration: .7, ease: 'easeOut' } } };
+const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: .08 } } };
 
 export default function Home({ t, lang, products }: { t: any; lang: string; products: any[] }) {
-  const [content] = useHomepageContent();
-  const featured = products.filter(p => p.featured).slice(0, 8);
-  const bestSellers = products.slice(0, 6);
-  const isEn = lang === 'en';
-  const [email, setEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
+  const [content] = useHomepageContent(); const featured = products.filter(p => p.featured).slice(0, 8); const isEn = lang === 'en';
+  const [email, setEmail] = useState(''); const [subscribed, setSubscribed] = useState(false);
+  const pointerX = useSpring(useMotionValue(0), { stiffness: 120, damping: 20 });
+  const pointerY = useSpring(useMotionValue(0), { stiffness: 120, damping: 20 });
+  const artX = useTransform(pointerX, [-1, 1], [-16, 16]);
+  const artY = useTransform(pointerY, [-1, 1], [-12, 12]);
+  return <>
+    <section className="hero-shell" onPointerMove={(event) => { const rect = event.currentTarget.getBoundingClientRect(); pointerX.set((event.clientX - rect.left) / rect.width * 2 - 1); pointerY.set((event.clientY - rect.top) / rect.height * 2 - 1); }} onPointerLeave={() => { pointerX.set(0); pointerY.set(0); }}>
+      <div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" /><div className="hero-spark spark-one">✦</div><div className="hero-spark spark-two">✦</div>
+      <motion.div className="hero-copy" initial="hidden" animate="visible" variants={stagger}>
+        <motion.span className="eyebrow" variants={reveal}>{isEn ? content.heroEyebrowEn : content.heroEyebrow}</motion.span>
+        <motion.h1 variants={reveal}>{isEn ? content.heroTitle1En : content.heroTitle1}<br /><em>{isEn ? content.heroTitle2En : content.heroTitle2}</em></motion.h1>
+        <motion.p variants={reveal}>{isEn ? content.heroDescEn : content.heroDesc}</motion.p>
+        <motion.div variants={reveal} className="flex items-center gap-5"><Link to="/shop" className="btn primary">{isEn ? content.heroCtaEn : content.heroCta}<ArrowLeft size={18} /></Link><span className="hero-note">{isEn ? 'Made for your moment' : 'مصممة للحظة التي لا تُنسى'}</span></motion.div>
+      </motion.div>
+      <motion.div className="hero-art" style={{ x: artX, y: artY }} initial={{ opacity: 0, scale: .82, rotate: -5 }} animate={{ opacity: 1, scale: 1, rotate: 3 }} transition={{ duration: 1.2, ease: [.22,1,.36,1], delay: .15 }}>
+        <div className="hero-ring ring-back" /><div className="hero-ring ring-front" />
+        <motion.div className="hero-frame" animate={{ y: [0, -12, 0], rotate: [3, 1, 3] }} transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}><img src="/images/Gemini_Generated_Image_wh7xokwh7xokwh7x.jpeg" alt="Curated celebration details" /></motion.div>
+        <motion.div className="hero-floating-card card-top"><span>01</span><strong>{isEn ? 'A moment, made' : 'لحظة صُنعت'}</strong></motion.div>
+        <motion.div className="hero-floating-card card-bottom"><span className="card-dot" />{isEn ? 'Curated with feeling' : 'مختارة بإحساس'}</motion.div>
+        <div className="hero-stamp">{isEn ? 'EST. 2024' : 'منذ ٢٠٢٤'}<br /><span>{isEn ? 'Thoughtfully yours' : 'بكل حب'}</span></div>
+      </motion.div>
+      <div className="hero-scroll"><span>SCROLL</span><ChevronDown size={17} /></div>
+    </section>
 
-  return (
-    <>
-      {/* Hero */}
-      <section className="grid grid-cols-1 lg:grid-cols-[1.08fr_.92fr] items-center gap-10 lg:gap-20 py-12 lg:py-20 px-5 lg:px-12 max-w-7xl mx-auto">
-        <div className="relative z-10 flex flex-col items-start animate-[fadeUp_0.6s_ease_both]">
-          <span className="inline-block text-primary text-[11.5px] font-extrabold tracking-widest mb-3">{isEn ? content.heroEyebrowEn : content.heroEyebrow}</span>
-          <h1 className="text-[clamp(34px,4.5vw,56px)] leading-[1.2] font-black mb-5">
-            {isEn ? content.heroTitle1En : content.heroTitle1}<br />
-            <span className="text-primary">{isEn ? content.heroTitle2En : content.heroTitle2}</span>
-          </h1>
-          <p className="text-muted text-[clamp(15px,1.5vw,17px)] max-w-[50ch] leading-relaxed mb-7">{isEn ? content.heroDescEn : content.heroDesc}</p>
-          <Link to="/shop" className="btn primary flex items-center gap-2">{isEn ? content.heroCtaEn : content.heroCta} <ArrowLeft size={18} /></Link>
-          <div className="mt-7 text-subtle"><ChevronDown size={22} /></div>
-        </div>
-        <div className="relative justify-self-center animate-[fadeUp_0.7s_ease_both_0.15s]">
-          <div className="absolute -top-[5%] -end-[7%] w-[55%] aspect-square bg-primary/12 rounded-full blur-[25px] opacity-80 pointer-events-none" />
-          <div className="absolute top-[5%] bottom-[-12px] -start-3 w-[74%] border-2 border-primary/15 rounded-[190px_190px_14px_14px] pointer-events-none" />
-          <img src="/images/Gemini_Generated_Image_wh7xokwh7xokwh7x.jpeg" alt="" className="relative z-10 w-[min(380px,100%)] aspect-[4/5] object-cover rounded-[190px_190px_14px_14px] shadow-2xl" />
-          <div className="absolute bottom-5 start-5 z-20 bg-surface/85 backdrop-blur-md border border-white/20 rounded-lg px-4 py-3 text-xs font-semibold shadow-lg">{isEn ? content.heroOverlay1En : content.heroOverlay1}<br /><span className="text-muted">{isEn ? content.heroOverlay2En : content.heroOverlay2}</span></div>
-        </div>
-      </section>
+    <section className="section section-tight"><motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }} variants={reveal}><span className="eyebrow">{t.occasionsEyebrow}</span><h2>{t.occasionsTitle}</h2><p className="text-muted mt-2">{t.occasionsSub}</p></motion.div><motion.div className="occasion-grid" initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={stagger}>{occasions.map(occ => <motion.div key={occ} variants={reveal}><Link to={`/shop?cat=${encodeURIComponent(occ)}`} className="occasion-card"><span>{occasionIcons[occ] || '🎁'}</span><strong>{isEn ? occasionEn[occ] || occ : occ}</strong><MoveUpRight size={15} /></Link></motion.div>)}</motion.div></section>
 
-      {/* Occasions */}
-      <section className="section">
-        <div className="animate-[fadeUp_0.6s_ease_both]">
-          <span className="eyebrow">{t.occasionsEyebrow}</span>
-          <h2 className="text-[clamp(24px,3.2vw,38px)] font-black">{t.occasionsTitle}</h2>
-          <p className="text-muted mt-2">{t.occasionsSub}</p>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3.5 mt-9">
-          {occasions.map((occ, i) => (
-            <div key={occ} className="animate-[fadeUp_0.5s_ease_both]" style={{ animationDelay: `${i * 0.05}s` }}>
-              <Link to={`/shop?cat=${encodeURIComponent(occ)}`} className="flex items-center gap-3 p-4 bg-surface border border-border rounded-xl hover:border-primary hover:-translate-y-0.5 hover:shadow-md transition-all">
-                <span className="text-2xl">{occasionIcons[occ] || '🎁'}</span>
-                <span className="text-[13px] font-bold text-ink">{isEn ? occasionEn[occ] || occ : occ}</span>
-              </Link>
-            </div>
-          ))}
-        </div>
-      </section>
+    <section className="section feature-section"><motion.div className="section-heading" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={reveal}><div><span className="eyebrow">{t.featuredEyebrow}</span><h2>{t.featuredTitle}</h2></div><Link to="/shop" className="text-link">{t.viewDetails}<ArrowLeft size={16} /></Link></motion.div><motion.div className="product-grid" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>{featured.map(p => <motion.div key={p.id} variants={reveal}><Link to={`/product/${p.id}`} className="product-card"><div className="product-image"><img src={p.image} alt={p.name} /><span>{isEn ? 'VIEW' : 'اكتشفي'}</span></div><div className="product-meta"><h3>{isEn && p.name_en ? p.name_en : p.name}</h3><ArrowLeft size={17} /></div></Link></motion.div>)}</motion.div></section>
 
-      {/* Featured */}
-      <section className="section">
-        <div className="animate-[fadeUp_0.6s_ease_both]">
-          <span className="eyebrow">{t.featuredEyebrow}</span>
-          <h2 className="text-[clamp(24px,3.2vw,38px)] font-black">{t.featuredTitle}</h2>
-          <p className="text-muted mt-2">{t.featuredSub}</p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-9">
-          {featured.map((p, i) => (
-            <div key={p.id} className="animate-[fadeUp_0.5s_ease_both]" style={{ animationDelay: `${i * 0.06}s` }}>
-              <Link to={`/product/${p.id}`} className="group block bg-surface border border-border rounded-xl overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all">
-                <div className="relative aspect-square overflow-hidden bg-surface-alt">
-                  <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
-                </div>
-                <div className="p-4">
-                  <h3 className="text-[14px] font-bold line-clamp-2 mb-1">{isEn && p.name_en ? p.name_en : p.name}</h3>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-primary font-bold text-[13px]">{t.viewDetails}</span>
-                    <ArrowLeft size={16} className="text-primary" />
-                  </div>
-                </div>
-              </Link>
-            </div>
-          ))}
-        </div>
-      </section>
+    <section className="section story-section"><motion.div className="story-panel" initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }} variants={reveal}><div className="story-copy"><span className="eyebrow">{content.storyEyebrow}</span><h2>{isEn ? content.storyTitleEn : content.storyTitle}</h2><p className="story-quote">&quot;{isEn ? content.storyQuoteEn : content.storyQuote}&quot;</p><p className="text-muted leading-relaxed">{isEn ? content.storyTextEn : content.storyText}</p><Link to="/about" className="text-link mt-7">{t.about}<ArrowLeft size={16} /></Link></div><div className="story-images"><img src="/images/Gemini_Generated_Image_ehh0puehh0puehh0.jpeg" alt="Esraa Moments detail" /><img src="/images/Gemini_Generated_Image_sligebsligebslig.jpeg" alt="Gift wrapping detail" /></div></motion.div></section>
 
-      {/* Brand Story */}
-      <section className="section">
-        <div className="bg-surface border border-border rounded-2xl p-8 lg:p-16 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="animate-[fadeUp_0.6s_ease_both]">
-            <span className="eyebrow">{content.storyEyebrow}</span>
-            <h2 className="text-[clamp(24px,3.2vw,38px)] font-black mt-2 mb-5">{isEn ? content.storyTitleEn : content.storyTitle}</h2>
-            <p className="italic text-primary text-lg mb-5">"{isEn ? content.storyQuoteEn : content.storyQuote}"</p>
-            <p className="text-muted text-sm leading-relaxed">{isEn ? content.storyTextEn : content.storyText}</p>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <img src="/images/Gemini_Generated_Image_ehh0puehh0puehh0.jpeg" alt="" className="w-full aspect-[4/5] object-cover rounded-xl" />
-            <img src="/images/Gemini_Generated_Image_sligebsligebslig.jpeg" alt="" className="w-full aspect-[4/5] object-cover rounded-xl mt-8" />
-          </div>
-        </div>
-      </section>
+    <section className="section newsletter-section"><motion.div className="newsletter" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={reveal}><span className="eyebrow">{t.newsEyebrow}</span><h2>{t.newsTitle}</h2><p className="text-muted">{t.newsDesc}</p>{subscribed ? <p className="success-message">{t.newsDone}</p> : <form onSubmit={e => { e.preventDefault(); setSubscribed(true); }}><input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder={t.newsPlaceholder} /><button className="btn primary" type="submit">{t.newsBtn}</button></form>}</motion.div></section>
 
-      {/* Best Sellers */}
-      <section className="section">
-        <div className="animate-[fadeUp_0.6s_ease_both]">
-          <span className="eyebrow">{t.bsEyebrow}</span>
-          <h2 className="text-[clamp(24px,3.2vw,38px)] font-black">{t.bsTitle}</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-9">
-          {bestSellers.map((p, i) => (
-            <div key={p.id} className="animate-[fadeUp_0.5s_ease_both]" style={{ animationDelay: `${i * 0.05}s` }}>
-              <Link to={`/product/${p.id}`} className="group bg-surface border border-border rounded-2xl p-3.5 flex items-center gap-4 hover:border-primary hover:shadow-md transition-all">
-                <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-surface-alt flex-shrink-0">
-                  <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  <span className="absolute top-1.5 start-1.5 bg-primary text-white text-[10px] font-black px-1.5 py-0.5 rounded-md shadow-sm">#{i + 1}</span>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-[13.5px] font-bold line-clamp-1 group-hover:text-primary transition-colors">{isEn && p.name_en ? p.name_en : p.name}</h3>
-                  <p className="text-muted text-[12px] line-clamp-1 mt-0.5">{isEn && p.desc_en ? p.desc_en : p.desc}</p>
-                  <span className="text-primary text-[11.5px] font-semibold mt-2 inline-flex items-center gap-1">{t.viewDetails} →</span>
-                </div>
-              </Link>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Newsletter */}
-      <section className="section">
-        <div className="bg-surface border border-border rounded-2xl p-16 text-center relative overflow-hidden">
-          <div className="absolute top-1/2 start-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/8 rounded-full blur-3xl pointer-events-none opacity-50" />
-          <div className="relative z-10 max-w-lg mx-auto">
-            <span className="eyebrow">{t.newsEyebrow}</span>
-            <h2 className="text-[clamp(24px,3.2vw,38px)] font-black mt-2 mb-3">{t.newsTitle}</h2>
-            <p className="text-muted text-sm">{t.newsDesc}</p>
-            {subscribed ? (
-              <p className="mt-7 text-primary font-bold text-sm">{t.newsDone}</p>
-            ) : (
-              <form onSubmit={e => { e.preventDefault(); setSubscribed(true); }} className="flex gap-2.5 mt-7 max-w-md mx-auto">
-                <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder={t.newsPlaceholder} className="flex-1 px-4 py-3.5 bg-surface-alt border border-border-strong rounded-lg text-sm placeholder:text-subtle focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none transition-all" />
-                <button className="btn primary flex-shrink-0" type="submit">{t.newsBtn}</button>
-              </form>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="section">
-        <div className="text-center">
-          <span className="eyebrow">{t.faqEyebrow}</span>
-          <h2 className="text-[clamp(24px,3.2vw,38px)] font-black mt-2">{t.faqTitle}</h2>
-        </div>
-        <div className="max-w-[760px] mx-auto mt-9 flex flex-col gap-3">
-          {content.faqs.map((faq, i) => (
-            <FaqItem key={i} q={isEn ? faq.q_en : faq.q} a={isEn ? faq.a_en : faq.a} />
-          ))}
-        </div>
-      </section>
-    </>
-  );
+    <section className="section faq-section"><div className="text-center"><span className="eyebrow">{t.faqEyebrow}</span><h2>{t.faqTitle}</h2></div><div className="faq-list">{content.faqs.map((faq, i) => <FaqItem key={i} q={isEn ? faq.q_en : faq.q} a={isEn ? faq.a_en : faq.a} />)}</div></section>
+  </>;
 }
-
-function FaqItem({ q, a }: { q: string; a: string }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className={`bg-surface border rounded-lg overflow-hidden transition-colors ${open ? 'border-primary' : 'border-border'}`}>
-      <button onClick={() => setOpen(v => !v)} className="w-full px-6 py-4.5 flex items-center justify-between font-bold text-start hover:bg-primary/4 transition-colors" type="button">
-        <span className="text-sm">{q}</span>
-        <ChevronLeft size={18} className={`text-muted transition-transform ${open ? '-rotate-90' : ''}`} />
-      </button>
-      {open && <div className="px-6 pb-4.5 text-muted text-[13.5px] leading-relaxed">{a}</div>}
-    </div>
-  );
-}
+function FaqItem({ q, a }: { q: string; a: string }) { const [open, setOpen] = useState(false); return <div className={`faq-item ${open ? 'open' : ''}`}><button onClick={() => setOpen(v => !v)} type="button"><span>{q}</span><ChevronLeft size={18} /></button>{open && <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="faq-answer">{a}</motion.div>}</div>; }
