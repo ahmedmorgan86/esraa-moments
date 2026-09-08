@@ -19,7 +19,11 @@
 @media (max-width:560px) { .occasion-grid { grid-template-columns:repeat(2,1fr); } .product-grid { gap:12px; } .newsletter form { flex-direction:column; } .hero-scroll { display:none; } }
 @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; scroll-behavior:auto!important; } }
 
-/* ESRAA 02 — cinematic gallery system */
+/* ESRAA 03 — gallery house system */
+:root { --color-primary:#c96d50; --color-primary-hover:#e18a68; --color-primary-light:rgba(201,109,80,.14); --color-primary-glow:rgba(201,109,80,.3); --color-surface:#191716; --color-surface-alt:#0f0e0d; --color-ink:#f8f1e9; --color-ink-soft:#d0c2b8; --color-muted:#998a80; --color-subtle:#695d55; --color-border:rgba(248,241,233,.12); --color-border-strong:rgba(248,241,233,.24); }
+[data-theme="light"] { --color-surface:#fffaf5; --color-surface-alt:#f2ebe4; --color-ink:#241c19; --color-ink-soft:#675950; --color-muted:#8b7c72; --color-subtle:#b7a99f; --color-border:rgba(36,28,25,.12); --color-border-strong:rgba(36,28,25,.24); }
+
+/* ESRAA 03 — cinematic gallery system */
 :root { --color-primary:#d66b4c; --color-primary-hover:#ef8e69; --color-primary-light:rgba(214,107,76,.14); --color-primary-glow:rgba(214,107,76,.32); --color-surface:#171515; --color-surface-alt:#0e0d0d; --color-ink:#f8f0e8; --color-ink-soft:#cbbdb2; --color-muted:#93847a; --color-border:rgba(248,240,232,.13); --color-border-strong:rgba(248,240,232,.26); }
 [data-theme="light"] { --color-surface:#fbf7f2; --color-surface-alt:#f0e9e2; --color-ink:#211a18; --color-ink-soft:#665951; --color-muted:#8e7f75; --color-border:rgba(33,26,24,.12); --color-border-strong:rgba(33,26,24,.25); }
 body { background:var(--color-surface-alt); }
@@ -55,3 +59,20 @@ body { background:var(--color-surface-alt); }
 body:after { content:''; position:fixed; inset:-50%; pointer-events:none; opacity:.025; z-index:100; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E"); animation:grain-shift .25s steps(2) infinite; }
 @media (max-width:900px) { .hero-art { min-height:420px; } .hero-frame { width:min(68vw,390px); } .hero-shell:after { display:none; } }
 @media (max-width:560px) { .hero-shell { padding-top:48px; } .hero-art { min-height:350px; } .hero-frame { width:70vw; } .occasion-card { min-height:125px; } .product-card { padding:6px; } }
+
+/* Shared page language: every route feels like the same gallery house. */
+.site-header { height:78px; position:relative; z-index:60; border-color:transparent; background:color-mix(in srgb,var(--color-surface-alt) 72%,transparent); }
+.site-header.is-scrolled { background:color-mix(in srgb,var(--color-surface) 90%,transparent); border-color:var(--color-border); box-shadow:0 12px 40px rgba(0,0,0,.12); }
+.site-header a, .site-header button { transition:transform .3s cubic-bezier(.22,1,.36,1), color .3s, background .3s; }
+.site-header a:hover, .site-header button:hover { transform:translateY(-2px); }
+.page { min-height:calc(100vh - 78px); }
+.page > h1, .page > .mb-8 h1 { font-size:clamp(38px,6vw,78px); letter-spacing:-.07em; line-height:.98; max-width:10ch; }
+.page .bg-surface { box-shadow:0 18px 50px rgba(0,0,0,.06); }
+.page input, .page textarea, .page select { border-radius:var(--radius-sm); }
+.input-field { background:var(--color-surface-alt); border:1px solid var(--color-border); border-radius:var(--radius-sm); padding:12px 14px; transition:border-color .25s, box-shadow .25s; }
+.input-field:focus { border-color:var(--color-primary); box-shadow:0 0 0 4px var(--color-primary-light); }
+.page .rounded-xl, .page .rounded-2xl { border-radius:var(--radius-md); }
+.page .grid > .group:hover, .page .grid > div > .group:hover { box-shadow:0 22px 46px rgba(0,0,0,.14); }
+footer { border-top:1px solid var(--color-border); }
+@media (max-width:900px) { .site-header { height:70px; } .page > h1, .page > .mb-8 h1 { max-width:12ch; } }
+@media (prefers-reduced-motion:reduce) { .site-header a, .site-header button { transform:none!important; } }
