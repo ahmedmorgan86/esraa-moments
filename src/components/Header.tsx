@@ -9,7 +9,7 @@ type Props = {
   onDarkToggle: () => void; onLangToggle: () => void;
 };
 
-export function Header({ t, scrolled, wishlistCount, dark, menuOpen, onMenuToggle, onDarkToggle, onLangToggle }: Props) {
+export function Header({ t, lang, scrolled, wishlistCount, dark, menuOpen, onMenuToggle, onDarkToggle, onLangToggle }: Props) {
   const location = useLocation();
   const settings = useStoreSettings();
   const isActive = (path: string) => location.pathname === path ? 'text-primary bg-primary/8' : 'text-muted hover:text-ink hover:bg-primary/8';
@@ -35,17 +35,17 @@ export function Header({ t, scrolled, wishlistCount, dark, menuOpen, onMenuToggl
         </nav>
 
         <div className="header-actions">
-          <button onClick={onDarkToggle} className="header-icon" aria-label="theme">{dark ? <Sun size={17} /> : <Moon size={17} />}</button>
-          <button onClick={onLangToggle} className="header-lang" aria-label="language"><Globe size={16} /><span>AR / EN</span></button>
-          <Link to="/wishlist" className="header-icon relative" aria-label="wishlist"><Heart size={17} />{wishlistCount > 0 && <span className="wishlist-badge">{wishlistCount}</span>}</Link>
-          <a href={`https://wa.me/${settings.whatsapp}`} target="_blank" rel="noopener noreferrer" className="header-contact"><MessageCircle size={16} /><span>Talk to us</span></a>
-          <button onClick={onMenuToggle} className="header-icon lg:hidden" aria-label="menu">{menuOpen ? <X size={19} /> : <Menu size={19} />}</button>
+          <button onClick={onDarkToggle} className="header-icon" aria-label={lang === 'ar' ? 'تبديل المظهر' : 'Toggle theme'}>{dark ? <Sun size={17} /> : <Moon size={17} />}</button>
+          <button onClick={onLangToggle} className="header-lang" aria-label={lang === 'ar' ? 'تغيير اللغة إلى الإنجليزية' : 'Switch language to Arabic'}><Globe size={16} /><span>{lang === 'ar' ? 'EN' : 'عربي'}</span></button>
+          <Link to="/wishlist" className="header-icon relative" aria-label={t.wishlist}><Heart size={17} />{wishlistCount > 0 && <span className="wishlist-badge">{wishlistCount}</span>}</Link>
+          <a href={`https://wa.me/${settings.whatsapp}`} target="_blank" rel="noopener noreferrer" className="header-contact"><MessageCircle size={16} /><span>{t.contactUs}</span></a>
+          <button onClick={onMenuToggle} className="header-icon lg:hidden" aria-label={lang === 'ar' ? 'فتح القائمة' : 'Open menu'}>{menuOpen ? <X size={19} /> : <Menu size={19} />}</button>
         </div>
       </div>
 
       {menuOpen && (
         <div className="mobile-menu lg:hidden">
-          <p className="eyebrow">Navigate / استكشف</p>
+          <p className="eyebrow">{lang === 'ar' ? 'استكشف' : 'Navigate'}</p>
           {navLinks.map(l => <Link key={l.path} to={l.path} className={`mobile-menu-link ${isActive(l.path)}`}>{l.label}<span>↗</span></Link>)}
           <Link to="/account" className={`mobile-menu-link ${isActive('/account')}`}>{t.account}<span>↗</span></Link>
           <Link to="/login" className={`mobile-menu-link ${isActive('/login')}`}>{t.login}<span>↗</span></Link>
