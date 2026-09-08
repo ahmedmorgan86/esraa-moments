@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Sun, Moon, Globe, MessageCircle, Menu, X, User, Heart } from 'lucide-react';
+import { Sun, Moon, Globe, MessageCircle, Menu, X, Heart } from 'lucide-react';
 import { useStoreSettings } from '../hooks';
 
 type Props = {
