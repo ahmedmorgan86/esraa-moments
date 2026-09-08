@@ -85,7 +85,7 @@ export default function AdminPage({ t, products, setProducts }: { t: any; produc
   const nav = navItems(t);
 
   return (
-    <div className="min-h-screen bg-surface-alt flex">
+    <div className="admin-shell min-h-screen bg-surface-alt flex">
       {/* Mobile overlay */}
       <AnimatePresence>
         {sidebarOpen && (

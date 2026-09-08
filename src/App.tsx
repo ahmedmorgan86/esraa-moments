@@ -69,7 +69,7 @@ export function App() {
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden" onClick={() => setMenuOpen(false)} />
       )}
 
-      <main className="flex-1">
+      <main className="flex-1 public-page-shell">
         <Suspense fallback={<div className="section page flex items-center justify-center min-h-[50vh]"><div className="text-muted">...</div></div>}>
           <Routes>
             <Route path="/" element={<Home t={t()} lang={lang} products={products} />} />
