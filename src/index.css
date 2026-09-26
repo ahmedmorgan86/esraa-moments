@@ -232,6 +232,13 @@ body:before { content:'ESRAA MOMENTS'; position:fixed; inset-inline-end:2vw; bot
 .signature-newsletter { min-height:310px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
 .newsletter-plus { position:absolute; top:28px; inset-inline-start:28px; opacity:.65; animation:plus-spin 8s linear infinite; }
 @keyframes plus-spin { to { transform:rotate(360deg); } }
+
+/* Referenced as `animate-[fadeUp_…]` by the page components and `waPulse` by the
+   WhatsApp float, but never defined — those animations were silently doing nothing. */
+@keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
+@keyframes waPulse { 0% { transform:scale(1); opacity:.7; } 100% { transform:scale(1.75); opacity:0; } }
+.text-gradient { background:linear-gradient(135deg,var(--color-primary),var(--color-primary-hover)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.faq-item.open button svg { transform:rotate(-90deg); }
 @media (max-width:900px) { .hero-index { top:5%; } .hero-actions { flex-wrap:wrap; } .story-vertical { display:none; } }
 @media (max-width:560px) { .hero-grid-lines { background-size:60px 60px; } .hero-index { display:none; } .hero-actions { gap:14px; } .hero-note { max-width:150px; } .marquee-track { animation-duration:18s; } }
 @media (prefers-reduced-motion:reduce) { .marquee-track,.newsletter-plus { animation:none!important; } }
@@ -269,26 +276,28 @@ body:before { content:'ESRAA MOMENTS'; position:fixed; inset-inline-end:2vw; bot
 .admin-shell { color:var(--color-ink); background:var(--color-surface-alt); }
 .admin-shell aside { background:var(--color-surface); border-color:var(--color-border-strong); }
 .admin-shell header { background:color-mix(in srgb,var(--color-surface-alt) 88%,transparent); border-color:var(--color-border); }
-.admin-shell main { min-width:0; }
-.admin-shell main > div { max-width:100rem; margin-inline:auto; }
+.admin-shell .admin-main { min-width:0; }
+.admin-shell .admin-main > div { max-width:100rem; margin-inline:auto; }
 .admin-shell .bg-surface { border-color:var(--color-border-strong); box-shadow:0 16px 38px rgba(0,0,0,.08); }
 .admin-shell .rounded-xl, .admin-shell .rounded-2xl { border-radius:0; }
 .admin-shell table { min-width:680px; }
 .admin-shell input, .admin-shell textarea, .admin-shell select { min-height:42px; background:var(--color-surface-alt); border:1px solid var(--color-border); border-radius:0; }
+/* Checkboxes/radios must keep their intrinsic box — min-height turns them into 16x42 slabs. */
+.admin-shell input[type="checkbox"], .admin-shell input[type="radio"] { min-height:0; width:16px; height:16px; background:none; border:none; border-radius:0; }
 .admin-shell input:focus, .admin-shell textarea:focus, .admin-shell select:focus { border-color:var(--color-primary); box-shadow:0 0 0 3px var(--color-primary-light); }
 .admin-shell button.bg-primary { border-radius:0; box-shadow:6px 6px 0 var(--color-primary-light); }
 
 @media (max-width:900px) {
-  .admin-shell main { padding:24px 20px; }
-  .admin-shell main > div { width:100%; }
+  .admin-shell .admin-main { padding:24px 20px; }
+  .admin-shell .admin-main > div { width:100%; }
   .admin-shell .grid { min-width:0; }
   .admin-shell .overflow-x-auto { scrollbar-width:thin; scrollbar-color:var(--color-primary) transparent; }
   .admin-shell .overflow-x-auto table { min-width:620px; }
 }
 @media (max-width:560px) {
-  .admin-shell main { padding:18px 14px 32px; }
+  .admin-shell .admin-main { padding:18px 14px 32px; }
   .admin-shell header { padding-inline:14px; }
-  .admin-shell header h2 { max-width:13rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .admin-shell header h1 { max-width:13rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .admin-shell aside { width:min(86vw,300px); }
   .admin-shell .p-6 { padding:18px; }
   .admin-shell .p-5 { padding:16px; }
@@ -299,6 +308,20 @@ body:before { content:'ESRAA MOMENTS'; position:fixed; inset-inline-end:2vw; bot
   .admin-shell .overflow-x-auto { margin-inline:-2px; }
   .admin-shell .fixed.inset-0 > .max-w-\[560px\] { max-height:calc(100dvh - 24px); }
 }
+
+/* ── Motion + focus ─────────────────────────────────────────────── */
+/* The app kills the default outline (see base layer), so restore a clearly
+   visible keyboard focus indicator on every interactive element. */
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline:2px solid var(--color-primary);
+  outline-offset:2px;
+  border-radius:2px;
+}
 @media (prefers-reduced-motion:reduce) {
-  .admin-shell *, .admin-shell *::before, .admin-shell *::after { transition-duration:.01ms!important; animation-duration:.01ms!important; }
+  *, *::before, *::after {
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+    scroll-behavior:auto!important;
+  }
 }

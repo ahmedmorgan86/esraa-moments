@@ -8,9 +8,15 @@ import './index.css';
 // Persist dark mode preference on initial load
 const dark = localStorage.getItem('em-dark');
 if (!dark) {
-  const cached = localStorage.getItem('em-site');
-  const mode = cached ? JSON.parse(cached)?.appearance?.mode : 'light';
-  localStorage.setItem('em-dark', mode === 'dark' ? '1' : '0');
+  let mode: unknown = 'light';
+  try {
+    const cached = localStorage.getItem('em-site');
+    mode = cached ? (JSON.parse(cached) as any)?.appearance?.mode : 'light';
+  } catch {
+    try { localStorage.removeItem('em-site'); } catch {}
+    mode = 'light';
+  }
+  try { localStorage.setItem('em-dark', mode === 'dark' ? '1' : '0'); } catch {}
 }
 
 createRoot(document.getElementById('root')!).render(

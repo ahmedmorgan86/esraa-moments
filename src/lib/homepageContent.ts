@@ -63,20 +63,37 @@ export const defaultHomepageContent: HomepageContent = {
 };
 
 export function useHomepageContent() {
-  const [content, setContent] = useState<HomepageContent>(() => {
-    try {
-      const saved = localStorage.getItem('em-homepage-content');
-      return saved ? { ...defaultHomepageContent, ...JSON.parse(saved) } : defaultHomepageContent;
-    } catch {
-      return defaultHomepageContent;
-    }
-  });
+  const [content, setContent] = useState<HomepageContent>(readHomepageContent);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('em-homepage-content', JSON.stringify(content));
-    } catch {}
+    saveHomepageContent(content);
   }, [content]);
 
   return [content, setContent] as const;
+}
+
+export function readHomepageContent(): HomepageContent {
+  try {
+    const saved = localStorage.getItem('em-homepage-content');
+    if (!saved) return defaultHomepageContent;
+    const parsed = JSON.parse(saved) as Partial<HomepageContent>;
+    // Drop empty FAQ rows instead of rendering blank accordion buttons on /faq.
+    const faqs = Array.isArray(parsed.faqs) ? parsed.faqs.filter(f => f && (f.q?.trim() || f.q_en?.trim())) : defaultHomepageContent.faqs;
+    return { ...defaultHomepageContent, ...parsed, faqs };
+  } catch {
+    return defaultHomepageContent;
+  }
+}
+
+export function saveHomepageContent(content: HomepageContent): boolean {
+  try {
+    localStorage.setItem('em-homepage-content', JSON.stringify(content));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function resetHomepageContent(): void {
+  try { localStorage.removeItem('em-homepage-content'); } catch {}
 }

@@ -7,6 +7,7 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { AnnouncementBar } from './components/AnnouncementBar';
 import { WhatsAppFloat } from './components/WhatsAppFloat';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 const Home = lazy(() => import('./pages/Home'));
 const Shop = lazy(() => import('./pages/Shop'));
@@ -22,7 +23,7 @@ const FaqPage = lazy(() => import('./pages/Faq'));
 export function App() {
   const [lang, setLang] = useLocalStorage<'ar' | 'en'>('em-lang', 'ar');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [bannerClosed, setBannerClosed] = useState(false);
+  const [bannerClosed, setBannerClosed] = useLocalStorage('em-banner-closed', false);
   const [products, setProducts] = useProducts();
   const [wishlist, toggleWishlist] = useWishlist();
   const [reviews, addReview] = useReviews();
@@ -45,6 +46,7 @@ export function App() {
 
   const toggleDark = () => setDark(v => !v);
   const toggleLang = () => setLang(l => l === 'ar' ? 'en' : 'ar');
+  const isChromeRoute = location.pathname.startsWith('/admin') || location.pathname.startsWith('/login');
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -70,8 +72,9 @@ export function App() {
       )}
 
       <main className="flex-1 public-page-shell">
-        <Suspense fallback={<div className="section page flex items-center justify-center min-h-[50vh]"><div className="text-muted">...</div></div>}>
-          <Routes>
+        <ErrorBoundary>
+          <Suspense fallback={<div className="section page flex items-center justify-center min-h-[50vh]"><div className="text-muted">...</div></div>}>
+            <Routes>
             <Route path="/" element={<Home t={t()} lang={lang} products={products} />} />
             <Route path="/shop" element={<Shop t={t()} lang={lang} products={products} />} />
             <Route path="/product/:id" element={<ProductPage t={t()} lang={lang} products={products} wishlist={wishlist} toggleWishlist={toggleWishlist} reviews={reviews} addReview={addReview} />} />
@@ -90,11 +93,12 @@ export function App() {
               </div>
             } />
           </Routes>
-        </Suspense>
+          </Suspense>
+        </ErrorBoundary>
       </main>
 
       <Footer t={t()} lang={lang} />
-      <WhatsAppFloat />
+      {!isChromeRoute && <WhatsAppFloat />}
     </div>
   );
 }

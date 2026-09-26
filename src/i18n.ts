@@ -177,6 +177,27 @@ export const translations = {
     returnRequested: 'تم طلب الإرجاع',
     // Low Stock
     lowStock: 'مخزون منخفض',
+    // Admin feedback + validation
+    error: 'حدث خطأ', unexpectedError: 'حدث خطأ غير متوقع. حاول مرة أخرى.', retry: 'إعادة المحاولة',
+    dataLoadError: 'تعذر تحميل البيانات. تحقق من الاتصال أو إعدادات Supabase.', saveFailed: 'فشل الحفظ. حاول مرة أخرى.',
+    popupBlocked: 'تم حظر النافذة المنبثقة. اسمح بالنوافذ المنبثقة لهذا الموقع.',
+    savedSuccessfully: 'تم الحفظ بنجاح', settingsSaved: 'تم حفظ الإعدادات بنجاح',
+    requiredField: 'هذا الحقل مطلوب', invalidPrice: 'السعر يجب أن يكون أكبر من صفر', invalidStock: 'المخزون لا يمكن أن يكون سالباً',
+    invalidDiscount: 'قيمة الخصم يجب أن تكون أكبر من صفر', percentOutOfRange: 'الخصم النسبة المئوية يجب أن يكون بين 1 و 100',
+    duplicateCouponCode: 'هذا الكود مستخدم بالفعل', invalidWhatsApp: 'رقم واتساب غير صحيح (مثال: 201001234567)',
+    invalidEmail: 'البريد الإلكتروني غير صحيح', invalidShipping: 'قيم الشحن غير صحيحة',
+    // Admin a11y
+    openMenu: 'فتح القائمة', viewStore: 'عرض المتجر', gridView: 'عرض شبكي', listView: 'عرض قائمة',
+    recentOrders: 'أحدث الأوردرات', imagePreview: 'معاينة الصورة', expired: 'منتهي',
+    shippingFee: 'رسوم الشحن', whatsappOrderMsg: 'مرحباً، بخصوص الأوردر رقم {order}',
+    // CMS
+    cms: 'إدارة محتوى الموقع (CMS)', cmsHero: 'قسم الواجهة (Hero)', cmsStory: 'قصة العلامة',
+    cmsFaq: 'الأسئلة الشائعة', cmsSave: 'حفظ ونشر التغييرات', cmsReset: 'استعادة الافتراضي',
+    cmsResetConfirm: 'هل تريد استعادة المحتوى الافتراضي؟', cmsSaved: 'تم حفظ المحتوى بنجاح',
+    cmsAutosave: 'التعديلات تُحفظ تلقائياً في هذا المتصفح',
+    questionLabel: 'السؤال', answerLabel: 'الإجابة', addFaq: 'إضافة سؤال', deleteFaq: 'حذف السؤال',
+    faqQuestionAr: 'السؤال (عربي)', faqQuestionEn: 'السؤال (إنجليزي)', faqAnswerAr: 'الإجابة (عربي)', faqAnswerEn: 'الإجابة (إنجليزي)',
+    announcement: 'الشريط الإعلاني', announcementEnabled: 'إظهار الشريط الإعلاني', announcementText: 'نص الشريط الإعلاني',
     // Date locale
     dateLocale: 'ar-EG',
   },
@@ -358,6 +379,27 @@ export const translations = {
     returnRequested: 'Return Requested',
     // Low Stock
     lowStock: 'Low Stock',
+    // Admin feedback + validation
+    error: 'An error occurred', unexpectedError: 'An unexpected error occurred. Please try again.', retry: 'Retry',
+    dataLoadError: 'Could not load data. Check your connection or Supabase settings.', saveFailed: 'Save failed. Please try again.',
+    popupBlocked: 'Popup blocked. Please allow popups for this site.',
+    savedSuccessfully: 'Saved successfully', settingsSaved: 'Settings saved successfully',
+    requiredField: 'This field is required', invalidPrice: 'Price must be greater than zero', invalidStock: 'Stock cannot be negative',
+    invalidDiscount: 'Discount value must be greater than zero', percentOutOfRange: 'Percentage must be between 1 and 100',
+    duplicateCouponCode: 'This code already exists', invalidWhatsApp: 'Invalid WhatsApp number (e.g. 201001234567)',
+    invalidEmail: 'Invalid email address', invalidShipping: 'Invalid shipping values',
+    // Admin a11y
+    openMenu: 'Open menu', viewStore: 'View store', gridView: 'Grid view', listView: 'List view',
+    recentOrders: 'Recent orders', imagePreview: 'Image preview', expired: 'Expired',
+    shippingFee: 'Shipping', whatsappOrderMsg: 'Hello, regarding order {order}',
+    // CMS
+    cms: 'Site Content (CMS)', cmsHero: 'Hero section', cmsStory: 'Brand story',
+    cmsFaq: 'FAQ', cmsSave: 'Save & publish', cmsReset: 'Reset to defaults',
+    cmsResetConfirm: 'Reset all content to defaults?', cmsSaved: 'Content saved successfully',
+    cmsAutosave: 'Changes save automatically in this browser',
+    questionLabel: 'Question', answerLabel: 'Answer', addFaq: 'Add question', deleteFaq: 'Delete question',
+    faqQuestionAr: 'Question (Arabic)', faqQuestionEn: 'Question (English)', faqAnswerAr: 'Answer (Arabic)', faqAnswerEn: 'Answer (English)',
+    announcement: 'Announcement bar', announcementEnabled: 'Show announcement bar', announcementText: 'Announcement text',
     // Date locale
     dateLocale: 'en-US',
   }
