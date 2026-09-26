@@ -3,16 +3,70 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0f0e0c" />
+    <meta name="theme-color" content="#0f0e0c" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <meta name="description" content="ESRAA Moments — Party favors, gifts & custom event accessories in Egypt" />
-    <title>ESRAA Moments</title>
+
+    <title>ESRAA Moments | تجهيز وتوزيعات المناسبات</title>
+    <meta
+      name="description"
+      content="ESRAA Moments — تجهيز وتوزيعات المناسبات والهدايا في مصر. شوكولاتة، فواكه مجففة، وتوزيعات أعياد ميلاد وخطوبة مخصصة. اطلب عبر واتساب. Party favors, gifts and custom event hampers in Egypt, ordered on WhatsApp."
+    />
+    <meta name="keywords" content="توزيعات, تجهيز مناسبات, شوكولاتة, فواكه مجففة, هدية ميلاد, هدية خطوبة, ESRAA Moments, party favors Egypt, gift hamper Cairo" />
+    <meta name="author" content="ESRAA Moments" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
     <link rel="icon" type="image/jpeg" href="/images/logo.jpeg" />
+    <link rel="apple-touch-icon" href="/images/logo.jpeg" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ESRAA Moments" />
+    <meta property="og:locale" content="ar_EG" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:title" content="ESRAA Moments | تجهيز وتوزيعات المناسبات" />
+    <meta property="og:description" content="توزيعات وهدايا المناسبات في مصر — شوكولاتة، فواكه مجففة وتوزيعات مخصصة. اطلب عبر واتساب." />
+    <meta property="og:image" content="/images/logo.jpeg" />
+    <meta property="og:image:alt" content="ESRAA Moments" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ESRAA Moments | تجهيز وتوزيعات المناسبات" />
+    <meta name="twitter:description" content="توزيعات وهدايا المناسبات في مصر. اطلب عبر واتساب." />
+    <meta name="twitter:image" content="/images/logo.jpeg" />
+
+    <!-- Search engines were given no business context at all before this. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Store",
+        "name": "ESRAA Moments",
+        "description": "تجهيز وتوزيعات المناسبات والهدايا في مصر",
+        "image": "/images/logo.jpeg",
+        "email": "esraamomentsstore@gmail.com",
+        "telephone": "+2010097905435",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "شارع الجيش - عزبة النخل",
+          "addressLocality": "القاهرة",
+          "addressCountry": "EG"
+        },
+        "areaServed": { "@type": "Country", "name": "Egypt" },
+        "currenciesAccepted": "EGP",
+        "paymentAccepted": "Cash on Delivery, bank transfer"
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <div style="font-family: system-ui, sans-serif; padding: 32px; text-align: center; line-height: 1.7">
+        <h1>ESRAA Moments</h1>
+        <p>هذا الموقع يحتاج إلى تفعيل JavaScript. لتطلب مباشرة عبر واتساب: +20 109 790 5435</p>
+        <p>This site requires JavaScript. To order directly on WhatsApp: +20 109 790 5435</p>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

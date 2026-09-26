@@ -23,7 +23,7 @@ const FaqPage = lazy(() => import('./pages/Faq'));
 export function App() {
   const [lang, setLang] = useLocalStorage<'ar' | 'en'>('em-lang', 'ar');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [bannerClosed, setBannerClosed] = useLocalStorage('em-banner-closed', false);
+  const [bannerDismissed, setBannerDismissed] = useLocalStorage<string>('em-banner-dismissed', '');
   const [products, setProducts] = useProducts();
   const [wishlist, toggleWishlist] = useWishlist();
   const [reviews, addReview] = useReviews();
@@ -47,11 +47,20 @@ export function App() {
   const toggleDark = () => setDark(v => !v);
   const toggleLang = () => setLang(l => l === 'ar' ? 'en' : 'ar');
   const isChromeRoute = location.pathname.startsWith('/admin') || location.pathname.startsWith('/login');
+  // Dismissal is keyed to the text that was dismissed, so publishing a new
+  // announcement in Admin brings the bar back instead of staying hidden
+  // forever behind a single boolean.
+  const bannerKey = (lang === 'en' ? (site?.announcement?.textEn || site?.announcement?.text) : site?.announcement?.text) || '';
 
   return (
     <div className="min-h-screen flex flex-col">
-      {site?.announcement?.enabled && !bannerClosed && (
-        <AnnouncementBar text={site.announcement.text} textEn={site.announcement.textEn} lang={lang} onClose={() => setBannerClosed(true)} />
+      {site?.announcement?.enabled && bannerKey && bannerDismissed !== bannerKey && (
+        <AnnouncementBar
+          text={site.announcement.text}
+          textEn={site.announcement.textEn}
+          lang={lang}
+          onClose={() => setBannerDismissed(bannerKey)}
+        />
       )}
       <div className="sticky top-0 z-50">
         <Header
@@ -82,8 +91,8 @@ export function App() {
             <Route path="/about" element={<AboutPage t={t()} lang={lang} />} />
             <Route path="/contact" element={<ContactPage t={t()} lang={lang} />} />
             <Route path="/faq" element={<FaqPage t={t()} lang={lang} />} />
-            <Route path="/login" element={<LoginPage t={t()} />} />
-            <Route path="/account" element={<AccountPage t={t()} />} />
+      <Route path="/login" element={<LoginPage t={t()} lang={lang} />} />
+      <Route path="/account" element={<AccountPage t={t()} lang={lang} />} />
             <Route path="/admin/*" element={<AdminPage t={t()} products={products} setProducts={setProducts} />} />
             <Route path="*" element={
               <div className="section page flex flex-col items-center justify-center min-h-[60vh] text-center">

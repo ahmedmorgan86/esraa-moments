@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { motion, useMotionValue, useSpring, useTransform, type Variants } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ChevronDown, ChevronLeft, MoveUpRight, Plus } from 'lucide-react';
@@ -53,4 +53,20 @@ export default function Home({ t, lang, products }: { t: any; lang: string; prod
     <section className="section faq-section"><div className="text-center"><span className="eyebrow">{t.faqEyebrow}</span><h2>{t.faqTitle}</h2></div><div className="faq-list">{content.faqs.map((faq, i) => <FaqItem key={i} q={isEn ? faq.q_en : faq.q} a={isEn ? faq.a_en : faq.a} />)}</div></section>
   </>;
 }
-function FaqItem({ q, a }: { q: string; a: string }) { const [open, setOpen] = useState(false); return <div className={`faq-item ${open ? 'open' : ''}`}><button onClick={() => setOpen(v => !v)} type="button"><span>{q}</span><ChevronLeft size={18} /></button>{open && <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="faq-answer">{a}</motion.div>}</div>; }
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  const panelId = useId();
+  return (
+    <div className={`faq-item ${open ? 'open' : ''}`}>
+      <h3>
+        <button onClick={() => setOpen(v => !v)} type="button" aria-expanded={open} aria-controls={panelId}>
+          <span>{q}</span>
+          <ChevronLeft size={18} aria-hidden="true" />
+        </button>
+      </h3>
+      {open && (
+        <motion.div id={panelId} role="region" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="faq-answer whitespace-pre-wrap break-words">{a}</motion.div>
+      )}
+    </div>
+  );
+}

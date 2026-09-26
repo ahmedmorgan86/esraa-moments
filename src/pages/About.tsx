@@ -21,10 +21,16 @@ export default function About({ t, lang }: { t: any; lang: string }) {
 
       {/* Story images */}
       <section className="section">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
-          <img src="/images/Gemini_Generated_Image_ehh0puehh0puehh0.jpeg" alt="" className="w-full aspect-[4/5] object-cover rounded-2xl" />
-          <img src="/images/Gemini_Generated_Image_sligebsligebslig.jpeg" alt="" className="w-full aspect-[4/5] object-cover rounded-2xl" />
-        </div>
+        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto list-none">
+          {[
+            { src: '/images/Gemini_Generated_Image_ehh0puehh0puehh0.jpeg', alt: isEn ? 'ESRAA Moments gift box being arranged' : 'صندوق هدايا من ESRAA Moments أثناء تجهيزه' },
+            { src: '/images/Gemini_Generated_Image_sligebsligebslig.jpeg', alt: isEn ? 'A finished ESRAA Moments hamper' : 'باقة ESRAA Moments بعد التجهيز' },
+          ].map(img => (
+            <li key={img.src}>
+              <img src={img.src} alt={img.alt} loading="lazy" decoding="async" className="w-full aspect-[4/5] object-cover rounded-2xl" />
+            </li>
+          ))}
+        </ul>
       </section>
 
       {/* CTA */}
@@ -32,9 +38,15 @@ export default function About({ t, lang }: { t: any; lang: string }) {
         <div className="max-w-2xl mx-auto bg-surface border border-border rounded-2xl p-10 text-center">
           <h2 className="text-xl font-black text-ink mb-3">{t.orderViaWhatsApp}</h2>
           <p className="text-muted text-sm mb-6">{t.orderViaWhatsAppHint}</p>
-          <a href={`https://wa.me/${settings.whatsapp}`} target="_blank" rel="noopener noreferrer" className="btn primary inline-flex items-center gap-2">
-            <MessageCircle size={18} /> {t.orderViaWhatsApp}
-          </a>
+          {(() => {
+            const wa = String(settings.whatsapp || '').replace(/[^\d]/g, '');
+            if (!wa) return <span className="btn cursor-not-allowed opacity-70" aria-disabled="true">{t.priceOnContact}</span>;
+            return (
+              <a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer" aria-label={t.orderViaWhatsApp} className="btn primary inline-flex items-center gap-2">
+                <MessageCircle size={18} aria-hidden="true" /> {t.orderViaWhatsApp}
+              </a>
+            );
+          })()}
         </div>
       </section>
     </>

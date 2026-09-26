@@ -5,13 +5,16 @@ import { occasionEn } from '../i18n';
 import { useStoreSettings } from '../hooks';
 import type { Review } from '../data';
 
-function StarRating({ rating, size = 16 }: { rating: number; size?: number }) {
+/** Purely visual star row. The stars were announced individually as empty
+ *  graphics, so the rating is now exposed as a single labelled image and the
+ *  SVGs themselves are hidden. */
+function StarRating({ rating, size = 16, label }: { rating: number; size?: number; label?: string }) {
   return (
-    <div className="flex gap-0.5">
+    <span className="inline-flex items-center gap-0.5" role="img" aria-label={label || `${rating} / 5`}>
       {[1, 2, 3, 4, 5].map(i => (
-        <Star key={i} size={size} className={i <= rating ? 'text-amber-400 fill-amber-400' : 'text-ink/20'} />
+        <Star key={i} size={size} aria-hidden="true" className={i <= rating ? 'text-amber-400 fill-amber-400' : 'text-ink/20'} />
       ))}
-    </div>
+    </span>
   );
 }
 
@@ -24,7 +27,7 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const settings = useStoreSettings();
   const product = products.find(p => p.id === id);
-  const related = useMemo(() => products.filter(p => p.id !== id && p.category === product?.category).slice(0, 4), [id, product]);
+  const related = useMemo(() => products.filter(p => p.id !== id && p.category === product?.category).slice(0, 4), [id, product, products]);
   const productReviews = useMemo(() => reviews.filter(r => r.productId === id), [reviews, id]);
   const avgRating = useMemo(() => {
     if (productReviews.length === 0) return 0;
@@ -32,10 +35,27 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
   }, [productReviews]);
   const isEn = lang === 'en';
 
+  const stock = product ? (typeof product.stock === 'number' ? product.stock : (product.inStock === false ? 0 : null)) : null;
+  const maxQty = stock && stock > 0 ? stock : 20;
+
+  // Navigating straight from one product to a related one used to keep the
+  // previous product's quantity in the WhatsApp message. Resetting during
+  // render (rather than in an effect) avoids a wasted render pass.
+  const [lastProductId, setLastProductId] = useState(id);
+  if (lastProductId !== id) {
+    setLastProductId(id);
+    setQty(1);
+    setReviewSubmitted(false);
+    setReviewName('');
+    setReviewComment('');
+    setReviewRating(5);
+  }
+  if (qty > maxQty) setQty(maxQty);
+
   if (!product) {
     return (
       <div className="section page flex flex-col items-center justify-center min-h-[50vh] text-center">
-        <h1 className="text-2xl font-bold text-ink mb-3">{t.productNotFound || (isEn ? 'Product not found' : 'المنتج مش موجود')}</h1>
+        <h1 className="text-2xl font-bold text-ink mb-3">{t.productNotFound}</h1>
         <Link to="/shop" className="btn primary">{t.backToShop}</Link>
       </div>
     );
@@ -44,35 +64,73 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
   const name = isEn && product.name_en ? product.name_en : product.name;
   const desc = isEn && product.desc_en ? product.desc_en : product.desc;
   const catLabel = isEn ? occasionEn[product.category] || product.category : product.category;
+  const soldOut = stock === 0;
+  const wished = wishlist.includes(product.id);
+  const waNumber = String(settings.whatsapp || '').replace(/[^\d]/g, '');
+  const waHref = waNumber
+    ? `https://wa.me/${waNumber}?text=${encodeURIComponent(`${isEn ? 'I want to order' : 'عايز أطلب'}: ${name} (${isEn ? 'Quantity' : 'الكمية'}: ${qty})`)}`
+    : '';
+
+  // Product structured data. React renders <script> children raw, so any "<"
+  // in the payload is escaped first to keep the JSON from terminating early.
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: String(name || ''),
+    description: String(desc || ''),
+    sku: String(product.id),
+    image: product.image ? [String(product.image)] : undefined,
+    category: catLabel,
+    brand: { '@type': 'Brand', name: 'ESRAA Moments' },
+    aggregateRating: productReviews.length ? {
+      '@type': 'AggregateRating',
+      ratingValue: Number(avgRating.toFixed(1)),
+      reviewCount: productReviews.length,
+    } : undefined,
+    offers: {
+      '@type': 'Offer',
+      availability: soldOut ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
+      priceCurrency: 'EGP',
+      url: typeof window !== 'undefined' ? window.location.href : undefined,
+      seller: { '@type': 'Organization', name: 'ESRAA Moments' },
+    },
+  };
+  const jsonLdSafe = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdSafe }} />
+
       <section className="section page">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
           {/* Image */}
           <div className="relative rounded-2xl overflow-hidden bg-surface-alt border border-border animate-[fadeUp_0.6s_ease_both]">
-            <img src={product.image} alt={name} className="w-full aspect-square object-cover" />
+            <img src={product.image} alt={name} decoding="async" className="w-full aspect-square object-cover" />
             <span className="absolute top-4 end-4 bg-surface/85 backdrop-blur-md border border-white/20 rounded-full px-3 py-1 text-[11px] font-bold">{catLabel}</span>
-            <button onClick={() => toggleWishlist(product.id)} className="absolute top-4 start-4 w-10 h-10 rounded-full bg-surface/85 backdrop-blur flex items-center justify-center hover:scale-110 transition-transform z-10 shadow-md" type="button">
-              {wishlist.includes(product.id) ? <Heart size={20} className="text-red-500 fill-red-500" /> : <Heart size={20} className="text-ink/60" />}
+            <button
+              onClick={() => toggleWishlist(product.id)}
+              className="absolute top-4 start-4 w-10 h-10 rounded-full bg-surface/85 backdrop-blur flex items-center justify-center hover:scale-110 transition-transform z-10 shadow-md"
+              type="button"
+              aria-pressed={wished}
+              aria-label={wished ? t.removeFromWishlist : t.addToWishlist}
+            >
+              <Heart size={20} aria-hidden="true" className={wished ? 'text-red-500 fill-red-500' : 'text-ink/60'} />
             </button>
           </div>
 
           {/* Details */}
           <div className="animate-[fadeUp_0.6s_ease_both_0.1s]">
             <Link to="/shop" className="inline-flex items-center gap-1.5 text-primary text-[13px] font-semibold hover:underline mb-4">
-              <ArrowLeft size={14} /> {t.backToShop}
+              <ArrowLeft size={14} aria-hidden="true" className={isEn ? '' : 'rotate-180'} /> {t.backToShop}
             </Link>
 
             <h1 className="text-[clamp(22px,3vw,32px)] font-black mb-2">{name}</h1>
 
             <div className="flex items-center gap-2 mb-4">
               {productReviews.length > 0 ? (
-                <StarRating rating={avgRating} size={15} />
+                <StarRating rating={avgRating} size={15} label={`${avgRating.toFixed(1)} / 5`} />
               ) : (
-                <div className="flex items-center gap-0.5 text-muted/40">
-                  {[1,2,3,4,5].map(i => <Star key={i} size={15} fill="currentColor" />)}
-                </div>
+                <StarRating rating={0} size={15} label={t.noReviewsYetShort} />
               )}
               <span className="text-muted text-[12px]">({productReviews.length} {t.reviews})</span>
             </div>
@@ -84,21 +142,46 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
               <p className="text-[12px] text-muted">{t.orderViaWhatsAppHint}</p>
             </div>
 
-            <div className="flex items-center gap-3 mb-7">
-              <div className="inline-flex items-center gap-2 bg-surface border border-border rounded-full px-3 py-1.5">
-                <button onClick={() => setQty(q => Math.max(1, q - 1))} className="p-1 hover:bg-primary/8 rounded-full transition-colors"><Minus size={18} /></button>
-                <span className="min-w-[28px] text-center font-bold text-lg">{qty}</span>
-                <button onClick={() => setQty(q => q + 1)} className="p-1 hover:bg-primary/8 rounded-full transition-colors"><Plus size={18} /></button>
+            {soldOut ? (
+              <p className="btn w-full cursor-not-allowed opacity-70 mb-7" aria-disabled="true">{t.outOfStock}</p>
+            ) : (
+              <div className="flex items-center gap-3 mb-7">
+                <div className="inline-flex items-center gap-2 bg-surface border border-border rounded-full px-3 py-1.5">
+                  <button
+                    onClick={() => setQty(q => Math.max(1, q - 1))}
+                    type="button"
+                    disabled={qty <= 1}
+                    aria-label={t.decreaseQuantity}
+                    className="p-1 hover:bg-primary/8 rounded-full transition-colors disabled:opacity-35 disabled:cursor-not-allowed"
+                  >
+                    <Minus size={18} aria-hidden="true" />
+                  </button>
+                  <span className="min-w-[28px] text-center font-bold text-lg" aria-live="polite" aria-label={`${t.quantity}: ${qty}`}>{qty}</span>
+                  <button
+                    onClick={() => setQty(q => Math.min(maxQty, q + 1))}
+                    type="button"
+                    disabled={qty >= maxQty}
+                    aria-label={t.increaseQuantity}
+                    className="p-1 hover:bg-primary/8 rounded-full transition-colors disabled:opacity-35 disabled:cursor-not-allowed"
+                  >
+                    <Plus size={18} aria-hidden="true" />
+                  </button>
+                </div>
+                {waHref ? (
+                  <a
+                    href={waHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${t.orderViaWhatsApp}: ${name}`}
+                    className="btn primary flex-1 flex items-center justify-center gap-2"
+                  >
+                    <MessageCircle size={18} aria-hidden="true" /> {t.orderViaWhatsApp}
+                  </a>
+                ) : (
+                  <span className="btn flex-1 cursor-not-allowed opacity-70" aria-disabled="true">{t.priceOnContact}</span>
+                )}
               </div>
-              <a
-                href={`https://wa.me/${settings.whatsapp}?text=${encodeURIComponent(`${isEn ? 'I want to order' : 'عايز أطلب'}: ${name}${isEn ? ' (Quantity: ' : ' (الكمية: '}${qty}${isEn ? ')' : ')'}`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn primary flex-1 flex items-center justify-center gap-2"
-              >
-                <MessageCircle size={18} /> {t.orderViaWhatsApp}
-              </a>
-            </div>
+            )}
 
             <div className="grid grid-cols-3 gap-3 mb-7">
               {[
@@ -107,7 +190,7 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
                 { icon: RotateCcw, label: t.returns, sub: t.returnsDays },
               ].map(({ icon: I, label, sub }) => (
                 <div key={label} className="bg-surface border border-border rounded-xl p-3 text-center">
-                  <I size={20} className="mx-auto text-primary mb-1.5" />
+                  <I size={20} aria-hidden="true" className="mx-auto text-primary mb-1.5" />
                   <div className="text-[11px] font-bold text-ink">{label}</div>
                   <div className="text-[10.5px] text-muted">{sub}</div>
                 </div>
@@ -120,11 +203,11 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
       {/* Reviews Section */}
       <section className="section border-t border-border pt-12">
         <div className="max-w-2xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-black">{t.reviews || 'التقييمات'} ({productReviews.length})</h2>
+          <div className="flex items-center justify-between gap-3 mb-6">
+            <h2 className="text-2xl font-black">{t.reviews} ({productReviews.length})</h2>
             {productReviews.length > 0 && (
               <div className="flex items-center gap-2">
-                <StarRating rating={Math.round(avgRating)} />
+                <StarRating rating={Math.round(avgRating)} label={`${avgRating.toFixed(1)} / 5`} />
                 <span className="font-bold text-sm">{avgRating.toFixed(1)} / 5</span>
               </div>
             )}
@@ -133,28 +216,30 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
           {/* Review List */}
           <div className="space-y-4 mb-8">
             {productReviews.length === 0 ? (
-              <p className="text-muted text-sm">{t.noReviewsYet || 'مفيش تقييمات لسه. كن أول من يقيّم المنتج!'}</p>
+              <p className="text-muted text-sm">{t.noReviewsYet}</p>
             ) : (
               productReviews.map(r => (
-                <div key={r.id} className="bg-surface border border-border rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-2">
+                <article key={r.id} className="bg-surface border border-border rounded-xl p-4">
+                  <div className="flex items-center justify-between gap-3 mb-2">
                     <span className="font-bold text-sm">{r.userName}</span>
-                    <StarRating rating={r.rating} size={14} />
+                    <StarRating rating={r.rating} size={14} label={`${r.rating} / 5`} />
                   </div>
-                  <p className="text-muted text-sm">{r.comment}</p>
-                  <span className="text-[10px] text-subtle mt-2 block">{new Date(r.date).toLocaleDateString()}</span>
-                </div>
+                  <p className="text-muted text-sm whitespace-pre-wrap break-words">{r.comment}</p>
+                  <time className="text-[10px] text-subtle mt-2 block" dateTime={r.date}>
+                    {new Date(r.date).toLocaleDateString(lang === 'en' ? 'en-GB' : 'ar-EG', { year: 'numeric', month: 'short', day: 'numeric' })}
+                  </time>
+                </article>
               ))
             )}
           </div>
 
           {/* Write Review Form */}
           <div className="bg-surface border border-border rounded-2xl p-6">
-            <h3 className="font-bold text-base mb-4">{t.writeReview || 'أضف تقييمك'}</h3>
+            <h3 className="font-bold text-base mb-4">{t.writeReview}</h3>
             {reviewSubmitted ? (
-              <div className="p-4 bg-emerald-500/10 text-emerald-600 rounded-xl text-center font-bold text-sm">
-                {t.reviewSubmitted || 'شكراً لك! تم إرسال تقييمك بنجاح.'}
-              </div>
+              <p role="status" className="p-4 bg-emerald-500/10 text-emerald-600 rounded-xl text-center font-bold text-sm">
+                {t.reviewSubmitted}
+              </p>
             ) : (
               <form onSubmit={e => {
                 e.preventDefault();
@@ -172,24 +257,32 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
                 setReviewComment('');
               }} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-muted mb-1">{t.yourName || 'الاسم'}</label>
-                  <input type="text" value={reviewName} onChange={e => setReviewName(e.target.value)} required className="input-field w-full text-sm" placeholder={t.yourNamePlaceholder} />
+                  <label htmlFor="rev-name" className="block text-xs font-semibold text-muted mb-1">{t.yourName}</label>
+                  <input id="rev-name" type="text" value={reviewName} onChange={e => setReviewName(e.target.value)} required maxLength={60} autoComplete="name" className="input-field w-full text-sm" placeholder={t.yourNamePlaceholder} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-muted mb-1">{t.rating || 'التقييم'}</label>
-                  <div className="flex gap-2">
+                  <span id="rev-rating-label" className="block text-xs font-semibold text-muted mb-1">{t.rating}</span>
+                  <div className="flex gap-1" role="radiogroup" aria-labelledby="rev-rating-label">
                     {[1, 2, 3, 4, 5].map(star => (
-                      <button type="button" key={star} onClick={() => setReviewRating(star)} className="p-1">
-                        <Star size={24} className={star <= reviewRating ? 'text-amber-400 fill-amber-400' : 'text-ink/20'} />
+                      <button
+                        type="button"
+                        key={star}
+                        role="radio"
+                        aria-checked={reviewRating === star}
+                        aria-label={`${star} / 5`}
+                        onClick={() => setReviewRating(star)}
+                        className="p-1 rounded transition-transform hover:scale-110"
+                      >
+                        <Star size={24} aria-hidden="true" className={star <= reviewRating ? 'text-amber-400 fill-amber-400' : 'text-ink/20'} />
                       </button>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-muted mb-1">{t.yourReview || 'التعليق'}</label>
-                  <textarea value={reviewComment} onChange={e => setReviewComment(e.target.value)} required rows={3} className="input-field w-full text-sm" placeholder={t.yourReviewPlaceholder} />
+                  <label htmlFor="rev-comment" className="block text-xs font-semibold text-muted mb-1">{t.yourReview}</label>
+                  <textarea id="rev-comment" value={reviewComment} onChange={e => setReviewComment(e.target.value)} required maxLength={800} rows={3} className="input-field w-full text-sm" placeholder={t.yourReviewPlaceholder} />
                 </div>
-                <button type="submit" className="btn primary">{t.submitReview || 'إرسال التقييم'}</button>
+                <button type="submit" className="btn primary">{t.submitReview}</button>
               </form>
             )}
           </div>
@@ -200,19 +293,24 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
       {related.length > 0 && (
         <section className="section">
           <h2 className="text-[clamp(22px,3vw,30px)] font-black mb-7">{t.relatedTitle}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {related.map(p => (
-              <Link key={p.id} to={`/product/${p.id}`} className="group block bg-surface border border-border rounded-xl overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all">
-                <div className="aspect-square overflow-hidden bg-surface-alt">
-                  <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
-                </div>
-                <div className="p-4">
-                  <h3 className="text-[14px] font-bold line-clamp-2 mb-1">{isEn && p.name_en ? p.name_en : p.name}</h3>
-                  <span className="text-primary text-[12.5px] font-bold">{t.viewDetails} ←</span>
-                </div>
-              </Link>
-            ))}
-          </div>
+          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 list-none">
+            {related.map(p => {
+              const rn = isEn && p.name_en ? p.name_en : p.name;
+              return (
+                <li key={p.id}>
+                  <Link to={`/product/${p.id}`} className="group block h-full bg-surface border border-border rounded-xl overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all">
+                    <div className="aspect-square overflow-hidden bg-surface-alt">
+                      <img src={p.image} alt={rn} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
+                    </div>
+                    <div className="p-4">
+                      <h3 className="text-[14px] font-bold line-clamp-2 mb-1">{rn}</h3>
+                      <span className="text-primary text-[12.5px] font-bold">{t.viewDetails} {isEn ? '→' : '←'}</span>
+                    </div>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </section>
       )}
     </>

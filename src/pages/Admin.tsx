@@ -127,6 +127,10 @@ export default function AdminPage({ t, products, setProducts }: { t: any; produc
           .select('id', { count: 'exact', head: true })
           .eq('status', 'pending');
         if (!cancelled && typeof count === 'number') setPendingCount(count);
+      } else if (!cancelled) {
+        // Fewer than 8 rows already means that is the exact number; leaving
+        // the counter at 0 hid the badge while pending orders existed.
+        setPendingCount(data.length);
       }
     };
     fetchNotifs();
@@ -917,8 +921,13 @@ function OrdersTab({ t }: { t: any }) {
     // same-origin, so injected markup would be able to read the admin's Supabase session.
     const html = `<!doctype html><html lang="${isEn ? 'en' : 'ar'}" dir="${isEn ? 'ltr' : 'rtl'}"><head><meta charset="utf-8"><title>${escapeHtml(o.order_number)}</title><style>body{font-family:sans-serif;padding:20px;text-align:${align}}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:${align}}th{background:#f5f5f5}</style></head><body><h2 style="text-align:${align}">${escapeHtml(o.order_number)}</h2>${cells}<table><thead><tr><th>${escapeHtml(t.productsLabel)}</th><th>${escapeHtml(t.qty)}</th><th>${escapeHtml(t.totalPrice)}</th></tr></thead><tbody>${rowsHtml}</tbody></table><p style="font-size:15px"><b>${escapeHtml(t.subtotal)}: ${escapeHtml(subtotal)} ${escapeHtml(t.currency)}</b></p>${shipping ? `<p><b>${escapeHtml(t.shippingFee)}: ${escapeHtml(shipping)} ${escapeHtml(t.currency)}</b></p>` : ''}<p style="font-size:18px"><b>${escapeHtml(t.totalPrice)}: ${escapeHtml(Number(o.total || 0))} ${escapeHtml(t.currency)}</b></p>${o.notes ? `<p style="white-space:pre-wrap"><b>${escapeHtml(t.notesLabel)}:</b> ${escapeHtml(o.notes)}</p>` : ''}</body></html>`;
 
-    const w = window.open('', '_blank', 'noopener,noreferrer');
+    // noopener must NOT be passed here: per spec it makes window.open return
+    // null, so the print path could never run. The handle is needed to write
+    // the document, and the back-reference is severed manually instead.
+    const w = window.open('', '_blank');
     if (!w) { setActionError(t.popupBlocked); setTimeout(() => setActionError(''), 4000); return; }
+    try { w.opener = null; } catch { /* cross-origin guard */ }
+    w.document.open();
     w.document.write(html);
     w.document.close();
     w.focus();
@@ -1577,62 +1586,62 @@ function ContentTab({ t }: { t: any }) {
           <h3 className="font-bold text-ink text-base flex items-center gap-2"><FileText size={16} className="text-primary" /> {t.cmsHero}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[12px] font-semibold text-muted">عنوان العرض الرئيسي (عربي)</label>
-              <input type="text" value={content.heroEyebrow} onChange={e => updateField('heroEyebrow', e.target.value)} className="input-field" />
+              <label htmlFor="cms-heroEyebrow" className="text-[12px] font-semibold text-muted">{t.cmsEyebrowLabel}</label>
+              <input id="cms-heroEyebrow" type="text" maxLength={80} value={content.heroEyebrow} onChange={e => updateField('heroEyebrow', e.target.value)} className="input-field" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[12px] font-semibold text-muted">Eyebrow (English)</label>
-              <input type="text" value={content.heroEyebrowEn} onChange={e => updateField('heroEyebrowEn', e.target.value)} className="input-field" />
+              <label htmlFor="cms-heroEyebrowEn" className="text-[12px] font-semibold text-muted">{t.cmsEyebrowLabelEn}</label>
+              <input id="cms-heroEyebrowEn" type="text" maxLength={80} value={content.heroEyebrowEn} onChange={e => updateField('heroEyebrowEn', e.target.value)} className="input-field" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[12px] font-semibold text-muted">العنوان الأول (عربي)</label>
-              <input type="text" value={content.heroTitle1} onChange={e => updateField('heroTitle1', e.target.value)} className="input-field" />
+              <label htmlFor="cms-heroTitle1" className="text-[12px] font-semibold text-muted">{t.cmsTitle1Label}</label>
+              <input id="cms-heroTitle1" type="text" maxLength={90} value={content.heroTitle1} onChange={e => updateField('heroTitle1', e.target.value)} className="input-field" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[12px] font-semibold text-muted">Title 1 (English)</label>
-              <input type="text" value={content.heroTitle1En} onChange={e => updateField('heroTitle1En', e.target.value)} className="input-field" />
+              <label htmlFor="cms-heroTitle1En" className="text-[12px] font-semibold text-muted">{t.cmsTitle1LabelEn}</label>
+              <input id="cms-heroTitle1En" type="text" maxLength={90} value={content.heroTitle1En} onChange={e => updateField('heroTitle1En', e.target.value)} className="input-field" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[12px] font-semibold text-muted">العنوان الثاني (عربي)</label>
-              <input type="text" value={content.heroTitle2} onChange={e => updateField('heroTitle2', e.target.value)} className="input-field" />
+              <label htmlFor="cms-heroTitle2" className="text-[12px] font-semibold text-muted">{t.cmsTitle2Label}</label>
+              <input id="cms-heroTitle2" type="text" maxLength={90} value={content.heroTitle2} onChange={e => updateField('heroTitle2', e.target.value)} className="input-field" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[12px] font-semibold text-muted">Title 2 (English)</label>
-              <input type="text" value={content.heroTitle2En} onChange={e => updateField('heroTitle2En', e.target.value)} className="input-field" />
+              <label htmlFor="cms-heroTitle2En" className="text-[12px] font-semibold text-muted">{t.cmsTitle2LabelEn}</label>
+              <input id="cms-heroTitle2En" type="text" maxLength={90} value={content.heroTitle2En} onChange={e => updateField('heroTitle2En', e.target.value)} className="input-field" />
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] font-semibold text-muted">الوصف (عربي)</label>
-            <textarea rows={3} value={content.heroDesc} onChange={e => updateField('heroDesc', e.target.value)} className="input-field w-full" />
+    <label htmlFor="cms-heroDesc" className="text-[12px] font-semibold text-muted">{t.cmsDescLabel}</label>
+    <textarea id="cms-heroDesc" rows={3} maxLength={600} value={content.heroDesc} onChange={e => updateField('heroDesc', e.target.value)} className="input-field w-full" />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] font-semibold text-muted">Description (English)</label>
-            <textarea rows={3} value={content.heroDescEn} onChange={e => updateField('heroDescEn', e.target.value)} className="input-field w-full" />
+    <label htmlFor="cms-heroDescEn" className="text-[12px] font-semibold text-muted">{t.cmsDescLabelEn}</label>
+    <textarea id="cms-heroDescEn" rows={3} maxLength={600} value={content.heroDescEn} onChange={e => updateField('heroDescEn', e.target.value)} className="input-field w-full" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[12px] font-semibold text-muted">نص الزر (عربي)</label>
-              <input type="text" value={content.heroCta} onChange={e => updateField('heroCta', e.target.value)} className="input-field" />
+              <label htmlFor="cms-heroCta" className="text-[12px] font-semibold text-muted">{t.cmsCtaLabel}</label>
+              <input id="cms-heroCta" type="text" maxLength={80} value={content.heroCta} onChange={e => updateField('heroCta', e.target.value)} className="input-field" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[12px] font-semibold text-muted">CTA (English)</label>
-              <input type="text" value={content.heroCtaEn} onChange={e => updateField('heroCtaEn', e.target.value)} className="input-field" />
+              <label htmlFor="cms-heroCtaEn" className="text-[12px] font-semibold text-muted">{t.cmsCtaLabelEn}</label>
+              <input id="cms-heroCtaEn" type="text" maxLength={80} value={content.heroCtaEn} onChange={e => updateField('heroCtaEn', e.target.value)} className="input-field" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[12px] font-semibold text-muted">بطاقة تغطية 1 (عربي)</label>
-              <input type="text" value={content.heroOverlay1} onChange={e => updateField('heroOverlay1', e.target.value)} className="input-field" />
+              <label htmlFor="cms-heroOverlay1" className="text-[12px] font-semibold text-muted">{t.cmsOverlay1Label}</label>
+              <input id="cms-heroOverlay1" type="text" maxLength={80} value={content.heroOverlay1} onChange={e => updateField('heroOverlay1', e.target.value)} className="input-field" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[12px] font-semibold text-muted">Overlay 1 (English)</label>
-              <input type="text" value={content.heroOverlay1En} onChange={e => updateField('heroOverlay1En', e.target.value)} className="input-field" />
+              <label htmlFor="cms-heroOverlay1En" className="text-[12px] font-semibold text-muted">{t.cmsOverlay1LabelEn}</label>
+              <input id="cms-heroOverlay1En" type="text" maxLength={80} value={content.heroOverlay1En} onChange={e => updateField('heroOverlay1En', e.target.value)} className="input-field" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[12px] font-semibold text-muted">بطاقة تغطية 2 (عربي)</label>
-              <input type="text" value={content.heroOverlay2} onChange={e => updateField('heroOverlay2', e.target.value)} className="input-field" />
+              <label htmlFor="cms-heroOverlay2" className="text-[12px] font-semibold text-muted">{t.cmsOverlay2Label}</label>
+              <input id="cms-heroOverlay2" type="text" maxLength={80} value={content.heroOverlay2} onChange={e => updateField('heroOverlay2', e.target.value)} className="input-field" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[12px] font-semibold text-muted">Overlay 2 (English)</label>
-              <input type="text" value={content.heroOverlay2En} onChange={e => updateField('heroOverlay2En', e.target.value)} className="input-field" />
+              <label htmlFor="cms-heroOverlay2En" className="text-[12px] font-semibold text-muted">{t.cmsOverlay2LabelEn}</label>
+              <input id="cms-heroOverlay2En" type="text" maxLength={80} value={content.heroOverlay2En} onChange={e => updateField('heroOverlay2En', e.target.value)} className="input-field" />
             </div>
           </div>
         </div>

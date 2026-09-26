@@ -238,6 +238,9 @@ body:before { content:'ESRAA MOMENTS'; position:fixed; inset-inline-end:2vw; bot
 @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
 @keyframes waPulse { 0% { transform:scale(1); opacity:.7; } 100% { transform:scale(1.75); opacity:0; } }
 .text-gradient { background:linear-gradient(135deg,var(--color-primary),var(--color-primary-hover)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+/* The homepage FAQ chevron had no open/closed state at all. */
+.faq-item button { display:flex; align-items:center; justify-content:space-between; gap:16px; width:100%; text-align:start; }
+.faq-item button svg { transition:transform .25s ease; }
 .faq-item.open button svg { transform:rotate(-90deg); }
 @media (max-width:900px) { .hero-index { top:5%; } .hero-actions { flex-wrap:wrap; } .story-vertical { display:none; } }
 @media (max-width:560px) { .hero-grid-lines { background-size:60px 60px; } .hero-index { display:none; } .hero-actions { gap:14px; } .hero-note { max-width:150px; } .marquee-track { animation-duration:18s; } }

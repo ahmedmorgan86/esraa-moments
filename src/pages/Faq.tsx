@@ -1,10 +1,14 @@
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { useHomepageContent } from '../lib/homepageContent';
 
 export default function Faq({ t, lang }: { t: any; lang: string }) {
   const isEn = lang === 'en';
   const [content] = useHomepageContent();
+
+  // Defensive: a row with no question in the active language rendered an
+  // empty, focusable button.
+  const faqs = (content.faqs || []).filter(f => String(isEn ? f.q_en : f.q || '').trim());
 
   return (
     <section className="section page">
@@ -15,11 +19,11 @@ export default function Faq({ t, lang }: { t: any; lang: string }) {
       </div>
 
       <div className="max-w-[760px] mx-auto flex flex-col gap-3">
-        {content.faqs.length === 0 && (
+        {faqs.length === 0 && (
           <p className="text-muted text-center py-10">{t.faqNone}</p>
         )}
-        {content.faqs.map((faq, i) => (
-          <FaqItem key={i} q={isEn ? faq.q_en : faq.q} a={isEn ? faq.a_en : faq.a} />
+        {faqs.map((faq, i) => (
+          <FaqItem key={`${i}-${String(isEn ? faq.q_en : faq.q).slice(0, 24)}`} q={isEn ? faq.q_en : faq.q} a={isEn ? faq.a_en : faq.a} />
         ))}
       </div>
     </section>
@@ -28,13 +32,27 @@ export default function Faq({ t, lang }: { t: any; lang: string }) {
 
 function FaqItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
+  const panelId = useId();
+
   return (
     <div className={`bg-surface border rounded-lg overflow-hidden transition-colors ${open ? 'border-primary' : 'border-border'}`}>
-      <button onClick={() => setOpen(v => !v)} className="w-full px-6 py-4.5 flex items-center justify-between font-bold text-start hover:bg-primary/4 transition-colors" type="button">
-        <span className="text-sm">{q}</span>
-        <ChevronLeft size={18} className={`text-muted transition-transform ${open ? '-rotate-90' : ''}`} />
-      </button>
-      {open && <div className="px-6 pb-4.5 text-muted text-[13.5px] leading-relaxed">{a}</div>}
+      <h3>
+        <button
+          onClick={() => setOpen(v => !v)}
+          aria-expanded={open}
+          aria-controls={panelId}
+          className="w-full px-6 py-4.5 flex items-center justify-between gap-4 text-start font-bold hover:bg-primary/4 transition-colors"
+          type="button"
+        >
+          <span className="text-sm">{q}</span>
+          <ChevronLeft size={18} aria-hidden="true" className={`text-muted flex-shrink-0 transition-transform ${open ? '-rotate-90' : ''}`} />
+        </button>
+      </h3>
+      {open && (
+        <div id={panelId} role="region" className="px-6 pb-4.5 text-muted text-[13.5px] leading-relaxed whitespace-pre-wrap break-words">
+          {a}
+        </div>
+      )}
     </div>
   );
 }
