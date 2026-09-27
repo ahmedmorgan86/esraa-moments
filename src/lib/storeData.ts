@@ -412,9 +412,9 @@ function toCoupon(r: CouponRow): Coupon {
 }
 
 /**
- * Active coupons are also readable by anyone, via the pre-existing
- * coupons_public_read_active policy. This is the Admin list — the storefront
- * validates a code through the RPC and never calls this.
+ * Admin only, enforced by RLS through is_admin(). The storefront never reads
+ * this table — it validates a code through the validate_coupon RPC, which is
+ * SECURITY DEFINER and so is unaffected by the table's policies.
  */
 export async function fetchCoupons(): Promise<Coupon[] | null> {
   if (!isSupabaseConfigured) return null;
@@ -429,7 +429,9 @@ export async function fetchCoupons(): Promise<Coupon[] | null> {
 export async function saveCoupon(c: Coupon): Promise<boolean> {
   if (!isSupabaseConfigured) return false;
   const { error } = await supabase.from('coupons').upsert({
-    code: c.code.toUpperCase(),
+    // trim + upper: the table pins the format with a CHECK constraint, and
+    // UNIQUE(code) only behaves case-insensitively while codes stay uppercase.
+    code: c.code.trim().toUpperCase(),
     discount_type: c.discountType,
     amount: c.discountValue,
     min_order: c.minOrder,
@@ -445,7 +447,7 @@ export async function saveCoupon(c: Coupon): Promise<boolean> {
 
 export async function deleteCoupon(code: string): Promise<boolean> {
   if (!isSupabaseConfigured) return false;
-  const { error } = await supabase.from('coupons').delete().eq('code', code.toUpperCase());
+  const { error } = await supabase.from('coupons').delete().eq('code', code.trim().toUpperCase());
   return !error;
 }
 

@@ -85,6 +85,12 @@ $$;
 
 /* ── 3. coupons.code needs to be unique ────────────────────────────────────────
  *
+ * SUPERSEDED BY 0003 -- section 3 below is a no-op and its reasoning is wrong.
+ * coupons already carried a UNIQUE (code) constraint named coupons_code_key, so
+ * "if not exists" matched that name and created nothing. There is still no index
+ * on lower(code), and onConflict: 'code' was never broken. Kept unedited as
+ * applied history; read 0003 for what is actually true.
+ *
  * coupons is keyed by id uuid; code is plain text with no unique constraint.
  * The Admin editor upserts with onConflict: 'code', which Postgres rejects:
  *
