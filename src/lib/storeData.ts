@@ -70,7 +70,7 @@ function toProduct(r: ProductRow): Product {
     category: r.category ?? '',
     price: Number(r.price),
     stock: Number(r.stock),
-    image: r.image_url,
+    image: r.image_url ?? '',
     desc: r.description,
     desc_en: r.desc_en ?? undefined,
     featured: r.is_featured,
@@ -252,13 +252,15 @@ export function subscribeToProducts(onChange: () => void): () => void {
 /* ── reviews ──────────────────────────────────────────────────────────────── */
 
 /** The review text lives in `body`; the moderation state lives in `status`. */
-const REVIEW_COLUMNS = 'id,product_id,user_name,rating,body,created_at,status';
+const REVIEW_COLUMNS = 'id,product_id,user_name,author_name,rating,body,created_at,status';
 
 function toReview(r: Record<string, unknown>): ReviewRow {
   return {
     id: String(r.id),
     productId: String(r.product_id),
-    userName: String(r.user_name ?? ''),
+    // author_name is the column the table requires; user_name is the mirror the
+    // trigger keeps in step. Prefer the original, fall back to the mirror.
+    userName: String(r.author_name ?? r.user_name ?? ''),
     rating: Number(r.rating),
     comment: String(r.body ?? ''),
     date: String(r.created_at),
@@ -303,7 +305,9 @@ export async function submitReview(r: Review): Promise<boolean> {
     // No id: the column is a uuid. The client generates an r-prefixed string
     // for its optimistic local copy, which the database would reject outright.
     product_id: r.productId,
-    user_name: r.userName,
+    // author_name is NOT NULL on the existing table. Sending only user_name
+    // failed with 23502 and the review was never stored.
+    author_name: r.userName,
     rating: r.rating,
     body: r.comment,
     status: 'pending',
@@ -407,7 +411,11 @@ function toCoupon(r: CouponRow): Coupon {
   };
 }
 
-/** Admin only — the storefront has no direct read access to coupons. */
+/**
+ * Active coupons are also readable by anyone, via the pre-existing
+ * coupons_public_read_active policy. This is the Admin list — the storefront
+ * validates a code through the RPC and never calls this.
+ */
 export async function fetchCoupons(): Promise<Coupon[] | null> {
   if (!isSupabaseConfigured) return null;
   const { data, error } = await supabase
