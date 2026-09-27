@@ -47,11 +47,13 @@ export default function Shop({ t, lang, products }: { t: any; lang: string; prod
     if (cat !== ALL) list = list.filter(p => p.category === cat);
     const q = search.trim().toLowerCase();
     if (q) {
+      // Names are not rendered anywhere, but matching on them still lets a
+      // customer find a piece by a word they saw elsewhere.
       list = list.filter(p => [p.name, p.name_en, p.desc, p.desc_en, p.category, occasionEn[p.category]]
         .some(v => typeof v === 'string' && v.toLowerCase().includes(q)));
     }
     if (sort === 'name') {
-      list.sort((a, b) => String(nameOf(a, isEn)).localeCompare(String(nameOf(b, isEn)), locale, { sensitivity: 'base' }));
+      list.sort((a, b) => String(a.slug || '').localeCompare(String(b.slug || ''), locale, { sensitivity: 'base' }));
     } else if (sort === 'price') {
       list.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
     }
@@ -88,7 +90,7 @@ export default function Shop({ t, lang, products }: { t: any; lang: string; prod
             className="text-[13.5px] cursor-pointer outline-none bg-transparent"
           >
             <option value="default">{t.sortBy}</option>
-            <option value="name">{isEn ? 'A-Z' : 'أ-ي'}</option>
+            <option value="name">{isEn ? 'Code: A-Z' : 'الكود: أ-ي'}</option>
             <option value="price">{isEn ? 'Price: low to high' : 'السعر: من الأقل للأعلى'}</option>
           </select>
         </div>
@@ -120,10 +122,12 @@ export default function Shop({ t, lang, products }: { t: any; lang: string; prod
       ) : (
         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 list-none">
           {filtered.map((p, i) => {
-            const name = nameOf(p, isEn);
             const soldOut = p.inStock === false || p.stock === 0;
+            // No name and no price on the card. The slug is what the customer
+            // quotes back on WhatsApp, so it is what the enquiry carries.
+            const refCode = String(p.slug || '');
             const waHref = settings.whatsapp
-              ? `https://wa.me/${String(settings.whatsapp).replace(/[^\d]/g, '')}?text=${encodeURIComponent(`${isEn ? 'I want to order' : 'عايز أطلب'}: ${name}`)}`
+              ? `https://wa.me/${String(settings.whatsapp).replace(/[^\d]/g, '')}?text=${encodeURIComponent(`${isEn ? 'I want to order' : 'عايز أطلب'}: ${refCode}`)}`
               : null;
             return (
               <li key={p.id} className="animate-[fadeUp_0.4s_ease_both]" style={{ animationDelay: `${i * 0.04}s` }}>
@@ -132,7 +136,7 @@ export default function Shop({ t, lang, products }: { t: any; lang: string; prod
                     <div className="relative aspect-square overflow-hidden bg-surface-alt">
                       <img
                         src={p.image}
-                        alt={name}
+                        alt=""
                         loading="lazy"
                         decoding="async"
                         className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
@@ -147,7 +151,6 @@ export default function Shop({ t, lang, products }: { t: any; lang: string; prod
                       )}
                     </div>
                     <div className="p-4">
-                      <h3 className="text-[14px] font-bold line-clamp-2 mb-1">{name}</h3>
                       <p className="text-muted text-[12.5px] line-clamp-2">{isEn && p.desc_en ? p.desc_en : p.desc}</p>
                     </div>
                   </Link>
@@ -166,7 +169,7 @@ export default function Shop({ t, lang, products }: { t: any; lang: string; prod
                         href={waHref}
                         target="_blank"
                         rel="noopener noreferrer"
-                        aria-label={`${t.orderViaWhatsApp}: ${name}`}
+                        aria-label={`${t.orderViaWhatsApp} ${refCode}`}
                         className="bg-[#25d366] text-white px-3 py-2 rounded-lg text-xs font-bold hover:opacity-90 transition-all inline-flex items-center gap-1.5"
                       >
                         <MessageCircle size={14} aria-hidden="true" /> {t.orderViaWhatsApp}
@@ -183,8 +186,4 @@ export default function Shop({ t, lang, products }: { t: any; lang: string; prod
       )}
     </section>
   );
-}
-
-function nameOf(p: any, isEn: boolean) {
-  return String((isEn && p.name_en) || p.name || p.name_en || '');
 }

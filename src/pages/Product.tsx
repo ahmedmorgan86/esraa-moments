@@ -69,16 +69,21 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
     );
   }
 
-  const name = isEn && product.name_en ? product.name_en : product.name;
   const desc = isEn && product.desc_en ? product.desc_en : product.desc;
   const catLabel = isEn ? occasionEn[product.category] || product.category : product.category;
   const soldOut = stock === 0;
   const wished = wishlist.includes(product.id);
   const waNumber = String(settings.whatsapp || '').replace(/[^\d]/g, '');
 
-  // Estimate used only to price the coupon. Product pages deliberately hide the
-  // real price ("price on contact"), so this is the catalogue price and the
-  // final discount is still confirmed by the shop before the order is accepted.
+  // No product name is shown to customers. The catalogue is browsed as pictures
+  // and the shop identifies the item from the slug when the enquiry arrives, so
+  // the page heading is the occasion instead. The slug is the only stable
+  // identifier the customer can quote back.
+  const refCode = product.slug;
+
+  // Estimate used only to price the coupon. Prices are never shown, but the
+  // catalogue price still drives min_order, so it stays in the database and out
+  // of sight rather than being removed.
   const estimate = (Number(product.price) || 0) * qty;
 
   // validate_coupon() returns a stable machine reason; it must never reach the
@@ -119,7 +124,7 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
   };
 
   const waMessage = [
-    `${isEn ? 'I want to order' : 'عايز أطلب'}: ${name} (${isEn ? 'Quantity' : 'الكمية'}: ${qty})`,
+    `${isEn ? 'I want to order' : 'عايز أطلب'}: ${refCode} (${isEn ? 'Quantity' : 'الكمية'}: ${qty})`,
     coupon ? `${isEn ? 'Discount code' : 'كود الخصم'}: ${coupon.code} (${isEn ? 'discount' : 'خصم'}: ${coupon.discount} ${isEn ? 'EGP' : 'ج.م'})` : '',
   ].filter(Boolean).join('\n');
   const waHref = waNumber
@@ -128,10 +133,15 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
 
   // Product structured data. React renders <script> children raw, so any "<"
   // in the payload is escaped first to keep the JSON from terminating early.
+  //
+  // name is the occasion rather than the product name, since no name is
+  // published. Google requires a non-empty name, and an empty string marks the
+  // entity invalid. offers is kept but carries no price: a price is required
+  // inside an Offer, and publishing one would contradict "price on contact".
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
-    name: String(name || ''),
+    name: String(catLabel || 'ESRAA Moments'),
     description: String(desc || ''),
     sku: String(product.id),
     image: product.image ? [String(product.image)] : undefined,
@@ -145,7 +155,6 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
     offers: {
       '@type': 'Offer',
       availability: soldOut ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
-      priceCurrency: 'EGP',
       url: typeof window !== 'undefined' ? window.location.href : undefined,
       seller: { '@type': 'Organization', name: 'ESRAA Moments' },
     },
@@ -160,7 +169,7 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
           {/* Image */}
           <div className="relative rounded-2xl overflow-hidden bg-surface-alt border border-border animate-[fadeUp_0.6s_ease_both]">
-            <img src={product.image} alt={name} decoding="async" className="w-full aspect-square object-cover" />
+            <img src={product.image} alt="" decoding="async" className="w-full aspect-square object-cover" />
             <span className="absolute top-4 end-4 bg-surface/85 backdrop-blur-md border border-white/20 rounded-full px-3 py-1 text-[11px] font-bold">{catLabel}</span>
             <button
               onClick={() => toggleWishlist(product.id)}
@@ -179,7 +188,7 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
               <ArrowLeft size={14} aria-hidden="true" className={isEn ? '' : 'rotate-180'} /> {t.backToShop}
             </Link>
 
-            <h1 className="text-[clamp(22px,3vw,32px)] font-black mb-2">{name}</h1>
+            <h1 className="text-[clamp(22px,3vw,32px)] font-black mb-2">{catLabel}</h1>
 
             <div className="flex items-center gap-2 mb-4">
               {productReviews.length > 0 ? (
@@ -227,7 +236,7 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
                     href={waHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={`${t.orderViaWhatsApp}: ${name}`}
+                    aria-label={`${t.orderViaWhatsApp} ${refCode}`}
                     className="btn primary flex-1 flex items-center justify-center gap-2"
                   >
                     <MessageCircle size={18} aria-hidden="true" /> {t.orderViaWhatsApp}
@@ -392,22 +401,19 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
         <section className="section">
           <h2 className="text-[clamp(22px,3vw,30px)] font-black mb-7">{t.relatedTitle}</h2>
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 list-none">
-            {related.map(p => {
-              const rn = isEn && p.name_en ? p.name_en : p.name;
-              return (
-                <li key={p.id}>
-                  <Link to={`/product/${p.id}`} className="group block h-full bg-surface border border-border rounded-xl overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all">
-                    <div className="aspect-square overflow-hidden bg-surface-alt">
-                      <img src={p.image} alt={rn} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
-                    </div>
-                    <div className="p-4">
-                      <h3 className="text-[14px] font-bold line-clamp-2 mb-1">{rn}</h3>
-                      <span className="text-primary text-[12.5px] font-bold">{t.viewDetails} {isEn ? '→' : '←'}</span>
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
+            {related.map(p => (
+              <li key={p.id}>
+                <Link to={`/product/${p.id}`} className="group block h-full bg-surface border border-border rounded-xl overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all">
+                  <div className="aspect-square overflow-hidden bg-surface-alt">
+                    <img src={p.image} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
+                  </div>
+                  <div className="p-4">
+                    <h3 className="text-[14px] font-bold line-clamp-2 mb-1">{isEn ? occasionEn[p.category] || p.category : p.category}</h3>
+                    <span className="text-primary text-[12.5px] font-bold">{t.viewDetails} {isEn ? '→' : '←'}</span>
+                  </div>
+                </Link>
+              </li>
+            ))}
           </ul>
         </section>
       )}

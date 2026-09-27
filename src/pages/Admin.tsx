@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Package, ClipboardList, Users, Settings, LogOut, TrendingUp,
   Search, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Truck, CheckCircle,
   Clock, XCircle, BarChart3, Store, Bell, Menu, Ticket, Plus, Edit3, Trash2, X, Grid, List, FileText,
-  Star, MessageSquare, RotateCcw,
+  Star, MessageSquare, RotateCcw, Upload,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { isAllowedAdmin } from '../lib/adminAuth';
@@ -16,6 +16,7 @@ import {
   createProduct, updateProduct, archiveProduct, restoreProduct, fetchProductsAdmin,
   fetchCoupons as fetchRemoteCoupons, saveCoupon as saveRemoteCoupon,
   deleteCoupon as deleteRemoteCoupon, fetchReviewsAdmin, moderateReview, deleteReview,
+  uploadProductImage, deleteProductImage, isUploadedProductImage,
   type ReviewRow, type ReviewStatus,
 } from '../lib/storeData';
 import { useSite } from '../lib/site';
@@ -554,6 +555,15 @@ function ProductsTab({ t, products, setProducts }: { t: any; products: Product[]
   const [form, setForm] = useState({
     name: '', name_en: '', desc: '', desc_en: '', category: occasions[0], price: 0, stock: 0, image: '', featured: false,
   });
+  // Image upload state. pendingUpload is the public URL of an object written
+  // during this editing session but not yet referenced by a saved product, so
+  // closing the form can remove it. replacedImage is the object the new upload
+  // displaced, removed only once the row has actually been repointed.
+  const [uploading, setUploading] = useState(false);
+  const [pendingUpload, setPendingUpload] = useState<string | null>(null);
+  const [replacedImage, setReplacedImage] = useState<string | null>(null);
+  const [imageNote, setImageNote] = useState('');
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const isEn = typeof document !== 'undefined' && document.documentElement.lang === 'en';
   const [showArchived, setShowArchived] = useState(false);
@@ -594,6 +604,63 @@ function ProductsTab({ t, products, setProducts }: { t: any; products: Product[]
     setEditing(null);
     setShowModal(false);
     setFormError('');
+    setImageNote('');
+    setPendingUpload(null);
+    setReplacedImage(null);
+  };
+
+  /**
+   * Uploads as soon as a file is chosen and points the form at the new public
+   * URL, so what the admin previews is exactly what will be saved.
+   */
+  const handleImageFile = async (file: File | undefined) => {
+    if (!file) return;
+    setImageNote('');
+    setUploading(true);
+    const res = await uploadProductImage(file);
+    setUploading(false);
+    if (!res.ok) {
+      if (res.reason === 'bad-type') setImageNote(t.imageBadType);
+      else if (res.reason === 'too-large') setImageNote(t.imageTooLarge);
+      else if (res.reason === 'unconfigured') setImageNote(t.notConfigured);
+      else setImageNote(t.imageUploadFailed);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+    // A second pick before saving orphans the first upload, and nothing ever
+    // referenced it, so it can go now.
+    const superseded = pendingUpload;
+    if (superseded) void deleteProductImage(superseded);
+    // Remember the picture the new one displaces, but only if we uploaded it and
+    // it is the product's own image rather than a pick already discarded above.
+    // The original catalogue points at static /images/*.jpeg files.
+    const previous = form.image;
+    if (previous && previous !== superseded && isUploadedProductImage(previous)) {
+      setReplacedImage(prev => prev ?? previous);
+    }
+    setForm(f => ({ ...f, image: res.url }));
+    setPendingUpload(res.url);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  /** Clears the picture from the form. The object is removed on save, or on
+   *  cancel if it was never attached to a product. */
+  const clearImage = () => {
+    if (form.image && isUploadedProductImage(form.image) && form.image !== pendingUpload) {
+      setReplacedImage(prev => prev ?? form.image);
+    }
+    if (pendingUpload) void deleteProductImage(pendingUpload);
+    setForm(f => ({ ...f, image: '' }));
+    setPendingUpload(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  /** Closes the form without saving. An upload made during this session is not
+   *  referenced by any product, so it is removed instead of accumulating in the
+   *  bucket. */
+  const cancelForm = () => {
+    if (pendingUpload) void deleteProductImage(pendingUpload);
+    resetForm();
   };
 
   const openAdd = () => {
@@ -608,6 +675,9 @@ function ProductsTab({ t, products, setProducts }: { t: any; products: Product[]
     });
     setEditing(product);
     setFormError('');
+    setImageNote('');
+    setPendingUpload(null);
+    setReplacedImage(null);
     setShowModal(true);
   };
 
@@ -627,9 +697,20 @@ function ProductsTab({ t, products, setProducts }: { t: any; products: Product[]
     // Paint first, then push. The remote write is the one that can fail, and the
     // admin has to be told which of the two actually happened.
     applyLocally(next);
-    setSynced(await (editing ? updateProduct(next) : createProduct(next)));
+    const didSync = await (editing ? updateProduct(next) : createProduct(next));
+    setSynced(didSync);
     setSaved(true);
     setFormError('');
+
+    // The old object may only go once the row actually points at the new one.
+    // If the write failed the database still references the previous picture, so
+    // removing it there would leave the live product with a broken image. The new
+    // upload is referenced once this succeeds, so resetForm must not then treat
+    // it as an orphan. Only objects this app uploaded are touched; the original
+    // /images/*.jpeg files are static and may still be used elsewhere.
+    if (didSync && replacedImage && replacedImage !== next.image) {
+      await deleteProductImage(replacedImage);
+    }
     resetForm();
     setTimeout(() => setSaved(false), 2500);
   };
@@ -852,8 +933,34 @@ function ProductsTab({ t, products, setProducts }: { t: any; products: Product[]
                   <input id="pf-stock" type="number" required min="0" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: Math.max(0, +e.target.value) }))} className="input-field" />
                 </div>
                 <div className="flex flex-col gap-1.5">
+                  <span className="text-[12px] font-semibold text-muted">{t.productImage}</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/avif"
+                      onChange={e => { void handleImageFile(e.target.files?.[0]); }}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className="btn border inline-flex items-center gap-2"
+                    >
+                      <Upload size={15} aria-hidden="true" />
+                      {uploading ? t.uploadingImage : (form.image ? t.changeImage : t.uploadImage)}
+                    </button>
+                    {form.image && (
+                      <button type="button" onClick={clearImage} className="btn border">{t.removeImage}</button>
+                    )}
+                  </div>
+                  {imageNote && <p role="alert" className="text-danger text-[12px] font-semibold">{imageNote}</p>}
+                </div>
+                <div className="flex flex-col gap-1.5">
                   <label htmlFor="pf-img" className="text-[12px] font-semibold text-muted">{t.imageUrl}</label>
                   <input id="pf-img" type="text" value={form.image} onChange={e => setForm(f => ({ ...f, image: e.target.value }))} className="input-field" placeholder="/images/..." />
+                  <span className="text-[11px] text-muted">{t.imageUrlHint}</span>
                 </div>
                 <div className="flex flex-col gap-1.5 sm:col-span-2">
                   <span className="text-[12px] font-semibold text-muted">{t.imagePreview}</span>
@@ -872,7 +979,7 @@ function ProductsTab({ t, products, setProducts }: { t: any; products: Product[]
                 {formError && <p role="alert" className="sm:col-span-2 text-danger text-[12px] font-semibold">{formError}</p>}
                 <div className="sm:col-span-2 flex gap-2 pt-2">
                   <button type="submit" className="btn primary">{t.saveProduct}</button>
-                  <button type="button" onClick={resetForm} className="btn border">{t.cancelLabel}</button>
+                  <button type="button" onClick={cancelForm} className="btn border">{t.cancelLabel}</button>
                 </div>
               </form>
             </motion.div>

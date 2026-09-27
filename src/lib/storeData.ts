@@ -214,6 +214,83 @@ export async function restoreProduct(id: string): Promise<boolean> {
   return !error;
 }
 
+/* ── product images ──────────────────────────────────────────────────────────
+ *
+ * The admin form used to take a pasted URL, so every picture either had to live
+ * somewhere public already or the admin typed a path that broke silently.
+ * Pictures now go into the product-images bucket, created in migration 0004.
+ *
+ * Object names are random rather than derived from the slug. Slugs change when a
+ * product is renamed, and a path built from the slug would strand the old file
+ * on every rename.
+ */
+
+export const PRODUCT_IMAGE_BUCKET = 'product-images';
+
+/** Kept in step with allowed_mime_types and file_size_limit in migration 0004.
+ *  Checked here too, because the client gets a clearer message than the 400 the
+ *  Storage API would return. */
+const IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
+const IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+
+export type ProductImageResult =
+  | { ok: true; url: string; path: string }
+  | { ok: false; reason: 'unconfigured' | 'bad-type' | 'too-large' | 'error'; message?: string };
+
+const IMAGE_EXTENSION: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/avif': 'avif',
+};
+
+/** The public URL prefix for this bucket, used to recognise our own objects.
+ *  getPublicUrl returns base + path, so an empty path gives the bare prefix and
+ *  slicing exactly its length recovers the object name. */
+function productImagePrefix(): string {
+  return supabase.storage.from(PRODUCT_IMAGE_BUCKET).getPublicUrl('').data.publicUrl;
+}
+
+/** True when the URL points at an object this app uploaded, as opposed to a
+ *  hand-typed /images/... path from the original catalogue. */
+export function isUploadedProductImage(url: string): boolean {
+  if (!url) return false;
+  return url.startsWith(productImagePrefix());
+}
+
+export async function uploadProductImage(file: File): Promise<ProductImageResult> {
+  if (!isSupabaseConfigured) return { ok: false, reason: 'unconfigured' };
+  if (!IMAGE_MIME_TYPES.includes(file.type)) return { ok: false, reason: 'bad-type' };
+  if (file.size > IMAGE_MAX_BYTES) return { ok: false, reason: 'too-large' };
+
+  const ext = IMAGE_EXTENSION[file.type] || 'jpg';
+  const path = `${Date.now()}-${crypto.randomUUID()}.${ext}`;
+
+  const { error } = await supabase.storage.from(PRODUCT_IMAGE_BUCKET).upload(path, file, {
+    cacheControl: '31536000',
+    contentType: file.type,
+    upsert: false,
+  });
+  if (error) return { ok: false, reason: 'error', message: error.message };
+
+  const { data } = supabase.storage.from(PRODUCT_IMAGE_BUCKET).getPublicUrl(path);
+  return { ok: true, url: data.publicUrl, path };
+}
+
+/**
+ * Removes an object we uploaded. Refuses anything else on purpose: the original
+ * 20 products point at /images/*.jpeg, which are static files and not storage
+ * objects, and a delete built from a guessed name could take out a picture
+ * another product is still using.
+ */
+export async function deleteProductImage(url: string): Promise<boolean> {
+  if (!isSupabaseConfigured || !isUploadedProductImage(url)) return false;
+  const path = url.slice(productImagePrefix().length);
+  if (!path) return false;
+  const { error } = await supabase.storage.from(PRODUCT_IMAGE_BUCKET).remove([path]);
+  return !error;
+}
+
 /* ── settings (store details, appearance, CMS content) ────────────────────── */
 
 export async function fetchSetting<T>(key: string): Promise<T | null> {
