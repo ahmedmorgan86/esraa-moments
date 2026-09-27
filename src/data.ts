@@ -2,6 +2,8 @@ export type Product = {
   id: string; name: string; name_en?: string; category: string;
   price: number; stock: number; image: string;
   desc: string; desc_en?: string; featured?: boolean; isStartingFrom?: boolean;
+  /** Hidden from the storefront but still editable/restorable in Admin. */
+  archived?: boolean;
 };
 export type CartItem = Product & { qty: number };
 export type Design = {
@@ -28,16 +30,14 @@ export interface Coupon {
   active: boolean;
 }
 
-export function validateCoupon(code: string, subtotal: number): { valid: boolean; discount: number; message: string } {
-  const coupons: Coupon[] = JSON.parse(localStorage.getItem('em-coupons') || '[]');
-  const coupon = coupons.find(c => c.code.toUpperCase() === code.toUpperCase() && c.active);
-  if (!coupon) return { valid: false, discount: 0, message: 'كود غير صالح' };
-  if (new Date(coupon.expiresAt) < new Date()) return { valid: false, discount: 0, message: 'الكود منتهي الصلاحية' };
-  if (coupon.usedCount >= coupon.maxUses) return { valid: false, discount: 0, message: 'الكود وصل للحد الأقصى' };
-  if (subtotal < coupon.minOrder) return { valid: false, discount: 0, message: `الحد الأدنى ${coupon.minOrder} ج.م` };
-  const discount = coupon.discountType === 'percent' ? (subtotal * coupon.discountValue / 100) : coupon.discountValue;
-  return { valid: true, discount, message: `تم تطبيق خصم ${discount} ج.م` };
-}
+/**
+ * Discounts are no longer computed here. The old implementation read
+ * localStorage and did the arithmetic in the browser, which meant a customer
+ * could edit their own storage and invent any discount. The only place a
+ * discount is now calculated is validate_coupon() in Postgres — see
+ * supabase/migrations/0001_shared_data.sql and validateCouponRemote() in
+ * src/lib/storeData.ts.
+ */
 export type Order = {
   id: string; order_number: string; customer_name: string; customer_phone: string;
   customer_email: string; city: string; address: string; occasion: string;

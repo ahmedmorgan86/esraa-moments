@@ -1,21 +1,29 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Package, ClipboardList, Users, Settings, LogOut, TrendingUp,
   Search, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Truck, CheckCircle,
-  Clock, XCircle, BarChart3, Store, Bell, Menu, Ticket, Plus, Edit3, Trash2, X, Grid, List, FileText
+  Clock, XCircle, BarChart3, Store, Bell, Menu, Ticket, Plus, Edit3, Trash2, X, Grid, List, FileText,
+  Star, MessageSquare, RotateCcw,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { isAllowedAdmin } from '../lib/adminAuth';
 import type { Product, Coupon } from '../data';
 import { occasions } from '../data';
 import { useStoreSettings, saveStoreSettings, readJSON, type StoreSettings } from '../hooks';
+import {
+  createProduct, updateProduct, archiveProduct, restoreProduct, fetchProductsAdmin,
+  fetchCoupons as fetchRemoteCoupons, saveCoupon as saveRemoteCoupon,
+  deleteCoupon as deleteRemoteCoupon, fetchReviewsAdmin, moderateReview, deleteReview,
+  type ReviewRow, type ReviewStatus,
+} from '../lib/storeData';
 import { useSite } from '../lib/site';
 import {
   useHomepageContent, saveHomepageContent, resetHomepageContent,
-  defaultHomepageContent, type HomepageContent,
+  defaultHomepageContent, HOMEPAGE_SETTING_KEY, type HomepageContent,
 } from '../lib/homepageContent';
+import { saveSetting } from '../lib/storeData';
 
 const fadeIn = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
 
@@ -61,6 +69,7 @@ const navItems = (t: any) => [
   { key: 'products', label: t.products, icon: Package },
   { key: 'orders', label: t.allOrders, icon: ClipboardList },
   { key: 'coupons', label: t.coupons, icon: Ticket },
+  { key: 'reviews', label: t.reviews, icon: MessageSquare },
   { key: 'content', label: t.cms, icon: FileText },
   { key: 'customers', label: t.customers, icon: Users },
   { key: 'settings', label: t.settings, icon: Settings },
@@ -287,6 +296,7 @@ export default function AdminPage({ t, products, setProducts }: { t: any; produc
             {tab === 'products' && <ProductsTab key="p" t={t} products={products} setProducts={setProducts} />}
             {tab === 'orders' && <OrdersTab key="o" t={t} />}
             {tab === 'coupons' && <CouponsTab key="cp" t={t} />}
+            {tab === 'reviews' && <ReviewsTab key="rv" t={t} products={products} />}
             {tab === 'content' && <ContentTab key="ct" t={t} />}
             {tab === 'customers' && <CustomersTab key="c" t={t} />}
             {tab === 'settings' && <SettingsTab key="s" t={t} />}
@@ -534,17 +544,45 @@ function ProductsTab({ t, products, setProducts }: { t: any; products: Product[]
   const [deleteConfirm, setDeleteConfirm] = useState<Product | null>(null);
   const [formError, setFormError] = useState('');
   const [saved, setSaved] = useState(false);
+  // null = nothing attempted yet, true = written to Supabase, false = only this browser.
+  const [synced, setSynced] = useState<boolean | null>(null);
   const [form, setForm] = useState({
     name: '', name_en: '', desc: '', desc_en: '', category: occasions[0], price: 0, stock: 0, image: '', featured: false,
   });
 
   const isEn = typeof document !== 'undefined' && document.documentElement.lang === 'en';
+  const [showArchived, setShowArchived] = useState(false);
+
+  // The storefront list filters archived rows out, so without this the Admin
+  // would have no way to see — let alone restore — anything it archived.
+  const [all, setAll] = useState<Product[]>(products);
+  useEffect(() => {
+    let alive = true;
+    void fetchProductsAdmin().then(remote => { if (alive && remote) setAll(remote); });
+    return () => { alive = false; };
+  }, []);
+
+  const live = all.length ? all : products;
+  const archivedCount = live.filter(p => p.archived).length;
   const q = search.trim().toLowerCase();
-  const filtered = products.filter(p => !q
-    || p.name.toLowerCase().includes(q)
-    || (p.name_en || '').toLowerCase().includes(q)
-    || (p.desc || '').toLowerCase().includes(q)
-    || (p.desc_en || '').toLowerCase().includes(q));
+  const filtered = live.filter(p => {
+    if (p.archived && !showArchived) return false;
+    return !q
+      || p.name.toLowerCase().includes(q)
+      || (p.name_en || '').toLowerCase().includes(q)
+      || (p.desc || '').toLowerCase().includes(q)
+      || (p.desc_en || '').toLowerCase().includes(q);
+  });
+
+  /** Apply a product change to both lists so the grid and the archive agree. */
+  const applyLocally = (next: Product) => {
+    setAll(prev => (prev.some(p => p.id === next.id)
+      ? prev.map(p => p.id === next.id ? { ...p, ...next } : p)
+      : [...prev, next]));
+    setProducts(prev => (prev.some(p => p.id === next.id)
+      ? prev.map(p => p.id === next.id ? { ...p, ...next } : p)
+      : [...prev, next]));
+  };
 
   const resetForm = () => {
     setForm({ name: '', name_en: '', desc: '', desc_en: '', category: occasions[0], price: 0, stock: 0, image: '', featured: false });
@@ -568,20 +606,23 @@ function ProductsTab({ t, products, setProducts }: { t: any; products: Product[]
     setShowModal(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name.trim()) { setFormError(t.requiredField); return; }
     if (!(form.price > 0)) { setFormError(t.invalidPrice); return; }
     if (form.stock < 0) { setFormError(t.invalidStock); return; }
-    if (editing) {
-      setProducts(prev => prev.map(p => p.id === editing.id ? { ...p, ...form } : p));
-    } else {
-      const newProduct: Product = {
-        id: `p${Date.now().toString(36)}`,
-        name: form.name, name_en: form.name_en, desc: form.desc, desc_en: form.desc_en,
-        category: form.category, price: form.price, stock: form.stock, image: form.image, featured: form.featured,
-      };
-      setProducts(prev => [...prev, newProduct]);
-    }
+
+    const next: Product = editing
+      ? { ...editing, ...form }
+      : {
+          id: `p${Date.now().toString(36)}`,
+          name: form.name, name_en: form.name_en, desc: form.desc, desc_en: form.desc_en,
+          category: form.category, price: form.price, stock: form.stock, image: form.image, featured: form.featured,
+        };
+
+    // Paint first, then push. The remote write is the one that can fail, and the
+    // admin has to be told which of the two actually happened.
+    applyLocally(next);
+    setSynced(await (editing ? updateProduct(next) : createProduct(next)));
     setSaved(true);
     setFormError('');
     resetForm();
@@ -592,13 +633,24 @@ function ProductsTab({ t, products, setProducts }: { t: any; products: Product[]
     setDeleteConfirm(product);
   };
 
-  const confirmDelete = () => {
-    if (deleteConfirm) {
-      setProducts(prev => prev.filter(p => p.id !== deleteConfirm.id));
-      setDeleteConfirm(null);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
-    }
+  // Archive instead of delete: orders and reviews reference product ids, and a
+  // hard delete would take the row out from under a past order.
+  const confirmDelete = async () => {
+    if (!deleteConfirm) return;
+    const id = deleteConfirm.id;
+    setAll(prev => prev.map(p => p.id === id ? { ...p, archived: true } : p));
+    setProducts(prev => prev.map(p => p.id === id ? { ...p, archived: true } : p));
+    setSynced(await archiveProduct(id));
+    setDeleteConfirm(null);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  };
+
+  const confirmRestore = async (product: Product) => {
+    applyLocally({ ...product, archived: false });
+    setSynced(await restoreProduct(product.id));
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
   };
 
   return (
@@ -623,9 +675,22 @@ function ProductsTab({ t, products, setProducts }: { t: any; products: Product[]
         </div>
       </div>
 
+      {archivedCount > 0 && (
+        <label className="flex items-center gap-2 mb-5 text-[13px] text-muted cursor-pointer w-fit">
+          <input
+            type="checkbox"
+            checked={showArchived}
+            onChange={e => setShowArchived(e.target.checked)}
+            className="accent-primary w-4 h-4"
+          />
+          {t.showArchived} ({archivedCount})
+        </label>
+      )}
+
       {saved && (
-        <div role="status" className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3 mb-5 text-emerald-600 text-[13px] font-semibold">
+        <div role="status" className={`border rounded-xl px-4 py-3 mb-5 text-[13px] font-semibold ${synced === false ? 'bg-amber-500/10 border-amber-500/20 text-amber-600' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600'}`}>
           {t.savedSuccessfully}
+          {synced === false && <span className="block font-normal text-[12px] mt-0.5">{t.savedLocallyOnly}</span>}
         </div>
       )}
 
@@ -646,19 +711,28 @@ function ProductsTab({ t, products, setProducts }: { t: any; products: Product[]
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-border"><Package size={32} /></div>
                 )}
-                <div className="absolute top-3 start-3">
+                <div className="absolute top-3 start-3 flex flex-col items-start gap-1">
                   {p.featured && <span className="bg-primary text-white text-[10px] font-bold px-2 py-1 rounded-md">{t.featuredLabel}</span>}
+                  {p.archived && <span className="bg-slate-700 text-white text-[10px] font-bold px-2 py-1 rounded-md">{t.archivedLabel}</span>}
                 </div>
                 <div className="absolute top-3 end-3">
                   <span className="bg-surface/85 backdrop-blur-sm text-[10px] font-bold px-2 py-1 rounded-md text-ink">{p.stock} {t.qty}</span>
                 </div>
                 <div className="absolute bottom-3 end-3 flex items-center gap-1.5 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity">
-                  <button onClick={() => openEdit(p)} aria-label={`${t.edit} ${p.name}`} title={t.edit} className="w-8 h-8 rounded-lg bg-surface/90 backdrop-blur-sm flex items-center justify-center hover:bg-primary/10 text-muted hover:text-primary transition-colors border border-white/20">
-                    <Edit3 size={14} />
-                  </button>
-                  <button onClick={() => handleDelete(p)} aria-label={`${t.delete} ${p.name}`} title={t.delete} className="w-8 h-8 rounded-lg bg-surface/90 backdrop-blur-sm flex items-center justify-center hover:bg-danger/10 text-muted hover:text-danger transition-colors border border-white/20">
-                    <Trash2 size={14} />
-                  </button>
+                  {p.archived ? (
+                    <button onClick={() => void confirmRestore(p)} aria-label={`${t.restore} ${p.name}`} title={t.restore} className="w-8 h-8 rounded-lg bg-surface/90 backdrop-blur-sm flex items-center justify-center hover:bg-emerald-500/10 text-muted hover:text-emerald-600 transition-colors border border-white/20">
+                      <RotateCcw size={14} />
+                    </button>
+                  ) : (
+                    <>
+                      <button onClick={() => openEdit(p)} aria-label={`${t.edit} ${p.name}`} title={t.edit} className="w-8 h-8 rounded-lg bg-surface/90 backdrop-blur-sm flex items-center justify-center hover:bg-primary/10 text-muted hover:text-primary transition-colors border border-white/20">
+                        <Edit3 size={14} />
+                      </button>
+                      <button onClick={() => handleDelete(p)} aria-label={`${t.delete} ${p.name}`} title={t.delete} className="w-8 h-8 rounded-lg bg-surface/90 backdrop-blur-sm flex items-center justify-center hover:bg-danger/10 text-muted hover:text-danger transition-colors border border-white/20">
+                        <Trash2 size={14} />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="p-4">
@@ -705,12 +779,23 @@ function ProductsTab({ t, products, setProducts }: { t: any; products: Product[]
                     <td className="px-5 py-3">{p.featured ? <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded-md">★</span> : <span className="text-border">—</span>}</td>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-1.5">
-                        <button onClick={() => openEdit(p)} aria-label={`${t.edit} ${p.name}`} title={t.edit} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-primary/5 text-muted hover:text-primary transition-colors">
-                          <Edit3 size={14} />
-                        </button>
-                        <button onClick={() => handleDelete(p)} aria-label={`${t.delete} ${p.name}`} title={t.delete} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-danger/5 text-muted hover:text-danger transition-colors">
-                          <Trash2 size={14} />
-                        </button>
+                        {p.archived ? (
+                          <>
+                            <span className="bg-slate-700 text-white text-[10px] font-bold px-2 py-1 rounded-md">{t.archivedLabel}</span>
+                            <button onClick={() => void confirmRestore(p)} aria-label={`${t.restore} ${p.name}`} title={t.restore} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-emerald-500/5 text-muted hover:text-emerald-600 transition-colors">
+                              <RotateCcw size={14} />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button onClick={() => openEdit(p)} aria-label={`${t.edit} ${p.name}`} title={t.edit} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-primary/5 text-muted hover:text-primary transition-colors">
+                              <Edit3 size={14} />
+                            </button>
+                            <button onClick={() => handleDelete(p)} aria-label={`${t.delete} ${p.name}`} title={t.delete} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-danger/5 text-muted hover:text-danger transition-colors">
+                              <Trash2 size={14} />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -1203,6 +1288,157 @@ function CustomersTab({ t }: { t: any }) {
 }
 
 /* ══════════════════════════════════════════════════════ */
+/*                    REVIEWS TAB                        */
+/* ══════════════════════════════════════════════════════ */
+const reviewStatusMeta: Record<ReviewStatus, { label: string; cls: string }> = {
+  pending:   { label: 'pendingLabel',   cls: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
+  approved:  { label: 'approvedLabel',  cls: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
+  rejected:  { label: 'rejectedLabel',  cls: 'bg-red-500/10 text-red-600 border-red-500/20' },
+};
+
+function ReviewsTab({ t, products }: { t: any; products: Product[] }) {
+  const [reviews, setReviews] = useState<ReviewRow[]>([]);
+  const [filter, setFilter] = useState<'all' | ReviewStatus>('pending');
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [synced, setSynced] = useState<boolean | null>(null);
+
+  // No setState before the await: the tab mounts with the spinner already on,
+  // so re-rendering just to start loading is wasted work.
+  const load = useCallback(async () => {
+    const remote = await fetchReviewsAdmin();
+    if (remote) setReviews(remote);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { void load(); }, [load]);
+
+  const counts = useMemo(() => ({
+    pending: reviews.filter(r => r.status === 'pending').length,
+    approved: reviews.filter(r => r.status === 'approved').length,
+    rejected: reviews.filter(r => r.status === 'rejected').length,
+    all: reviews.length,
+  }), [reviews]);
+
+  const shown = useMemo(
+    () => (filter === 'all' ? reviews : reviews.filter(r => r.status === filter)),
+    [reviews, filter],
+  );
+
+  const productName = (id: string) => {
+    const p = products.find(x => x.id === id);
+    return p ? (p.name_en || p.name) : id;
+  };
+
+  const act = async (id: string, run: () => Promise<boolean>) => {
+    setBusy(id);
+    setSynced(await run());
+    await load();
+    setBusy(null);
+  };
+
+  const filters: ('all' | ReviewStatus)[] = ['pending', 'approved', 'rejected', 'all'];
+
+  return (
+    <motion.div initial="hidden" animate="visible" variants={fadeIn}>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+        <div>
+          <h1 className="text-xl font-black text-ink">{t.reviews}</h1>
+          <p className="text-muted text-[13px] mt-0.5">
+            {counts.pending} {t.pendingReviews} · {counts.approved} {t.approvedReviews}
+          </p>
+        </div>
+        <button onClick={() => { setLoading(true); void load(); }} className="btn text-[13px]">{t.refresh}</button>
+      </div>
+
+      {synced === false && (
+        <div role="alert" className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3 mb-5 text-amber-600 text-[13px]">
+          {t.savedLocallyOnly}
+        </div>
+      )}
+
+      <div className="flex flex-wrap gap-2 mb-5">
+        {filters.map(f => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            aria-pressed={filter === f}
+            className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold border transition-colors ${
+              filter === f ? 'bg-primary text-white border-primary' : 'bg-surface border-border text-muted hover:text-ink'
+            }`}
+          >
+            {f === 'all' ? `${t.all} (${counts.all})` : `${t[reviewStatusMeta[f].label]} (${counts[f]})`}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="bg-surface border border-border rounded-2xl py-16 text-center text-muted text-sm">{t.loading}</div>
+      ) : shown.length === 0 ? (
+        <div className="bg-surface border border-border rounded-2xl py-16 text-center">
+          <MessageSquare size={40} className="mx-auto mb-3 text-border" />
+          <p className="text-muted text-sm">{t.noReviewsYet}</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {shown.map(r => (
+            <article key={r.id} className="bg-surface border border-border rounded-2xl p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3 mb-2">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-bold text-sm text-ink">{r.userName}</span>
+                    <span className="inline-flex items-center gap-0.5" role="img" aria-label={`${r.rating} / 5`}>
+                      {[1, 2, 3, 4, 5].map(i => (
+                        <Star key={i} size={13} aria-hidden="true" className={i <= r.rating ? 'text-amber-400 fill-amber-400' : 'text-ink/20'} />
+                      ))}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${reviewStatusMeta[r.status].cls}`}>
+                      {t[reviewStatusMeta[r.status].label]}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-subtle">
+                    {productName(r.productId)} · {new Date(r.date).toLocaleString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {r.status !== 'approved' && (
+                    <button
+                      onClick={() => void act(r.id, () => moderateReview(r.id, 'approved'))}
+                      disabled={busy === r.id}
+                      className="btn text-[12px] text-emerald-600 border-emerald-500/30"
+                    >
+                      <CheckCircle size={14} aria-hidden="true" /> {t.approve}
+                    </button>
+                  )}
+                  {r.status !== 'rejected' && (
+                    <button
+                      onClick={() => void act(r.id, () => moderateReview(r.id, 'rejected'))}
+                      disabled={busy === r.id}
+                      className="btn text-[12px] text-amber-600 border-amber-500/30"
+                    >
+                      <XCircle size={14} aria-hidden="true" /> {t.reject}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => void act(r.id, () => deleteReview(r.id))}
+                    disabled={busy === r.id}
+                    aria-label={`${t.delete} ${r.userName}`}
+                    className="p-2 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                  >
+                    <Trash2 size={15} aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+              <p className="text-muted text-sm whitespace-pre-wrap break-words">{r.comment}</p>
+            </article>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════ */
 /*                    COUPONS TAB                        */
 /* ══════════════════════════════════════════════════════ */
 function CouponsTab({ t }: { t: any }) {
@@ -1220,6 +1456,20 @@ function CouponsTab({ t }: { t: any }) {
     try { localStorage.setItem('em-coupons', JSON.stringify(coupons)); } catch {}
   }, [coupons]);
 
+  // Pull the shared coupon list. The storefront has no direct read access to
+  // this table, so this is the only place the codes live for anyone to see.
+  useEffect(() => {
+    let alive = true;
+    void fetchRemoteCoupons().then(remote => {
+      if (!alive || !remote) return;
+      setCoupons(remote);
+      try { localStorage.setItem('em-coupons', JSON.stringify(remote)); } catch {}
+    });
+    return () => { alive = false; };
+  }, []);
+
+  const [synced, setSynced] = useState<boolean | null>(null);
+
   const resetForm = () => {
     setForm({ code: '', discountType: 'percent', discountValue: 0, minOrder: 0, maxUses: 100, expiresAt: '', active: true });
     setEditing(null);
@@ -1227,28 +1477,29 @@ function CouponsTab({ t }: { t: any }) {
     setFormError('');
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const code = form.code.trim().toUpperCase();
     if (!code) { setFormError(t.requiredField); return; }
     if (!(form.discountValue > 0)) { setFormError(t.invalidDiscount); return; }
     if (form.discountType === 'percent' && form.discountValue > 100) { setFormError(t.percentOutOfRange); return; }
     if (coupons.some(c => c.code === code && c.id !== editing?.id)) { setFormError(t.duplicateCouponCode); return; }
-    if (editing) {
-      setCoupons(prev => prev.map(c => c.id === editing.id ? { ...c, ...form, code } : c));
-    } else {
-      const newCoupon: Coupon = {
-        id: `cp-${Date.now()}`,
-        code,
-        discountType: form.discountType,
-        discountValue: form.discountValue,
-        minOrder: form.minOrder,
-        maxUses: form.maxUses,
-        usedCount: 0,
-        expiresAt: form.expiresAt,
-        active: form.active,
-      };
-      setCoupons(prev => [...prev, newCoupon]);
-    }
+
+    const next: Coupon = editing
+      ? { ...editing, ...form, code }
+      : {
+          id: code,
+          code,
+          discountType: form.discountType,
+          discountValue: form.discountValue,
+          minOrder: form.minOrder,
+          maxUses: form.maxUses,
+          usedCount: 0,
+          expiresAt: form.expiresAt,
+          active: form.active,
+        };
+
+    setCoupons(prev => (editing ? prev.map(c => c.id === editing.id ? next : c) : [...prev, next]));
+    setSynced(await saveRemoteCoupon(next));
     resetForm();
   };
 
@@ -1266,14 +1517,20 @@ function CouponsTab({ t }: { t: any }) {
     setDeleteConfirm(coupon);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!deleteConfirm) return;
-    setCoupons(prev => prev.filter(c => c.id !== deleteConfirm.id));
+    const code = deleteConfirm.code;
+    setCoupons(prev => prev.filter(c => c.id !== code));
+    setSynced(await deleteRemoteCoupon(code));
     setDeleteConfirm(null);
   };
 
-  const toggleActive = (id: string) => {
-    setCoupons(prev => prev.map(c => c.id === id ? { ...c, active: !c.active } : c));
+  const toggleActive = async (id: string) => {
+    const target = coupons.find(c => c.id === id);
+    if (!target) return;
+    const next = { ...target, active: !target.active };
+    setCoupons(prev => prev.map(c => c.id === id ? next : c));
+    setSynced(await saveRemoteCoupon(next));
   };
 
   return (
@@ -1287,6 +1544,12 @@ function CouponsTab({ t }: { t: any }) {
           <span className="text-lg">+</span> {t.addCoupon}
         </button>
       </div>
+
+      {synced === false && (
+        <div role="alert" className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3 mb-5 text-amber-600 text-[13px]">
+          {t.savedLocallyOnly}
+        </div>
+      )}
 
       {/* Add/Edit Form */}
       <AnimatePresence>
@@ -1429,6 +1692,7 @@ function SettingsTab({ t }: { t: any }) {
   const current = useStoreSettings();
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+  const [synced, setSynced] = useState<boolean | null>(null);
   const [form, setForm] = useState(current);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -1436,7 +1700,7 @@ function SettingsTab({ t }: { t: any }) {
 
   const set = <K extends keyof StoreSettings>(k: K, v: string) => setForm(f => ({ ...f, [k]: v }));
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const digits = form.whatsapp.replace(/\D/g, '');
     if (!form.name.trim()) { setError(t.requiredField); return; }
@@ -1444,7 +1708,8 @@ function SettingsTab({ t }: { t: any }) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) { setError(t.invalidEmail); return; }
     if (!(Number(form.shippingThreshold) >= 0) || !(Number(form.shippingFee) >= 0)) { setError(t.invalidShipping); return; }
     setError('');
-    saveStoreSettings({ ...form, name: form.name.trim(), whatsapp: digits, email: form.email.trim() });
+    const ok = await saveStoreSettings({ ...form, name: form.name.trim(), whatsapp: digits, email: form.email.trim() });
+    setSynced(ok);
     setSaved(true);
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => setSaved(false), 3000);
@@ -1505,6 +1770,7 @@ function SettingsTab({ t }: { t: any }) {
             {t.saveChangesLabel}
           </button>
           {saved && <span role="status" className="text-success text-[13px] font-medium">{t.settingsSaved}</span>}
+          {synced === false && <span role="alert" className="text-amber-600 text-[12px]">{t.savedLocallyOnly}</span>}
         </div>
       </form>
     </motion.div>
@@ -1518,6 +1784,7 @@ function ContentTab({ t }: { t: any }) {
   const [content, setContent] = useHomepageContent();
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState(false);
+  const [synced, setSynced] = useState<boolean | null>(null);
   const [deleteFaqIdx, setDeleteFaqIdx] = useState<number | null>(null);
   const { site, setSite } = useSite();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1529,16 +1796,19 @@ function ContentTab({ t }: { t: any }) {
     timer.current = setTimeout(() => { setSaved(false); setSaveError(false); }, 2500);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (saveHomepageContent(content)) { setSaved(true); setSaveError(false); }
     else { setSaved(false); setSaveError(true); }
+    setSynced(await saveSetting(HOMEPAGE_SETTING_KEY, content));
     flash();
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (!window.confirm(t.cmsResetConfirm)) return;
     resetHomepageContent();
-    setContent({ ...defaultHomepageContent, faqs: [...defaultHomepageContent.faqs] });
+    const next = { ...defaultHomepageContent, faqs: [...defaultHomepageContent.faqs] };
+    setContent(next);
+    setSynced(await saveSetting(HOMEPAGE_SETTING_KEY, next));
     setSaved(true);
     setSaveError(false);
     flash();
@@ -1729,6 +1999,7 @@ function ContentTab({ t }: { t: any }) {
           <button type="button" onClick={handleReset} className="btn border">{t.cmsReset}</button>
           {saved && <span role="status" className="text-success text-[13px] font-medium">{t.cmsSaved}</span>}
           {saveError && <span role="alert" className="text-danger text-[13px] font-medium">{t.saveFailed}</span>}
+          {synced === false && <span role="alert" className="text-amber-600 text-[12px]">{t.savedLocallyOnly}</span>}
         </div>
       </div>
 

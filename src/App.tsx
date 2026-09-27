@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { useLocalStorage, useScrollShadow, useProducts, useWishlist, useReviews } from './hooks';
+import { useLocalStorage, useScrollShadow, useProducts, useWishlist, useReviews, useSharedDataHydration } from './hooks';
 import { t, setUiLang } from './i18n';
 import { useSite } from './lib/site';
 import { Header } from './components/Header';
@@ -27,6 +27,9 @@ export function App() {
   const [products, setProducts] = useProducts();
   const [wishlist, toggleWishlist] = useWishlist();
   const [reviews, addReview] = useReviews();
+  // Pulls products / store settings / approved reviews from Supabase on top of
+  // the local cache. No-ops when the build has no Supabase credentials.
+  useSharedDataHydration();
   const [dark, setDark] = useState(() => {
     const stored = localStorage.getItem('em-dark');
     if (stored) return stored === '1';

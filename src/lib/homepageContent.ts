@@ -1,4 +1,8 @@
 import { useState, useEffect } from 'react';
+import { fetchSetting } from './storeData';
+import { isSupabaseConfigured } from './supabase';
+
+export const HOMEPAGE_SETTING_KEY = 'homepage';
 
 export interface HomepageContent {
   heroEyebrow: string;
@@ -68,6 +72,22 @@ export function useHomepageContent() {
   useEffect(() => {
     saveHomepageContent(content);
   }, [content]);
+
+  // Adopt the published copy once, so an Admin publish reaches visitors who
+  // still hold an older local copy.
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    let alive = true;
+    void fetchSetting<unknown>(HOMEPAGE_SETTING_KEY).then(v => {
+      if (!alive || !v || typeof v !== 'object') return;
+      const remote = v as Partial<HomepageContent>;
+      const faqs = Array.isArray(remote.faqs)
+        ? remote.faqs.filter(f => f && (f.q?.trim() || f.q_en?.trim()))
+        : undefined;
+      setContent(prev => ({ ...prev, ...remote, ...(faqs ? { faqs } : {}) }));
+    });
+    return () => { alive = false; };
+  }, []);
 
   return [content, setContent] as const;
 }
