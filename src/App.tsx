@@ -49,7 +49,12 @@ export function App() {
 
   const toggleDark = () => setDark(v => !v);
   const toggleLang = () => setLang(l => l === 'ar' ? 'en' : 'ar');
-  const isChromeRoute = location.pathname.startsWith('/admin') || location.pathname.startsWith('/login');
+  // /admin is a full-height app shell with its own sticky sidebar and top bar.
+  // The public announcement bar, header and footer are sticky/positioned too, so
+  // rendering them here stacked a second nav over the top of it and parked a
+  // marketing footer under the dashboard. The shell owns the whole viewport.
+  const isAdminRoute = location.pathname.startsWith('/admin');
+  const isChromeRoute = isAdminRoute || location.pathname.startsWith('/login');
   // Dismissal is keyed to the text that was dismissed, so publishing a new
   // announcement in Admin brings the bar back instead of staying hidden
   // forever behind a single boolean.
@@ -57,7 +62,7 @@ export function App() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {site?.announcement?.enabled && bannerKey && bannerDismissed !== bannerKey && (
+      {!isAdminRoute && site?.announcement?.enabled && bannerKey && bannerDismissed !== bannerKey && (
         <AnnouncementBar
           text={site.announcement.text}
           textEn={site.announcement.textEn}
@@ -65,25 +70,27 @@ export function App() {
           onClose={() => setBannerDismissed(bannerKey)}
         />
       )}
-      <div className="sticky top-0 z-50">
-        <Header
-          lang={lang}
-          t={t()}
-          scrolled={scrolled}
-          wishlistCount={wishlist.length}
-          dark={dark}
-          menuOpen={menuOpen}
-          onMenuToggle={() => setMenuOpen(v => !v)}
-          onDarkToggle={toggleDark}
-          onLangToggle={toggleLang}
-        />
-      </div>
+      {!isAdminRoute && (
+        <div className="sticky top-0 z-50">
+          <Header
+            lang={lang}
+            t={t()}
+            scrolled={scrolled}
+            wishlistCount={wishlist.length}
+            dark={dark}
+            menuOpen={menuOpen}
+            onMenuToggle={() => setMenuOpen(v => !v)}
+            onDarkToggle={toggleDark}
+            onLangToggle={toggleLang}
+          />
+        </div>
+      )}
 
       {menuOpen && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden" onClick={() => setMenuOpen(false)} />
       )}
 
-      <main className="flex-1 public-page-shell">
+      <main className={`flex-1 ${isAdminRoute ? '' : 'public-page-shell'}`}>
         <ErrorBoundary>
           <Suspense fallback={<div className="section page flex items-center justify-center min-h-[50vh]"><div className="text-muted">...</div></div>}>
             <Routes>
@@ -96,7 +103,7 @@ export function App() {
             <Route path="/faq" element={<FaqPage t={t()} lang={lang} />} />
       <Route path="/login" element={<LoginPage t={t()} lang={lang} />} />
       <Route path="/account" element={<AccountPage t={t()} lang={lang} />} />
-            <Route path="/admin/*" element={<AdminPage t={t()} products={products} setProducts={setProducts} />} />
+            <Route path="/admin/*" element={<AdminPage t={t()} products={products} setProducts={setProducts} lang={lang} dark={dark} onLangToggle={toggleLang} onDarkToggle={toggleDark} />} />
             <Route path="*" element={
               <div className="section page flex flex-col items-center justify-center min-h-[60vh] text-center">
                 <h1 className="text-6xl font-black text-primary mb-4">404</h1>
@@ -109,7 +116,7 @@ export function App() {
         </ErrorBoundary>
       </main>
 
-      <Footer t={t()} lang={lang} />
+      {!isAdminRoute && <Footer t={t()} lang={lang} />}
       {!isChromeRoute && <WhatsAppFloat />}
     </div>
   );

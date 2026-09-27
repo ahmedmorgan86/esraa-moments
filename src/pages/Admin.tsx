@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Package, ClipboardList, Users, Settings, LogOut, TrendingUp,
   Search, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Truck, CheckCircle,
   Clock, XCircle, BarChart3, Store, Bell, Menu, Ticket, Plus, Edit3, Trash2, X, Grid, List, FileText,
-  Star, MessageSquare, RotateCcw, Upload,
+  Star, MessageSquare, RotateCcw, Upload, Sun, Moon, Globe,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { isAllowedAdmin } from '../lib/adminAuth';
@@ -85,7 +85,7 @@ const statusStyles: Record<string, { color: string; icon: any; bg: string; borde
   return_requested: { color: 'text-orange-500', icon: Package, bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
 };
 
-export default function AdminPage({ t, products, setProducts }: { t: any; products: Product[]; setProducts: React.Dispatch<React.SetStateAction<Product[]>> }) {
+export default function AdminPage({ t, products, setProducts, lang, dark, onLangToggle, onDarkToggle }: { t: any; products: Product[]; setProducts: React.Dispatch<React.SetStateAction<Product[]>>; lang: string; dark: boolean; onLangToggle: () => void; onDarkToggle: () => void }) {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('dashboard');
@@ -186,7 +186,13 @@ export default function AdminPage({ t, products, setProducts }: { t: any; produc
       </AnimatePresence>
 
       {/* Sidebar */}
-      <aside className={`fixed lg:sticky top-0 start-0 z-50 h-screen ${sidebarCollapsed ? 'lg:w-[76px]' : 'lg:w-[260px]'} w-[260px] bg-surface border-e border-border flex flex-col transition-[width,transform] duration-300 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : 'ltr:-translate-x-full rtl:translate-x-full'}`}>
+      {/* The off-canvas translate has to be scoped below lg. Unscoped, `ltr:` /
+          `rtl:` carry the same specificity as `lg:translate-x-0` but are emitted
+          later, so they won on source order and pinned the rail 260px off-screen
+          on desktop — where the hamburger is hidden and the collapse toggle lives
+          inside the rail itself, leaving no way to reach the nav at all.
+          Tailwind v4 transitions the `translate` property, not `transform`. */}
+      <aside className={`fixed lg:sticky top-0 start-0 z-50 h-screen ${sidebarCollapsed ? 'lg:w-[76px]' : 'lg:w-[260px]'} w-[260px] bg-surface border-e border-border flex flex-col transition-[width,translate] duration-300 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : 'ltr:max-lg:-translate-x-full rtl:max-lg:translate-x-full'}`}>
         <button
           type="button"
           aria-label={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
@@ -250,6 +256,11 @@ export default function AdminPage({ t, products, setProducts }: { t: any; produc
             <h1 className="font-bold text-ink text-sm">{nav.find(n => n.key === tab)?.label}</h1>
           </div>
           <div className="flex items-center gap-2">
+            {/* The public header used to carry these, but it no longer renders on
+                /admin — without them here an Arabic-only admin could not switch
+                language or theme without leaving the panel. */}
+            <button onClick={onDarkToggle} className="header-icon" aria-label={lang === 'ar' ? 'تبديل المظهر' : 'Toggle theme'}>{dark ? <Sun size={17} /> : <Moon size={17} />}</button>
+            <button onClick={onLangToggle} className="header-lang" aria-label={lang === 'ar' ? 'تغيير اللغة إلى الإنجليزية' : 'Switch language to Arabic'}><Globe size={16} /><span>{lang === 'ar' ? 'EN' : 'عربي'}</span></button>
             <div className="relative">
               <button onClick={() => setNotifOpen(v => !v)} aria-label={t.notifications} aria-expanded={notifOpen} className="relative w-9 h-9 rounded-lg flex items-center justify-center hover:bg-primary/5 text-ink transition-colors">
                 <Bell size={18} />
