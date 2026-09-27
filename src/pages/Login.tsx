@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, ArrowLeft, MessageCircle } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { isAllowedAdmin } from '../lib/adminAuth';
 import { useStoreSettings } from '../hooks';
 
@@ -25,6 +25,11 @@ export default function LoginPage({ t, lang }: { t: any; lang: string }) {
     setLoading(true);
     setError('');
     setSuccess('');
+    if (!isSupabaseConfigured) {
+      setError(t.notConfigured || t.loginFailed);
+      setLoading(false);
+      return;
+    }
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       // Supabase returns English, internal-flavoured messages. Matching on the
@@ -42,6 +47,11 @@ export default function LoginPage({ t, lang }: { t: any; lang: string }) {
     setLoading(true);
     setError('');
     setSuccess('');
+    if (!isSupabaseConfigured) {
+      setError(t.notConfigured || t.resetFailed);
+      setLoading(false);
+      return;
+    }
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/account#type=recovery` });
     if (error) setError(t.resetFailed);
     else setSuccess(t.resetSent);
