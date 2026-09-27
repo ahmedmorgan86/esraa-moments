@@ -324,7 +324,9 @@ function Dashboard({ t, products }: { t: any; products: Product[] }) {
     let cancelled = false;
     Promise.all([
       supabase.from('orders').select('id', { count: 'exact', head: true }),
-      supabase.from('orders').select('total, items, status, created_at, customer_phone, customer_email'),
+      supabase
+        .from('orders')
+        .select('total, status, created_at, customer_phone, customer_email, order_items(name, quantity)'),
       supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(5),
     ])
       .then(([ordersCount, allOrders, recent]) => {
@@ -357,13 +359,16 @@ function Dashboard({ t, products }: { t: any; products: Product[] }) {
         });
         setDailyRevenue(days);
 
-        // Top products
+        // Top products. The line items live in order_items, not on the order
+        // row, and the column is `quantity` — selecting `orders.items` fails
+        // with 42703 and took this whole block down with it.
         const productMap = new Map<string, number>();
         paid.forEach((o: any) => {
-          parseOrderItems(o.items).forEach((item: any) => {
+          parseOrderItems(o.order_items).forEach((item: any) => {
             const name = str(item.name).trim();
             if (!name) return;
-            productMap.set(name, (productMap.get(name) || 0) + (item.qty || 1));
+            const qty = Number(item.quantity ?? item.qty ?? 1) || 1;
+            productMap.set(name, (productMap.get(name) || 0) + qty);
           });
         });
         const top = Array.from(productMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, total]) => ({ name, total }));
