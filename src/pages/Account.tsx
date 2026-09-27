@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { User, Package, LogOut, ArrowRight, Mail, Phone, MapPin, Clock, CheckCircle, Truck, XCircle, ShoppingBag, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { isAllowedAdmin } from '../lib/adminAuth';
+import { Thumb } from '../components/Thumb';
 
 const fadeUp = { hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' as const } } };
 
@@ -259,7 +260,7 @@ export default function AccountPage({ t, lang }: { t: any; lang: string }) {
                           <ul className="bg-surface-alt rounded-lg p-3 mb-3 list-none">
                             {items.map((item: any, i: number) => (
                               <li key={i} className="flex items-center gap-2 py-1.5 text-[12px]">
-                                <img src={item.image} alt="" loading="lazy" className="w-8 h-8 rounded-md object-cover flex-shrink-0" />
+                                <Thumb src={item.image} alt="" sizes="32px" className="w-8 h-8 rounded-md object-cover flex-shrink-0" />
                                 <span className="flex-1 truncate text-ink">{item.name}</span>
                                 <span className="text-muted">×{item.qty}</span>
                                 <span className="font-bold text-primary">{Number(item.price || 0) * Number(item.qty || 0)} {t.currency}</span>

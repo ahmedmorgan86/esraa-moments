@@ -4,6 +4,7 @@ import { Minus, Plus, ArrowLeft, Star, Truck, Shield, RotateCcw, Heart, MessageC
 import { occasionEn } from '../i18n';
 import { useStoreSettings } from '../hooks';
 import { validateCouponRemote } from '../lib/storeData';
+import { Thumb } from '../components/Thumb';
 import type { Review } from '../data';
 
 /** Purely visual star row. The stars were announced individually as empty
@@ -169,7 +170,7 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
           {/* Image */}
           <div className="relative rounded-2xl overflow-hidden bg-surface-alt border border-border animate-[fadeUp_0.6s_ease_both]">
-            <img src={product.image} alt="" decoding="async" className="w-full aspect-square object-cover" />
+            <Thumb src={product.image} alt="" loading="eager" fetchPriority="high" sizes="(min-width: 1024px) 46vw, 92vw" className="w-full aspect-square object-cover" />
             <span className="absolute top-4 end-4 bg-surface/85 backdrop-blur-md border border-white/20 rounded-full px-3 py-1 text-[11px] font-bold">{catLabel}</span>
             <button
               onClick={() => toggleWishlist(product.id)}
@@ -405,7 +406,7 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
               <li key={p.id}>
                 <Link to={`/product/${p.id}`} className="group block h-full bg-surface border border-border rounded-xl overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all">
                   <div className="aspect-square overflow-hidden bg-surface-alt">
-                    <img src={p.image} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
+                    <Thumb src={p.image} alt="" className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
                   </div>
                   <div className="p-4">
                     <h3 className="text-[14px] font-bold line-clamp-2 mb-1">{isEn ? occasionEn[p.category] || p.category : p.category}</h3>

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { MessageCircle, Trash2, Heart } from 'lucide-react';
 import { occasionEn } from '../i18n';
 import { useStoreSettings } from '../hooks';
+import { Thumb } from '../components/Thumb';
 
 export default function WishlistPage({ t, lang, products, wishlist, toggleWishlist }: { t: any; lang: string; products: any[]; wishlist: string[]; toggleWishlist: (id: string) => void }) {
   const isEn = lang === 'en';
@@ -42,7 +43,7 @@ export default function WishlistPage({ t, lang, products, wishlist, toggleWishli
               <article className="group h-full flex flex-col bg-surface border border-border rounded-xl overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all">
                 <Link to={`/product/${p.id}`} className="block">
                   <div className="relative aspect-square overflow-hidden bg-surface-alt">
-                    <img src={p.image} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
+                    <Thumb src={p.image} alt="" className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
                     <span className="absolute bottom-3 start-3 z-10 bg-surface/85 backdrop-blur-md border border-white/20 rounded-full px-3 py-1 text-[11px] font-bold">
                       {isEn ? occasionEn[p.category] || p.category : p.category}
                     </span>

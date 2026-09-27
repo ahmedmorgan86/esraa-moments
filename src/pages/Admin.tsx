@@ -25,6 +25,7 @@ import {
   defaultHomepageContent, HOMEPAGE_SETTING_KEY, type HomepageContent,
 } from '../lib/homepageContent';
 import { saveSetting } from '../lib/storeData';
+import { Thumb } from '../components/Thumb';
 
 const fadeIn = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
 
@@ -39,6 +40,15 @@ function parseOrderItems(raw: unknown): any[] {
   }
   return [];
 }
+
+/** Line items live in the `order_items` relation, not on the order row, and the
+ *  columns are `quantity` / `unit_price`. Reading `o.items`, `i.qty` or `i.price`
+ *  silently yields undefined, which is why the tab rendered no items at all. */
+function orderItemsOf(o: any): any[] {
+  return parseOrderItems(o?.order_items ?? o?.items);
+}
+const itemQty = (i: any) => Number(i?.quantity ?? i?.qty ?? 0) || 0;
+const itemUnitPrice = (i: any) => Number(i?.unit_price ?? i?.price ?? 0) || 0;
 
 const str = (v: unknown) => (v === null || v === undefined ? '' : String(v));
 
@@ -109,14 +119,18 @@ export default function AdminPage({ t, products, setProducts, lang, dark, onLang
   }, [navigate]);
 
   useEffect(() => {
-    if (!user) return;
+    // Subscribing on every `user` change re-fired INITIAL_SESSION each time,
+    // which handed back a fresh user object, which re-ran this effect: an
+    // endless loop that also re-ran the [user] notification effect and pinned
+    // the browser at hundreds of orders requests per second. Subscribe once, and
+    // keep the same object identity when the account has not actually changed.
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       const u = session?.user;
       if (!u || !isAllowedAdmin(u.email)) { navigate('/login', { replace: true }); return; }
-      setUser(u);
+      setUser((prev: any) => (prev && prev.id === u.id ? prev : u));
     });
     return () => sub.subscription.unsubscribe();
-  }, [user, navigate]);
+  }, [navigate]);
 
   useEffect(() => {
     if (!user) return;
@@ -306,7 +320,7 @@ export default function AdminPage({ t, products, setProducts, lang, dark, onLang
           <AnimatePresence mode="wait">
             {tab === 'dashboard' && <Dashboard key="d" t={t} products={products} />}
             {tab === 'products' && <ProductsTab key="p" t={t} products={products} setProducts={setProducts} />}
-            {tab === 'orders' && <OrdersTab key="o" t={t} />}
+            {tab === 'orders' && <OrdersTab key="o" t={t} products={products} />}
             {tab === 'coupons' && <CouponsTab key="cp" t={t} />}
             {tab === 'reviews' && <ReviewsTab key="rv" t={t} products={products} />}
             {tab === 'content' && <ContentTab key="ct" t={t} />}
@@ -376,10 +390,10 @@ function Dashboard({ t, products }: { t: any; products: Product[] }) {
         // with 42703 and took this whole block down with it.
         const productMap = new Map<string, number>();
         paid.forEach((o: any) => {
-          parseOrderItems(o.order_items).forEach((item: any) => {
+          orderItemsOf(o).forEach((item: any) => {
             const name = str(item.name).trim();
             if (!name) return;
-            const qty = Number(item.quantity ?? item.qty ?? 1) || 1;
+            const qty = itemQty(item) || 1;
             productMap.set(name, (productMap.get(name) || 0) + qty);
           });
         });
@@ -804,7 +818,7 @@ function ProductsTab({ t, products, setProducts }: { t: any; products: Product[]
             <div key={p.id} className="bg-surface border border-border rounded-2xl overflow-hidden hover:shadow-md transition-all group">
               <div className="relative aspect-square overflow-hidden">
                 {p.image ? (
-                  <img src={p.image} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onError={e => { (e.currentTarget as HTMLImageElement).style.opacity = '0.2'; }} />
+                  <Thumb src={p.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onError={e => { (e.currentTarget as HTMLImageElement).style.opacity = '0.2'; }} />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-border"><Package size={32} /></div>
                 )}
@@ -863,7 +877,7 @@ function ProductsTab({ t, products, setProducts }: { t: any; products: Product[]
                   <tr key={p.id} className="hover:bg-surface-alt/50 transition-colors">
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
-                        {p.image ? <img src={p.image} alt="" loading="lazy" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" /> : <div className="w-10 h-10 rounded-lg bg-surface-alt flex items-center justify-center text-border shrink-0"><Package size={16} /></div>}
+                        {p.image ? <Thumb src={p.image} alt="" sizes="40px" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" /> : <div className="w-10 h-10 rounded-lg bg-surface-alt flex items-center justify-center text-border shrink-0"><Package size={16} /></div>}
                         <div className="min-w-0">
                           <span className="font-semibold text-ink block truncate">{p.name}</span>
                           {p.name_en && <span className="text-[11px] text-muted block truncate">{p.name_en}</span>}
@@ -1023,7 +1037,7 @@ function ProductsTab({ t, products, setProducts }: { t: any; products: Product[]
 /* ══════════════════════════════════════════════════════ */
 /*                      ORDERS TAB                       */
 /* ══════════════════════════════════════════════════════ */
-function OrdersTab({ t }: { t: any }) {
+function OrdersTab({ t, products }: { t: any; products: Product[] }) {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -1041,7 +1055,7 @@ function OrdersTab({ t }: { t: any }) {
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     setLoadError('');
-    let q = supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(500);
+    let q = supabase.from('orders').select('*, order_items(name, quantity, unit_price)').order('created_at', { ascending: false }).limit(500);
     if (statusFilter !== 'all') q = q.eq('status', statusFilter);
     const { data, error } = await q;
     if (error) { setLoadError(t.dataLoadError); setOrders([]); }
@@ -1050,6 +1064,11 @@ function OrdersTab({ t }: { t: any }) {
   }, [statusFilter, t]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
+
+  const productById = useMemo(
+    () => new Map(products.map(p => [p.id, p])),
+    [products],
+  );
 
   const updateStatus = async (id: string, status: string) => {
     if (status === 'cancelled' && !window.confirm(t.confirmCancel)) return;
@@ -1084,7 +1103,7 @@ function OrdersTab({ t }: { t: any }) {
       t.totalPrice, t.status, t.date,
     ].map(csvCell).join(',');
     const rows = filteredOrders.map(o => {
-      const itemsStr = parseOrderItems(o.items).map((i: any) => `${str(i.name)} x${str(i.qty)}`).join('; ');
+      const itemsStr = orderItemsOf(o).map((i: any) => `${str(i.name)} x${itemQty(i)}`).join('; ');
       const date = new Date(o.created_at).toLocaleDateString(isEn ? 'en-US' : 'ar-EG');
       return [
         o.order_number, o.customer_name, o.customer_phone, o.customer_email, itemsStr,
@@ -1108,11 +1127,11 @@ function OrdersTab({ t }: { t: any }) {
 
   const printOrder = (o: any) => {
     const isEn = document.documentElement.lang === 'en';
-    const items = parseOrderItems(o.items);
+    const items = orderItemsOf(o);
     const rowsHtml = items.map((i: any) =>
-      `<tr><td>${escapeHtml(i.name)}</td><td>${escapeHtml(i.qty)}</td><td>${escapeHtml(Number(i.price || 0) * Number(i.qty || 0))} ${escapeHtml(t.currency)}</td></tr>`
+      `<tr><td>${escapeHtml(i.name)}</td><td>${escapeHtml(itemQty(i))}</td><td>${escapeHtml(itemUnitPrice(i) * itemQty(i))} ${escapeHtml(t.currency)}</td></tr>`
     ).join('');
-    const subtotal = items.reduce((s: number, i: any) => s + Number(i.price || 0) * Number(i.qty || 0), 0);
+    const subtotal = items.reduce((s: number, i: any) => s + itemUnitPrice(i) * itemQty(i), 0);
     const shipping = Number(o.shipping_fee || 0);
     const align = isEn ? 'left' : 'right';
     const cells = [
@@ -1198,8 +1217,8 @@ function OrdersTab({ t }: { t: any }) {
             const st = statusStyles[o.status] || statusStyles.pending;
             const StIcon = st.icon;
             const isExpanded = expandedOrder === o.id;
-            const items = parseOrderItems(o.items);
-            return (
+    const items = orderItemsOf(o);
+    return (
               <motion.div key={o.id} layout className="bg-surface border border-border rounded-2xl overflow-hidden hover:border-border-strong transition-colors">
                 {/* Order Header */}
                 <button aria-expanded={isExpanded} aria-controls={`order-panel-${o.id}`} onClick={() => setExpandedOrder(isExpanded ? null : o.id)} className="w-full flex flex-col sm:flex-row sm:items-center justify-between p-5 text-start gap-3">
@@ -1251,14 +1270,17 @@ function OrdersTab({ t }: { t: any }) {
                           <div className="bg-surface-alt rounded-xl p-4 mb-4">
                             <p className="text-[11px] font-bold text-muted mb-2">{t.productsLabel}</p>
                             <div className="space-y-2">
-                              {items.map((item: any, i: number) => (
+                              {items.map((item: any, i: number) => {
+                                const shot = item.product_id ? productById.get(item.product_id)?.image : '';
+                                return (
                                 <div key={i} className="flex items-center gap-3">
-                                  <img src={item.image} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                                  {shot ? <Thumb src={shot} alt="" sizes="40px" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" /> : <div className="w-10 h-10 rounded-lg bg-surface-alt flex-shrink-0" />}
                                   <span className="flex-1 text-[13px] font-semibold text-ink truncate">{item.name}</span>
-                                  <span className="text-[12px] text-muted">×{item.qty}</span>
-                                  <span className="text-[13px] font-bold text-primary">{item.price * item.qty} {t.currency}</span>
+                                  <span className="text-[12px] text-muted">×{itemQty(item)}</span>
+                                  <span className="text-[13px] font-bold text-primary">{itemUnitPrice(item) * itemQty(item)} {t.currency}</span>
                                 </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           </div>
                         )}

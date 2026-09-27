@@ -4,6 +4,7 @@ import { Search, SlidersHorizontal, MessageCircle } from 'lucide-react';
 import { occasions } from '../data';
 import { occasionEn } from '../i18n';
 import { useStoreSettings } from '../hooks';
+import { Thumb } from '../components/Thumb';
 
 const ALL = '__all__';
 
@@ -134,11 +135,9 @@ export default function Shop({ t, lang, products }: { t: any; lang: string; prod
                 <article className="group h-full flex flex-col bg-surface border border-border rounded-xl overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all">
                   <Link to={`/product/${p.id}`} className="block focus-visible:outline-offset-4">
                     <div className="relative aspect-square overflow-hidden bg-surface-alt">
-                      <img
+                      <Thumb
                         src={p.image}
                         alt=""
-                        loading="lazy"
-                        decoding="async"
                         className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
                       />
                       <span className="absolute bottom-3 start-3 z-10 bg-surface/85 backdrop-blur-md border border-white/20 rounded-full px-3 py-1 text-[11px] font-bold">
