@@ -24,9 +24,16 @@ export function useProducts(): [Product[], React.Dispatch<React.SetStateAction<P
     if (!isSupabaseConfigured) return;
     let alive = true;
     (async () => {
+      let remote = await fetchProducts();
       // First run on a fresh project: push the repo seed into the empty table.
-      await seedProductsIfEmpty(seed);
-      const remote = await fetchProducts();
+      // Gated on the catalogue actually being empty. Seeding unconditionally
+      // wrote on every single mount, and for a signed-in admin that write
+      // succeeds — which fires the products realtime channel, refetches, and
+      // churns the tab. Anonymous visitors only saw a harmless 401.
+      if (remote && remote.length === 0 && !readJSON('em-seeded', false)) {
+        if (await seedProductsIfEmpty(seed)) writeLocal('em-seeded', true);
+        remote = await fetchProducts();
+      }
       if (!alive || !remote) return;
       setProducts(remote);
       writeLocal('em-products', remote);
