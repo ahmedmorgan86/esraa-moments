@@ -1,9 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Minus, Plus, ArrowLeft, Star, Truck, Shield, RotateCcw, Heart, MessageCircle } from 'lucide-react';
+import { Minus, Plus, ArrowLeft, Star, Heart, MessageCircle } from 'lucide-react';
 import { occasionEn } from '../i18n';
 import { useStoreSettings } from '../hooks';
-import { validateCouponRemote } from '../lib/storeData';
 import { Thumb } from '../components/Thumb';
 import type { Review } from '../data';
 
@@ -28,12 +27,6 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
   const [reviewComment, setReviewComment] = useState('');
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [reviewShared, setReviewShared] = useState(true);
-  // Coupon state. The discount itself is computed by Postgres; this box only
-  // asks whether a code is usable and echoes back what the server said.
-  const [couponInput, setCouponInput] = useState('');
-  const [couponChecking, setCouponChecking] = useState(false);
-  const [coupon, setCoupon] = useState<{ code: string; discount: number; label: string } | null>(null);
-  const [couponError, setCouponError] = useState('');
   const settings = useStoreSettings();
   const product = products.find(p => p.id === id);
   const related = useMemo(() => products.filter(p => p.id !== id && p.category === product?.category).slice(0, 4), [id, product, products]);
@@ -82,52 +75,7 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
   // identifier the customer can quote back.
   const refCode = product.slug;
 
-  // Estimate used only to price the coupon. Prices are never shown, but the
-  // catalogue price still drives min_order, so it stays in the database and out
-  // of sight rather than being removed.
-  const estimate = (Number(product.price) || 0) * qty;
-
-  // validate_coupon() returns a stable machine reason; it must never reach the
-  // customer as-is, or the box would read "not_found" / "exhausted".
-  const couponReasonText = (reason: string, minOrder?: number): string => {
-    switch (reason) {
-      case 'not_found': return t.couponNotFound;
-      case 'inactive': return t.couponInactive;
-      case 'expired': return t.couponExpired;
-      case 'exhausted': return t.couponLimitReached;
-      case 'min_order': return minOrder ? `${t.couponMinOrder} ${minOrder} ${isEn ? 'EGP' : 'ج.م'}` : t.couponMinOrder;
-      case 'empty': return t.couponInvalid;
-      default: return t.couponInvalid;
-    }
-  };
-
-  const applyCoupon = async () => {
-    const code = couponInput.trim();
-    if (!code) return;
-    setCouponChecking(true);
-    setCouponError('');
-    const res = await validateCouponRemote(code, estimate);
-    setCouponChecking(false);
-    if (res === null) {
-      setCouponError(t.couponUnavailable);
-      return;
-    }
-    if (!res.valid) {
-      setCoupon(null);
-      setCouponError(couponReasonText(res.reason, res.min_order));
-      return;
-    }
-    setCoupon({
-      code: res.code,
-      discount: res.discount,
-      label: `${res.code} — ${res.discount} ${isEn ? 'EGP' : 'ج.م'}`,
-    });
-  };
-
-  const waMessage = [
-    `${isEn ? 'I want to order' : 'عايز أطلب'}: ${refCode} (${isEn ? 'Quantity' : 'الكمية'}: ${qty})`,
-    coupon ? `${isEn ? 'Discount code' : 'كود الخصم'}: ${coupon.code} (${isEn ? 'discount' : 'خصم'}: ${coupon.discount} ${isEn ? 'EGP' : 'ج.م'})` : '',
-  ].filter(Boolean).join('\n');
+  const waMessage = `${isEn ? 'I want to order' : 'عايز أطلب'}: ${refCode} (${isEn ? 'Quantity' : 'الكمية'}: ${qty})`;
   const waHref = waNumber
     ? `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}`
     : '';
@@ -247,56 +195,6 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
                 )}
               </div>
             )}
-
-            <div className="grid grid-cols-3 gap-3 mb-7">
-              {[
-                { icon: Truck, label: t.shippingInfo, sub: t.shippingDays },
-                { icon: Shield, label: t.guarantee, sub: t.guaranteePct },
-                { icon: RotateCcw, label: t.returns, sub: t.returnsDays },
-              ].map(({ icon: I, label, sub }) => (
-                <div key={label} className="bg-surface border border-border rounded-xl p-3 text-center">
-                  <I size={20} aria-hidden="true" className="mx-auto text-primary mb-1.5" />
-                  <div className="text-[11px] font-bold text-ink">{label}</div>
-                  <div className="text-[10.5px] text-muted">{sub}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Discount code. The box is optional and the amount shown comes
-                from the server, never from a local calculation. */}
-            <div className="border border-border rounded-xl p-4 mb-7 bg-surface">
-              <label htmlFor="coupon-code" className="block text-xs font-semibold text-muted mb-2">
-                {t.haveDiscountCode}
-              </label>
-              <div className="flex gap-2">
-                <input
-                  id="coupon-code"
-                  type="text"
-                  value={couponInput}
-                  onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponError(''); }}
-                  maxLength={24}
-                  autoComplete="off"
-                  spellCheck={false}
-                  placeholder={t.discountCodePlaceholder}
-                  className="input-field flex-1 text-sm uppercase"
-                />
-                {coupon ? (
-                  <button type="button" onClick={() => { setCoupon(null); setCouponInput(''); setCouponError(''); }} className="btn text-xs">
-                    {t.removeCode}
-                  </button>
-                ) : (
-                  <button type="button" onClick={() => void applyCoupon()} disabled={couponChecking || !couponInput.trim()} className="btn primary text-xs">
-                    {couponChecking ? t.checking : t.applyCode}
-                  </button>
-                )}
-              </div>
-              {couponError && <p role="alert" className="text-[12px] text-red-600 mt-2">{couponError}</p>}
-              {coupon && (
-                <p className="text-[12px] text-emerald-700 dark:text-emerald-400 mt-2">
-                  {coupon.label} — {t.discountAddedToOrder}
-                </p>
-              )}
-            </div>
           </div>
         </div>
       </section>
