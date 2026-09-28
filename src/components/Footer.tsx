@@ -21,7 +21,7 @@ export function Footer({ t, lang }: { t: any; lang?: string }) {
         <div className="footer-contact"><p className="footer-kicker">{t.contactUs}</p><a href={`tel:+${settings.whatsapp}`}><Phone size={14} aria-hidden="true" />{settings.whatsapp}</a><a href={`mailto:${settings.email}`}><Mail size={14} aria-hidden="true" />{settings.email}</a><span><MapPin size={14} aria-hidden="true" />{settings.address}</span><strong>{t.footerTagline}</strong></div>
       </div>
       <div className="footer-bottom">
-        <p>© {new Date().getFullYear()} ESRAA Moments — {t.allRights} • تصميم وبرمجة Ahmed Morgan {new Date().getFullYear()}</p>
+        <p>© {new Date().getFullYear()} ESRAA Moments — {t.allRights} • {isEn ? settings.footerCreditEn : settings.footerCreditAr}</p>
         <div><span>Visa</span><span>instaPay</span><span>{t.madeWithIntention}</span></div>
       </div>
     </footer>

@@ -206,6 +206,8 @@ export interface StoreSettings {
   address: string;
   shippingThreshold: string;
   shippingFee: string;
+  footerCreditAr: string;
+  footerCreditEn: string;
 }
 
 export const STORE_SETTINGS_DEFAULTS: StoreSettings = {
@@ -215,6 +217,8 @@ export const STORE_SETTINGS_DEFAULTS: StoreSettings = {
   address: 'شارع الجيش - عزبة النخل',
   shippingThreshold: '500',
   shippingFee: '60',
+  footerCreditAr: 'تصميم وبرمجة Ahmed Morgan',
+  footerCreditEn: 'Designed & developed by Ahmed Morgan',
 };
 
 const SETTINGS_KEYS = {
@@ -224,6 +228,8 @@ const SETTINGS_KEYS = {
   address: 'em-store-address',
   shippingThreshold: 'em-shipping-threshold',
   shippingFee: 'em-shipping-fee',
+  footerCreditAr: 'em-store-footer-credit-ar',
+  footerCreditEn: 'em-store-footer-credit-en',
 } as const satisfies Record<keyof StoreSettings, string>;
 
 export const STORE_SETTING_KEY = 'store';
@@ -271,6 +277,8 @@ function readStoreSettings(): StoreSettings {
     address: read('address', STORE_SETTINGS_DEFAULTS.address),
     shippingThreshold: read('shippingThreshold', STORE_SETTINGS_DEFAULTS.shippingThreshold),
     shippingFee: read('shippingFee', STORE_SETTINGS_DEFAULTS.shippingFee),
+    footerCreditAr: read('footerCreditAr', STORE_SETTINGS_DEFAULTS.footerCreditAr),
+    footerCreditEn: read('footerCreditEn', STORE_SETTINGS_DEFAULTS.footerCreditEn),
   };
 }
 

@@ -1882,6 +1882,19 @@ function SettingsTab({ t }: { t: any }) {
               <label htmlFor="st-address" className="text-[12px] font-semibold text-muted">{t.addressLabelAdmin}</label>
               <input id="st-address" type="text" value={form.address} onChange={e => set('address', e.target.value)} className="input-field" />
             </div>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="st-footer-ar" className="text-[12px] font-semibold text-muted">{t.footerCreditArLabel}</label>
+              <input id="st-footer-ar" type="text" dir="rtl" value={form.footerCreditAr} onChange={e => set('footerCreditAr', e.target.value)} className="input-field" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="st-footer-en" className="text-[12px] font-semibold text-muted">{t.footerCreditEnLabel}</label>
+              <input id="st-footer-en" type="text" dir="ltr" value={form.footerCreditEn} onChange={e => set('footerCreditEn', e.target.value)} className="input-field direction-ltr" />
+            </div>
+            <div className="flex flex-col gap-1.5 sm:col-span-2">
+              <span className="text-[11px] text-muted">
+                {new Date().getFullYear()} • {t.preview}: © {new Date().getFullYear()} ESRAA Moments — {t.allRights} • {form.footerCreditAr} / {form.footerCreditEn}
+              </span>
+            </div>
           </div>
         </div>
 
