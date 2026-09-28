@@ -20,7 +20,10 @@ export function Footer({ t, lang }: { t: any; lang?: string }) {
         <div className="footer-links"><div><p className="footer-kicker">{t.explore}</p><Link to="/shop">{t.shop}<span>↗</span></Link><Link to="/about">{t.about}<span>↗</span></Link><Link to="/contact">{t.contact}<span>↗</span></Link><Link to="/account">{t.account}<span>↗</span></Link></div><div><p className="footer-kicker">{t.shopByOccasion}</p>{footerOccasions.slice(0, 4).map(c => <Link key={c} to={`/shop?cat=${encodeURIComponent(c)}`}>{isEn ? occasionEn[c] || c : c}<span>↗</span></Link>)}</div></div>
         <div className="footer-contact"><p className="footer-kicker">{t.contactUs}</p><a href={`tel:+${settings.whatsapp}`}><Phone size={14} aria-hidden="true" />{settings.whatsapp}</a><a href={`mailto:${settings.email}`}><Mail size={14} aria-hidden="true" />{settings.email}</a><span><MapPin size={14} aria-hidden="true" />{settings.address}</span><strong>{t.footerTagline}</strong></div>
       </div>
-      <div className="footer-bottom"><p>© {new Date().getFullYear()} ESRAA Moments — {t.allRights}</p><div><span>Visa</span><span>instaPay</span><span>{t.madeWithIntention}</span></div></div>
+      <div className="footer-bottom">
+        <p>© {new Date().getFullYear()} ESRAA Moments — {t.allRights} • تصميم وبرمجة Ahmed Morgan {new Date().getFullYear()}</p>
+        <div><span>Visa</span><span>instaPay</span><span>{t.madeWithIntention}</span></div>
+      </div>
     </footer>
   );
 }

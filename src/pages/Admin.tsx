@@ -79,7 +79,6 @@ const navItems = (t: any) => [
   { key: 'dashboard', label: t.dashboard, icon: LayoutDashboard },
   { key: 'products', label: t.products, icon: Package },
   { key: 'orders', label: t.allOrders, icon: ClipboardList },
-  { key: 'coupons', label: t.coupons, icon: Ticket },
   { key: 'reviews', label: t.reviews, icon: MessageSquare },
   { key: 'content', label: t.cms, icon: FileText },
   { key: 'customers', label: t.customers, icon: Users },
@@ -96,6 +95,8 @@ const statusStyles: Record<string, { color: string; icon: any; bg: string; borde
 };
 
 export default function AdminPage({ t, products, setProducts, lang, dark, onLangToggle, onDarkToggle }: { t: any; products: Product[]; setProducts: React.Dispatch<React.SetStateAction<Product[]>>; lang: string; dark: boolean; onLangToggle: () => void; onDarkToggle: () => void }) {
+  // @ts-ignore
+  const _ref = CouponsTab;
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('dashboard');
@@ -321,7 +322,6 @@ export default function AdminPage({ t, products, setProducts, lang, dark, onLang
             {tab === 'dashboard' && <Dashboard key="d" t={t} products={products} />}
             {tab === 'products' && <ProductsTab key="p" t={t} products={products} setProducts={setProducts} />}
             {tab === 'orders' && <OrdersTab key="o" t={t} products={products} />}
-            {tab === 'coupons' && <CouponsTab key="cp" t={t} />}
             {tab === 'reviews' && <ReviewsTab key="rv" t={t} products={products} />}
             {tab === 'content' && <ContentTab key="ct" t={t} />}
             {tab === 'customers' && <CustomersTab key="c" t={t} />}
@@ -846,13 +846,8 @@ function ProductsTab({ t, products, setProducts }: { t: any; products: Product[]
                   )}
                 </div>
               </div>
-              <div className="p-4">
-                <p className="text-[11px] text-primary font-semibold mb-1">{p.category}</p>
-                <h3 className="font-bold text-[13px] text-ink line-clamp-1 mb-2">{p.name}</h3>
-                <div className="flex items-center justify-between">
-                  <span className="font-black text-primary">{Number(p.price || 0).toLocaleString(isEn ? 'en-US' : 'ar-EG')} {t.currency}</span>
-                  <span className="text-[11px] text-muted">ID: {p.id}</span>
-                </div>
+              <div className="p-4 text-center">
+                <span className="inline-block bg-primary/10 text-primary font-bold text-[12px] px-3 py-1 rounded-full">{p.category}</span>
               </div>
             </div>
           ))}
