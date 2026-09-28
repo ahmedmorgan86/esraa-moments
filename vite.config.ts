@@ -26,7 +26,17 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react(), tailwindcss()],
     build: {
-      chunkSizeWarningLimit: 1000,
+      chunkSizeWarningLimit: 600,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules/framer-motion')) return 'motion-ui'
+            if (id.includes('node_modules/@supabase')) return 'supabase-client'
+            if (id.includes('node_modules/lucide-react')) return 'icons'
+            return undefined
+          },
+        },
+      },
     },
   }
 })

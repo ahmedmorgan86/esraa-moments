@@ -59,7 +59,7 @@ export default function Shop({ t, lang, products }: { t: any; lang: string; prod
       list.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
     }
     return list;
-  }, [products, cat, search, sort, isEn, locale]);
+  }, [products, cat, search, sort, locale]);
 
   const categories = [ALL, ...occasions];
 
