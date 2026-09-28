@@ -72,7 +72,7 @@ export default function AccountPage({ t, lang }: { t: any; lang: string }) {
     return () => { active = false; listener.subscription.unsubscribe(); };
   }, [navigate]);
 
-  const fetchOrders = async (email: string | undefined) => {
+  async function fetchOrders(email: string | undefined) {
     if (!email) return;
     setOrdersLoading(true);
     setOrdersError(false);

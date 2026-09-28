@@ -32,6 +32,31 @@
 .newsletter { text-align:center; max-width:720px; margin:auto; padding:clamp(36px,7vw,80px) 20px; border-block:1px solid var(--color-border); } .newsletter h2 { margin-bottom:12px; } .newsletter form { display:flex; gap:10px; max-width:470px; margin:28px auto 0; } .newsletter input { flex:1; min-width:0; border-bottom:1px solid var(--color-border-strong); padding:13px 4px; font-size:13px; } .newsletter input:focus { border-color:var(--color-primary); } .success-message { color:var(--color-success); font-weight:700; margin-top:24px; } .faq-list { max-width:760px; margin:36px auto 0; display:flex; flex-direction:column; gap:8px; } .faq-item { border-bottom:1px solid var(--color-border); } .faq-item button { width:100%; display:flex; justify-content:space-between; gap:20px; text-align:start; padding:21px 4px; font-weight:700; font-size:14px; } .faq-item button svg { color:var(--color-primary); transition:transform .3s; } .faq-item.open button svg { transform:rotate(-90deg); } .faq-answer { color:var(--color-muted); font-size:13px; line-height:1.8; padding:0 4px 20px; }
 @media (max-width:900px) { .hero-shell { grid-template-columns:1fr; min-height:auto; padding-top:80px; } .hero-art { order:-1; } .hero-copy h1 { max-width:none; font-size:clamp(48px,12vw,78px); } .occasion-grid { grid-template-columns:repeat(3,1fr); } .product-grid { grid-template-columns:repeat(2,1fr); } .story-panel { grid-template-columns:1fr; } }
 @media (max-width:560px) { .occasion-grid { grid-template-columns:repeat(2,1fr); } .product-grid { gap:12px; } .newsletter form { flex-direction:column; } .hero-scroll { display:none; } }
+@media (max-width: 700px) {
+  .section { padding-inline:16px; }
+  .header-main { height:68px; gap:10px; }
+  .header-nav.desktop-nav, .header-contact { display:none; }
+  .header-actions { gap:4px; }
+  .header-icon, .header-lang { min-width:32px; height:32px; }
+  .brand-wordmark strong { font-size:14px; }
+  .brand-wordmark small { font-size:7px; }
+  .hero-copy h1 { font-size:clamp(42px,14vw,68px); }
+  .hero-copy p { font-size:15px; }
+  .hero-actions { align-items:stretch; flex-direction:column; }
+  .hero-actions .btn { width:100%; }
+  .hero-note { text-align:center; }
+  .section-heading { align-items:flex-start; flex-direction:column; }
+  .section-heading .text-link { align-self:flex-start; }
+  .occasion-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .occasion-card { min-height:116px; padding:14px; }
+  .product-meta { padding:11px 0; }
+  .newsletter { margin-inline:-16px; padding-inline:20px; }
+  .newsletter form { width:100%; }
+  .newsletter input, .newsletter .btn { width:100%; }
+}
+
+:focus-visible { outline:2px solid var(--color-primary); outline-offset:3px; }
+
 @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; scroll-behavior:auto!important; } }
 
 /* ESRAA 03 — gallery house system */
