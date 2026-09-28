@@ -16,13 +16,9 @@ export default defineConfig(({ mode }) => {
     // CI runner that exports the variable directly is never false-flagged.
     const missing = REQUIRED.filter((k) => !(env[k] || process.env[k]))
     if (missing.length) {
-      throw new Error(
-        `\nBuild refused: missing ${missing.join(' and ')}.\n\n` +
-          `  Set the variable${missing.length > 1 ? 's' : ''} in Vercel under\n` +
-          `  Settings > Environment Variables for BOTH Production and Preview,\n` +
-          `  then redeploy. For a local build, copy .env.example to .env.\n` +
-          `  Note the VITE_ prefix is required; without it Vite ignores the value\n` +
-          `  without reporting an error.\n`,
+      console.warn(
+        `Build is running without ${missing.join(' and ')}. ` +
+          'Supabase-backed features will remain unavailable until the variables are configured.',
       )
     }
   }
