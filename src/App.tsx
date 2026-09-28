@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useLocalStorage, useScrollShadow, useProducts, useWishlist, useReviews, useSharedDataHydration } from './hooks';
 import { t, setUiLang } from './i18n';
@@ -9,16 +9,16 @@ import { AnnouncementBar } from './components/AnnouncementBar';
 import { WhatsAppFloat } from './components/WhatsAppFloat';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
-const Home = lazy(() => import('./pages/Home'));
-const Shop = lazy(() => import('./pages/Shop'));
-const ProductPage = lazy(() => import('./pages/Product'));
-const LoginPage = lazy(() => import('./pages/Login'));
-const AccountPage = lazy(() => import('./pages/Account'));
-const AdminPage = lazy(() => import('./pages/Admin'));
-const WishlistPage = lazy(() => import('./pages/Wishlist'));
-const AboutPage = lazy(() => import('./pages/About'));
-const ContactPage = lazy(() => import('./pages/Contact'));
-const FaqPage = lazy(() => import('./pages/Faq'));
+import Home from './pages/Home';
+import Shop from './pages/Shop';
+import ProductPage from './pages/Product';
+import LoginPage from './pages/Login';
+import AccountPage from './pages/Account';
+import AdminPage from './pages/Admin';
+import WishlistPage from './pages/Wishlist';
+import AboutPage from './pages/About';
+import ContactPage from './pages/Contact';
+import FaqPage from './pages/Faq';
 
 export function App() {
   const [lang, setLang] = useLocalStorage<'ar' | 'en'>('em-lang', 'ar');
@@ -39,10 +39,11 @@ export function App() {
   const location = useLocation();
   const { site } = useSite();
 
-  // Sync lang/dir immediately (not in useEffect) so t() returns correct language on first render
-  setUiLang(lang);
-  document.documentElement.lang = lang;
-  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  useEffect(() => {
+    setUiLang(lang);
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  }, [lang]);
 
   useEffect(() => { document.documentElement.dataset.theme = dark ? 'dark' : 'light'; localStorage.setItem('em-dark', dark ? '1' : '0'); }, [dark]);
   useEffect(() => { setMenuOpen(false); window.scrollTo(0, 0); }, [location.pathname]);
@@ -92,8 +93,7 @@ export function App() {
 
       <main className={`flex-1 ${isAdminRoute ? '' : 'public-page-shell'}`}>
         <ErrorBoundary>
-          <Suspense fallback={<div className="section page flex items-center justify-center min-h-[50vh]"><div className="text-muted">...</div></div>}>
-            <Routes>
+          <Routes>
             <Route path="/" element={<Home t={t()} lang={lang} products={products} />} />
             <Route path="/shop" element={<Shop t={t()} lang={lang} products={products} />} />
             <Route path="/product/:id" element={<ProductPage t={t()} lang={lang} products={products} wishlist={wishlist} toggleWishlist={toggleWishlist} reviews={reviews} addReview={addReview} />} />
@@ -112,7 +112,6 @@ export function App() {
               </div>
             } />
           </Routes>
-          </Suspense>
         </ErrorBoundary>
       </main>
 
