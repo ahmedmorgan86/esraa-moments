@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { User, Package, LogOut, ArrowRight, Mail, Phone, MapPin, Clock, CheckCircle, Truck, XCircle, ShoppingBag, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { isAllowedAdmin } from '../lib/adminAuth';
 import { Thumb } from '../components/Thumb';
 
@@ -34,7 +34,7 @@ function parseItems(raw: unknown): any[] {
 export default function AccountPage({ t, lang }: { t: any; lang: string }) {
   const isEn = lang === 'en';
   const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(isSupabaseConfigured);
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
@@ -45,6 +45,7 @@ export default function AccountPage({ t, lang }: { t: any; lang: string }) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!isSupabaseConfigured) return;
     let active = true;
     // getSession() was unawaited for its failure path, so a network error left
     // the page on the spinner forever.

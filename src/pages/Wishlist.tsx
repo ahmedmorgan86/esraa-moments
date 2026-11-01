@@ -34,7 +34,7 @@ export default function WishlistPage({ t, lang, products, wishlist, toggleWishli
         {wishlistProducts.map((p, i) => {
           // No name and no price here either: the card is the picture and the
           // slug is the reference the customer quotes back on WhatsApp.
-          const refCode = String(p.slug || '');
+          const refCode = String(p.slug || p.name || p.id || '');
           const waHref = waNumber
             ? `https://wa.me/${waNumber}?text=${encodeURIComponent(`${isEn ? 'I want to order' : 'عايز أطلب'}: ${refCode}`)}`
             : null;

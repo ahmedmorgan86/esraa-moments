@@ -52,7 +52,7 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
     setReviewComment('');
     setReviewRating(5);
   }
-  if (qty > maxQty) setQty(maxQty);
+  if (product && qty > maxQty) setQty(maxQty);
 
   if (!product) {
     return (
@@ -73,7 +73,7 @@ export default function ProductPage({ t, lang, products, wishlist, toggleWishlis
   // and the shop identifies the item from the slug when the enquiry arrives, so
   // the page heading is the occasion instead. The slug is the only stable
   // identifier the customer can quote back.
-  const refCode = product.slug;
+  const refCode = product.slug || product.name || product.id;
 
   const waMessage = `${isEn ? 'I want to order' : 'عايز أطلب'}: ${refCode} (${isEn ? 'Quantity' : 'الكمية'}: ${qty})`;
   const waHref = waNumber

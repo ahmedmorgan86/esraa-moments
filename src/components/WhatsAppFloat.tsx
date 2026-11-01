@@ -3,7 +3,7 @@ import { useStoreSettings } from '../hooks';
 
 export function WhatsAppFloat() {
   const settings = useStoreSettings();
-  const phone = settings.whatsapp;
+  const phone = String(settings.whatsapp || '').replace(/[^\d]/g, '') || '201097905435';
   return (
     <a
       href={`https://wa.me/${phone}`}

@@ -12,6 +12,7 @@ type Props = {
 export function Header({ t, lang, scrolled, wishlistCount, dark, menuOpen, onMenuToggle, onDarkToggle, onLangToggle }: Props) {
   const location = useLocation();
   const settings = useStoreSettings();
+  const waNumber = String(settings.whatsapp || '').replace(/[^\d]/g, '');
   const isActive = (path: string) => location.pathname === path ? 'text-primary bg-primary/8' : 'text-muted hover:text-ink hover:bg-primary/8';
   const navLinks = [
     { path: '/shop', label: t.shop },
@@ -38,7 +39,7 @@ export function Header({ t, lang, scrolled, wishlistCount, dark, menuOpen, onMen
           <button onClick={onDarkToggle} className="header-icon" aria-label={lang === 'ar' ? 'تبديل المظهر' : 'Toggle theme'}>{dark ? <Sun size={17} /> : <Moon size={17} />}</button>
           <button onClick={onLangToggle} className="header-lang" aria-label={lang === 'ar' ? 'تغيير اللغة إلى الإنجليزية' : 'Switch language to Arabic'}><Globe size={16} /><span>{lang === 'ar' ? 'EN' : 'عربي'}</span></button>
           <Link to="/wishlist" className="header-icon relative" aria-label={t.wishlist}><Heart size={17} />{wishlistCount > 0 && <span className="wishlist-badge">{wishlistCount}</span>}</Link>
-          <a href={`https://wa.me/${settings.whatsapp}`} target="_blank" rel="noopener noreferrer" className="header-contact"><MessageCircle size={16} /><span>{t.contactUs}</span></a>
+          <a href={waNumber ? `https://wa.me/${waNumber}` : '#'} target="_blank" rel="noopener noreferrer" className="header-contact"><MessageCircle size={16} /><span>{t.contactUs}</span></a>
           <button onClick={onMenuToggle} className="header-icon mobile-menu-toggle" aria-expanded={menuOpen} aria-controls="mobile-navigation" aria-label={menuOpen ? (lang === 'ar' ? 'إغلاق القائمة' : 'Close menu') : (lang === 'ar' ? 'فتح القائمة' : 'Open menu')}>{menuOpen ? <X size={19} /> : <Menu size={19} />}</button>
         </div>
       </div>

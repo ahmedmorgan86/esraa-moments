@@ -63,6 +63,7 @@ const PRODUCT_COLUMNS =
 function toProduct(r: ProductRow): Product {
   return {
     id: r.id,
+    slug: r.slug ?? r.id,
     name: r.name,
     name_en: r.name_en ?? undefined,
     // Empty rather than undefined: Shop filters on this string, and a
@@ -99,6 +100,7 @@ type ProductInsert = {
 
 function fromProduct(p: Product, sortOrder = 0): ProductInsert {
   return {
+    slug: p.slug || p.id,
     name: p.name,
     name_en: p.name_en ?? null,
     description: p.desc,

@@ -479,4 +479,5 @@ export const statusLabels: Record<string, Record<string, string>> = {
   shipped: { ar: 'تم الشحن', en: 'Shipped' },
   delivered: { ar: 'تم التوصيل', en: 'Delivered' },
   cancelled: { ar: 'ملغي', en: 'Cancelled' },
+  return_requested: { ar: 'طلب إرجاع', en: 'Return Requested' },
 };

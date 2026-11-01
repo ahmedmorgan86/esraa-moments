@@ -6,6 +6,7 @@ import { useStoreSettings } from '../hooks';
 export function Footer({ t, lang }: { t: any; lang?: string }) {
   const isEn = lang === 'en';
   const settings = useStoreSettings();
+  const waNumber = String(settings.whatsapp || '').replace(/[^\d]/g, '');
   const footerOccasions = ['سبوع', 'خطوبة', 'حنة', 'كتب كتاب', 'زفاف', 'عيد ميلاد'];
 
   return (
@@ -15,10 +16,10 @@ export function Footer({ t, lang }: { t: any; lang?: string }) {
         <div className="footer-intro">
           <Link to="/" className="footer-brand"><span className="footer-brand-mark"><img src="/images/logo.jpeg" alt="" /></span><span><strong>ESRAA</strong><small>MOMENTS</small></span></Link>
           <p>{t.footerDesc}</p>
-          <div className="footer-socials"><a href="https://www.instagram.com/esraamoments" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><Link2 size={17} aria-hidden="true" /></a><a href={`https://wa.me/${settings.whatsapp}`} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><MessageCircle size={17} aria-hidden="true" /></a></div>
+          <div className="footer-socials"><a href="https://www.instagram.com/esraamoments" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><Link2 size={17} aria-hidden="true" /></a><a href={waNumber ? `https://wa.me/${waNumber}` : '#'} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><MessageCircle size={17} aria-hidden="true" /></a></div>
         </div>
         <div className="footer-links"><div><p className="footer-kicker">{t.explore}</p><Link to="/shop">{t.shop}<span>↗</span></Link><Link to="/about">{t.about}<span>↗</span></Link><Link to="/contact">{t.contact}<span>↗</span></Link><Link to="/account">{t.account}<span>↗</span></Link></div><div><p className="footer-kicker">{t.shopByOccasion}</p>{footerOccasions.slice(0, 4).map(c => <Link key={c} to={`/shop?cat=${encodeURIComponent(c)}`}>{isEn ? occasionEn[c] || c : c}<span>↗</span></Link>)}</div></div>
-        <div className="footer-contact"><p className="footer-kicker">{t.contactUs}</p><a href={`tel:+${settings.whatsapp}`}><Phone size={14} aria-hidden="true" />{settings.whatsapp}</a><a href={`mailto:${settings.email}`}><Mail size={14} aria-hidden="true" />{settings.email}</a><span><MapPin size={14} aria-hidden="true" />{settings.address}</span><strong>{t.footerTagline}</strong></div>
+        <div className="footer-contact"><p className="footer-kicker">{t.contactUs}</p><a href={waNumber ? `tel:+${waNumber}` : '#'}><Phone size={14} aria-hidden="true" />{settings.whatsapp}</a><a href={`mailto:${settings.email}`}><Mail size={14} aria-hidden="true" />{settings.email}</a><span><MapPin size={14} aria-hidden="true" />{settings.address}</span><strong>{t.footerTagline}</strong></div>
       </div>
       <div className="footer-bottom">
         <p>© {new Date().getFullYear()} ESRAA Moments — {t.allRights} • {isEn ? settings.footerCreditEn : settings.footerCreditAr}</p>

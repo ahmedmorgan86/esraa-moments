@@ -95,8 +95,6 @@ const statusStyles: Record<string, { color: string; icon: any; bg: string; borde
 };
 
 export default function AdminPage({ t, products, setProducts, lang, dark, onLangToggle, onDarkToggle }: { t: any; products: Product[]; setProducts: React.Dispatch<React.SetStateAction<Product[]>>; lang: string; dark: boolean; onLangToggle: () => void; onDarkToggle: () => void }) {
-  // @ts-ignore
-  const _ref = CouponsTab;
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('dashboard');
@@ -1581,7 +1579,7 @@ function ReviewsTab({ t, products }: { t: any; products: Product[] }) {
 /* ══════════════════════════════════════════════════════ */
 /*                    COUPONS TAB                        */
 /* ══════════════════════════════════════════════════════ */
-function CouponsTab({ t }: { t: any }) {
+export function CouponsTab({ t }: { t: any }) {
   const [coupons, setCoupons] = useState<Coupon[]>(() => readJSON<Coupon[]>('em-coupons', []));
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Coupon | null>(null);

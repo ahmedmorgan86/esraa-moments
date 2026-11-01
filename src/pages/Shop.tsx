@@ -54,7 +54,7 @@ export default function Shop({ t, lang, products }: { t: any; lang: string; prod
         .some(v => typeof v === 'string' && v.toLowerCase().includes(q)));
     }
     if (sort === 'name') {
-      list.sort((a, b) => String(a.slug || '').localeCompare(String(b.slug || ''), locale, { sensitivity: 'base' }));
+      list.sort((a, b) => String(a.slug || a.name || a.id).localeCompare(String(b.slug || b.name || b.id), locale, { sensitivity: 'base' }));
     } else if (sort === 'price') {
       list.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
     }
@@ -126,7 +126,7 @@ export default function Shop({ t, lang, products }: { t: any; lang: string; prod
             const soldOut = p.inStock === false || p.stock === 0;
             // No name and no price on the card. The slug is what the customer
             // quotes back on WhatsApp, so it is what the enquiry carries.
-            const refCode = String(p.slug || '');
+            const refCode = String(p.slug || p.name || p.id || '');
             const waHref = settings.whatsapp
               ? `https://wa.me/${String(settings.whatsapp).replace(/[^\d]/g, '')}?text=${encodeURIComponent(`${isEn ? 'I want to order' : 'عايز أطلب'}: ${refCode}`)}`
               : null;
