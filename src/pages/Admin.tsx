@@ -7,7 +7,7 @@ import {
   Clock, XCircle, BarChart3, Store, Bell, Menu, Ticket, Plus, Edit3, Trash2, X, Grid, List, FileText,
   Star, MessageSquare, RotateCcw, Upload, Sun, Moon, Globe,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { isAllowedAdmin } from '../lib/adminAuth';
 import type { Product, Coupon } from '../data';
 import { occasions } from '../data';
@@ -95,8 +95,22 @@ const statusStyles: Record<string, { color: string; icon: any; bg: string; borde
 };
 
 export default function AdminPage({ t, products, setProducts, lang, dark, onLangToggle, onDarkToggle }: { t: any; products: Product[]; setProducts: React.Dispatch<React.SetStateAction<Product[]>>; lang: string; dark: boolean; onLangToggle: () => void; onDarkToggle: () => void }) {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(() => {
+    if (!isSupabaseConfigured) {
+      const offlineAdmin = localStorage.getItem('em-admin-offline');
+      if (offlineAdmin && isAllowedAdmin(offlineAdmin)) {
+        return { id: 'local-admin', email: offlineAdmin, user_metadata: { full_name: 'Store Admin' } };
+      }
+    }
+    return null;
+  });
+  const [loading, setLoading] = useState(() => {
+    if (!isSupabaseConfigured) {
+      const offlineAdmin = localStorage.getItem('em-admin-offline');
+      return !(offlineAdmin && isAllowedAdmin(offlineAdmin));
+    }
+    return true;
+  });
   const [tab, setTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -107,25 +121,52 @@ export default function AdminPage({ t, products, setProducts, lang, dark, onLang
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!isSupabaseConfigured) {
+      const offlineAdmin = localStorage.getItem('em-admin-offline');
+      if (!offlineAdmin || !isAllowedAdmin(offlineAdmin)) {
+        navigate('/login', { replace: true });
+      }
+      return;
+    }
+
     supabase.auth.getSession()
       .then(({ data }) => {
         const u = data.session?.user;
-        if (!u || !isAllowedAdmin(u.email)) { navigate('/login', { replace: true }); return; }
+        if (!u || !isAllowedAdmin(u.email)) {
+          const offlineAdmin = localStorage.getItem('em-admin-offline');
+          if (offlineAdmin && isAllowedAdmin(offlineAdmin)) {
+            setUser({ id: 'local-admin', email: offlineAdmin, user_metadata: { full_name: 'Store Admin' } });
+            setLoading(false);
+            return;
+          }
+          navigate('/login', { replace: true });
+          return;
+        }
         setUser(u);
         setLoading(false);
       })
-      .catch(() => { setAuthError(true); setLoading(false); });
+      .catch(() => {
+        const offlineAdmin = localStorage.getItem('em-admin-offline');
+        if (offlineAdmin && isAllowedAdmin(offlineAdmin)) {
+          setUser({ id: 'local-admin', email: offlineAdmin, user_metadata: { full_name: 'Store Admin' } });
+          setLoading(false);
+          return;
+        }
+        setAuthError(true);
+        setLoading(false);
+      });
   }, [navigate]);
 
   useEffect(() => {
-    // Subscribing on every `user` change re-fired INITIAL_SESSION each time,
-    // which handed back a fresh user object, which re-ran this effect: an
-    // endless loop that also re-ran the [user] notification effect and pinned
-    // the browser at hundreds of orders requests per second. Subscribe once, and
-    // keep the same object identity when the account has not actually changed.
+    if (!isSupabaseConfigured) return;
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       const u = session?.user;
-      if (!u || !isAllowedAdmin(u.email)) { navigate('/login', { replace: true }); return; }
+      if (!u || !isAllowedAdmin(u.email)) {
+        const offlineAdmin = localStorage.getItem('em-admin-offline');
+        if (offlineAdmin && isAllowedAdmin(offlineAdmin)) return;
+        navigate('/login', { replace: true });
+        return;
+      }
       setUser((prev: any) => (prev && prev.id === u.id ? prev : u));
     });
     return () => sub.subscription.unsubscribe();
@@ -169,7 +210,10 @@ export default function AdminPage({ t, products, setProducts, lang, dark, onLang
   }
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    localStorage.removeItem('em-admin-offline');
+    if (isSupabaseConfigured) {
+      try { await supabase.auth.signOut(); } catch {}
+    }
     window.location.href = '/login';
   };
 

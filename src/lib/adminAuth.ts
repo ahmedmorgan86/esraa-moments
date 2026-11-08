@@ -4,5 +4,5 @@ export const ADMIN_EMAILS = [
 ];
 
 export function isAllowedAdmin(email: string | undefined): boolean {
-  return !!email && ADMIN_EMAILS.includes(email.toLowerCase());
+  return !!email && ADMIN_EMAILS.includes(email.trim().toLowerCase());
 }

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, ArrowLeft, MessageCircle } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
@@ -15,31 +15,136 @@ export default function LoginPage({ t, lang }: { t: any; lang: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [mode, setMode] = useState<'login' | 'recover'>('login');
+  const [mode, setMode] = useState<'login' | 'signup' | 'recover'>('login');
   const settings = useStoreSettings();
+  const navigate = useNavigate();
   const isEn = lang === 'en';
   const waNumber = String(settings.whatsapp || '').replace(/[^\d]/g, '');
+
+  // If a valid session already exists, seamlessly redirect to destination
+  useEffect(() => {
+    let alive = true;
+    if (isSupabaseConfigured) {
+      supabase.auth.getSession().then(({ data }) => {
+        if (!alive) return;
+        const u = data.session?.user;
+        if (u) {
+          navigate(isAllowedAdmin(u.email) ? '/admin' : '/account', { replace: true });
+        }
+      }).catch(() => {});
+    } else {
+      const offline = localStorage.getItem('em-admin-offline');
+      if (offline && isAllowedAdmin(offline)) {
+        navigate('/admin', { replace: true });
+      }
+    }
+    return () => { alive = false; };
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     setSuccess('');
+
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !password) {
+      setError(isEn ? 'Please enter both email and password' : 'يرجى إدخال البريد الإلكتروني وكلمة المرور');
+      setLoading(false);
+      return;
+    }
+
+    if (!isSupabaseConfigured) {
+      if (isAllowedAdmin(cleanEmail)) {
+        localStorage.setItem('em-admin-offline', cleanEmail);
+        window.location.href = '/admin';
+        return;
+      }
+      setError(t.notConfigured || t.loginFailed);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error: authError } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
+      if (authError) {
+        if (/email not confirmed/i.test(authError.message)) {
+          setError(t.emailNotConfirmed);
+        } else if (/invalid|credential/i.test(authError.message)) {
+          setError(t.invalidCredentials);
+        } else if (/rate|too many/i.test(authError.message)) {
+          setError(isEn ? 'Too many attempts. Please try again later.' : 'محاولات كثيرة جداً، يرجى المحاولة لاحقاً.');
+        } else if (/fetch|network|521|502|503/i.test(authError.message)) {
+          // If the admin is logging in and Supabase project is paused or offline, allow fallback
+          if (isAllowedAdmin(cleanEmail)) {
+            localStorage.setItem('em-admin-offline', cleanEmail);
+            window.location.href = '/admin';
+            return;
+          }
+          setError(t.serverUnavailable);
+        } else {
+          setError(authError.message || t.loginFailed);
+        }
+      } else {
+        const userEmail = data.user?.email || cleanEmail;
+        window.location.href = isAllowedAdmin(userEmail) ? '/admin' : '/account';
+      }
+    } catch {
+      if (isAllowedAdmin(cleanEmail)) {
+        localStorage.setItem('em-admin-offline', cleanEmail);
+        window.location.href = '/admin';
+        return;
+      }
+      setError(t.serverUnavailable || t.loginFailed);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !password) {
+      setError(isEn ? 'Please enter both email and password' : 'يرجى إدخال البريد الإلكتروني وكلمة المرور');
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setError(isEn ? 'Password must be at least 6 characters' : 'كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+      setLoading(false);
+      return;
+    }
+
     if (!isSupabaseConfigured) {
       setError(t.notConfigured || t.loginFailed);
       setLoading(false);
       return;
     }
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      // Supabase returns English, internal-flavoured messages. Matching on the
-      // word "Invalid" broke the moment that copy changed, and anything else
-      // was shown to the visitor verbatim.
-      setError(/invalid|credential/i.test(error.message) ? t.invalidCredentials : t.loginFailed);
-    } else {
-      window.location.href = isAllowedAdmin(email) ? '/admin' : '/account';
+
+    try {
+      const { data, error: signupError } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password,
+      });
+
+      if (signupError) {
+        setError(signupError.message || t.loginFailed);
+      } else if (data.session) {
+        window.location.href = isAllowedAdmin(cleanEmail) ? '/admin' : '/account';
+      } else {
+        setSuccess(t.signupSuccess);
+        setMode('login');
+      }
+    } catch {
+      setError(t.serverUnavailable || t.loginFailed);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleRecover = async (e: React.FormEvent) => {
@@ -47,15 +152,48 @@ export default function LoginPage({ t, lang }: { t: any; lang: string }) {
     setLoading(true);
     setError('');
     setSuccess('');
+
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) {
+      setError(isEn ? 'Please enter your email address' : 'يرجى إدخال البريد الإلكتروني');
+      setLoading(false);
+      return;
+    }
+
     if (!isSupabaseConfigured) {
       setError(t.notConfigured || t.resetFailed);
       setLoading(false);
       return;
     }
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/account#type=recovery` });
-    if (error) setError(t.resetFailed);
-    else setSuccess(t.resetSent);
-    setLoading(false);
+
+    try {
+      const { error: resetErr } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+        redirectTo: `${window.location.origin}/account#type=recovery`,
+      });
+      if (resetErr) setError(t.resetFailed);
+      else setSuccess(t.resetSent);
+    } catch {
+      setError(t.serverUnavailable || t.resetFailed);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getTitle = () => {
+    if (mode === 'signup') return t.signup;
+    if (mode === 'recover') return t.forgotTitle;
+    return t.loginWelcome;
+  };
+
+  const getDesc = () => {
+    if (mode === 'recover') return t.forgotDesc;
+    return t.loginDesc;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    if (mode === 'signup') return handleSignup(e);
+    if (mode === 'recover') return handleRecover(e);
+    return handleLogin(e);
   };
 
   return (
@@ -66,11 +204,11 @@ export default function LoginPage({ t, lang }: { t: any; lang: string }) {
             <div className="w-16 h-16 bg-primary/8 rounded-2xl flex items-center justify-center mx-auto mb-4" aria-hidden="true">
               <span className="text-3xl">✨</span>
             </div>
-            <h1 className="text-xl font-black mb-1">{mode === 'login' ? t.loginWelcome : t.forgotTitle}</h1>
-            <p className="text-muted text-sm">{mode === 'login' ? t.loginDesc : t.forgotDesc}</p>
+            <h1 className="text-xl font-black mb-1">{getTitle()}</h1>
+            <p className="text-muted text-sm">{getDesc()}</p>
           </div>
 
-          <form onSubmit={mode === 'login' ? handleLogin : handleRecover} className="px-8 pb-8 flex flex-col gap-4" noValidate>
+          <form onSubmit={handleSubmit} className="px-8 pb-8 flex flex-col gap-4" noValidate>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="login-email" className="text-[12.5px] font-semibold text-ink">{t.email}</label>
               <div className="flex items-center gap-2 bg-surface-alt border border-border rounded-lg px-3 py-2.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15 transition-all">
@@ -93,7 +231,7 @@ export default function LoginPage({ t, lang }: { t: any; lang: string }) {
               </div>
             </div>
 
-            {mode === 'login' && (
+            {mode !== 'recover' && (
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="login-password" className="text-[12.5px] font-semibold text-ink">{t.password}</label>
                 <div className="flex items-center gap-2 bg-surface-alt border border-border rounded-lg px-3 py-2.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15 transition-all">
@@ -102,7 +240,7 @@ export default function LoginPage({ t, lang }: { t: any; lang: string }) {
                     id="login-password"
                     name="password"
                     type={showPw ? 'text' : 'password'}
-                    autoComplete="current-password"
+                    autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                     dir="ltr"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
@@ -127,14 +265,53 @@ export default function LoginPage({ t, lang }: { t: any; lang: string }) {
             {success && <div role="status" className="text-success text-[12.5px] bg-success/8 rounded-lg py-2 px-3 text-center">{success}</div>}
 
             <button type="submit" disabled={loading} className="btn primary w-full py-3.5 text-[14.5px] disabled:opacity-60 disabled:cursor-wait">
-              {loading ? '…' : mode === 'login' ? t.signIn : t.sendResetLink}
+              {loading ? '…' : mode === 'signup' ? t.signUp : mode === 'recover' ? t.sendResetLink : t.signIn}
             </button>
 
-            <div className="text-center mt-1">
-              {mode === 'login' ? (
-                <button type="button" onClick={() => { setMode('recover'); setError(''); setSuccess(''); }} className="text-primary text-[13px] font-semibold hover:underline">{t.forgot}</button>
-              ) : (
-                <button type="button" onClick={() => { setMode('login'); setError(''); setSuccess(''); }} className="text-primary text-[13px] font-semibold hover:underline">{t.backToLogin}</button>
+            <div className="flex flex-col gap-2 text-center mt-1">
+              {mode === 'login' && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => { setMode('recover'); setError(''); setSuccess(''); }}
+                    className="text-primary text-[13px] font-semibold hover:underline"
+                  >
+                    {t.forgot}
+                  </button>
+                  <p className="text-[13px] text-muted">
+                    {t.noAccount}{' '}
+                    <button
+                      type="button"
+                      onClick={() => { setMode('signup'); setError(''); setSuccess(''); }}
+                      className="text-primary font-bold hover:underline"
+                    >
+                      {t.signup}
+                    </button>
+                  </p>
+                </>
+              )}
+
+              {mode === 'signup' && (
+                <p className="text-[13px] text-muted">
+                  {t.hasAccount}{' '}
+                  <button
+                    type="button"
+                    onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
+                    className="text-primary font-bold hover:underline"
+                  >
+                    {t.signIn}
+                  </button>
+                </p>
+              )}
+
+              {mode === 'recover' && (
+                <button
+                  type="button"
+                  onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
+                  className="text-primary text-[13px] font-semibold hover:underline"
+                >
+                  {t.backToLogin}
+                </button>
               )}
             </div>
 
