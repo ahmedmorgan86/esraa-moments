@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useLocalStorage, useScrollShadow, useProducts, useWishlist, useReviews, useSharedDataHydration } from './hooks';
 import { t, setUiLang } from './i18n';
-import { useSite } from './lib/site';
+import { useSite } from './lib/siteContext';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { AnnouncementBar } from './components/AnnouncementBar';
@@ -46,7 +46,12 @@ export function App() {
   }, [lang]);
 
   useEffect(() => { document.documentElement.dataset.theme = dark ? 'dark' : 'light'; localStorage.setItem('em-dark', dark ? '1' : '0'); }, [dark]);
-  useEffect(() => { setMenuOpen(false); window.scrollTo(0, 0); }, [location.pathname]);
+  const [prevPath, setPrevPath] = useState(location.pathname);
+  if (prevPath !== location.pathname) {
+    setPrevPath(location.pathname);
+    setMenuOpen(false);
+  }
+  useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
 
   const toggleDark = () => setDark(v => !v);
   const toggleLang = () => setLang(l => l === 'ar' ? 'en' : 'ar');

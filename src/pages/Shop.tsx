@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Search, SlidersHorizontal, MessageCircle } from 'lucide-react';
 import { occasions } from '../data';
@@ -20,20 +20,14 @@ function resolveCat(raw: string | null): string {
 
 export default function Shop({ t, lang, products }: { t: any; lang: string; products: any[] }) {
   const [params, setParams] = useSearchParams();
-  const [cat, setCat] = useState(() => resolveCat(params.get('cat')));
+  const cat = resolveCat(params.get('cat'));
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('default');
   const settings = useStoreSettings();
   const isEn = lang === 'en';
   const locale = isEn ? 'en' : 'ar';
 
-  // Keep the filter in sync when the header/footer links change ?cat= while
-  // this page is already mounted (state was previously seeded once and never
-  // updated, so the chips and the list could disagree with the URL).
-  useEffect(() => { setCat(resolveCat(params.get('cat'))); }, [params]);
-
   const selectCat = (next: string) => {
-    setCat(next);
     const p = new URLSearchParams(params);
     if (next === ALL) p.delete('cat');
     else p.set('cat', isEn ? (occasionEn[next] || next) : next);

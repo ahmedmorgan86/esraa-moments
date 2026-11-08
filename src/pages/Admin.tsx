@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -19,7 +19,7 @@ import {
   uploadProductImage, deleteProductImage, isUploadedProductImage,
   type ReviewRow, type ReviewStatus,
 } from '../lib/storeData';
-import { useSite } from '../lib/site';
+import { useSite } from '../lib/siteContext';
 import {
   useHomepageContent, saveHomepageContent, resetHomepageContent,
   defaultHomepageContent, HOMEPAGE_SETTING_KEY, type HomepageContent,
@@ -161,7 +161,12 @@ export default function AdminPage({ t, products, setProducts, lang, dark, onLang
     return () => { cancelled = true; clearInterval(interval); };
   }, [user]);
 
-  useEffect(() => { setSidebarOpen(false); setNotifOpen(false); }, [tab]);
+  const [prevTab, setPrevTab] = useState(tab);
+  if (prevTab !== tab) {
+    setPrevTab(tab);
+    setSidebarOpen(false);
+    setNotifOpen(false);
+  }
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -1045,18 +1050,19 @@ function OrdersTab({ t, products }: { t: any; products: Product[] }) {
   const [actionError, setActionError] = useState('');
   const [savingId, setSavingId] = useState<string | null>(null);
 
-  const fetchOrders = useCallback(async () => {
-    setLoading(true);
-    setLoadError('');
-    let q = supabase.from('orders').select('*, order_items(name, quantity, unit_price)').order('created_at', { ascending: false }).limit(500);
-    if (statusFilter !== 'all') q = q.eq('status', statusFilter);
-    const { data, error } = await q;
-    if (error) { setLoadError(t.dataLoadError); setOrders([]); }
-    else setOrders(data || []);
-    setLoading(false);
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      let q = supabase.from('orders').select('*, order_items(name, quantity, unit_price)').order('created_at', { ascending: false }).limit(500);
+      if (statusFilter !== 'all') q = q.eq('status', statusFilter);
+      const { data, error } = await q;
+      if (!active) return;
+      if (error) { setLoadError(t.dataLoadError); setOrders([]); }
+      else setOrders(data || []);
+      setLoading(false);
+    })();
+    return () => { active = false; };
   }, [statusFilter, t]);
-
-  useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
   const productById = useMemo(
     () => new Map(products.map(p => [p.id, p])),
@@ -1441,15 +1447,22 @@ function ReviewsTab({ t, products }: { t: any; products: Product[] }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [synced, setSynced] = useState<boolean | null>(null);
 
-  // No setState before the await: the tab mounts with the spinner already on,
-  // so re-rendering just to start loading is wasted work.
-  const load = useCallback(async () => {
+  const load = async () => {
     const remote = await fetchReviewsAdmin();
     if (remote) setReviews(remote);
     setLoading(false);
-  }, []);
+  };
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      const remote = await fetchReviewsAdmin();
+      if (!alive) return;
+      if (remote) setReviews(remote);
+      setLoading(false);
+    })();
+    return () => { alive = false; };
+  }, []);
 
   const counts = useMemo(() => ({
     pending: reviews.filter(r => r.status === 'pending').length,
